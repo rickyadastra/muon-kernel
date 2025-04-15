@@ -1,0 +1,18 @@
+.rel :
+{
+	*(.rel.data)
+	*(.rel.data.*)
+	*(.rel.got)
+	*(.rel.stab)
+}
+
+.reloc :
+{
+	LONG(_data);
+	LONG(10);
+	SHORT(0);
+	*(.reloc)
+}
+
+.dynsym : { *(.dynsym) }
+.dynstr : { *(.dynstr) }
