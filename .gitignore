@@ -1,0 +1,5 @@
+.cache/
+build/
+iso/
+*.EFI
+*.img
