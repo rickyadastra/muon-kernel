@@ -1,0 +1,7 @@
+SemanticTokens:
+  DisabledKinds: [Typedef, Type]
+CompileFlags:
+  CompilationDatabase: build/debug
+  Add: [-target, x86_64-pc-win32-coff, -mabi=ms, -ffreestanding]
+Diagnostics:
+  Suppress: ["unsupported option '-mabi='"]
