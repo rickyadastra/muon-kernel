@@ -9,6 +9,7 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 11)
 
+add_subdirectory(bootloader)
 add_subdirectory(kernel)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -32,3 +33,13 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # #target_link_options(muon_kernel.elf PRIVATE "-T${CMAKE_SOURCE_DIR}/linker.ld")
 
+add_custom_target(run
+    COMMAND qemu-system-x86_64 
+        -bios /usr/share/OVMF/OVMF_CODE.fd
+        -net none 
+        -drive file=fat.img,format=raw
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    DEPENDS fat-image
+    USES_TERMINAL
+    COMMENT "Launching qemu"
+)

@@ -17,5 +17,14 @@
           "CMAKE_BUILD_TYPE": "Release"
         }
       }
+    ],
+    "buildPresets": [
+      {
+        "name": "debug-run",
+        "hidden": false,
+        "configurePreset": "debug",
+        "targets": [ "run" ],
+        "cleanFirst": false
+      }
     ]
   }

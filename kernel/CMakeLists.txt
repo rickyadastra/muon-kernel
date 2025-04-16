@@ -1,10 +1,3 @@
-if (NOT DEFINED BOOT_METHOD)
-    message(STATUS "Boot method not defined, defaulting to UEFI")
-    set(BOOT_METHOD uefi CACHE STRING "Boot method")
-endif()
-
-message(STATUS "Boot method: ${BOOT_METHOD}")
-
 if (NOT DEFINED TARGET_ARCH)
     message(STATUS "Arch not defined, defaulting to x86_64")
     set(TARGET_ARCH x86_64 CACHE STRING "Target architecture")
@@ -19,8 +12,6 @@ else()
     message(FATAL_ERROR "Unknown target architecture: ${TARGET_ARCH}")
 endif()
 
-add_subdirectory(src/boot/${BOOT_METHOD})
-
 file(GLOB KERNEL_SOURCES
     "*.c"
     "arch/${ARCH_SRC}/*.c"
@@ -28,6 +19,8 @@ file(GLOB KERNEL_SOURCES
 )
 
 # add_library(kernel STATIC ${KERNEL_SOURCES})
+
+# target_include_directories(kernel PRIVATE ${CMAKE_SOURCE_DIR}/shared/include)
 
 # target_compile_options(kernel PRIVATE 
 #     ${ARCH_FLAGS}
