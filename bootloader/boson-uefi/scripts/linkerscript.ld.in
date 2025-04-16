@@ -1,3 +1,10 @@
+OUTPUT_FORMAT("elf64-x86-64")
+OUTPUT_ARCH(i386:x86-64)
+. = 4096;
+ImageBase = .;
+ENTRY(@ENTRY_POINT@) 
+
+SECTIONS {
 .hash : { *(.hash) }
 .gnu.hash : { *(.gnu.hash) }
 
@@ -57,4 +64,24 @@ _data_size = . - _etext;
 	*(.eh_frame)
 	*(.note*)
 	*(.comment*)
+}
+
+.rel :
+{
+	*(.rel.data)
+	*(.rel.data.*)
+	*(.rel.got)
+	*(.rel.stab)
+}
+
+.reloc :
+{
+	LONG(_data);
+	LONG(10);
+	SHORT(0);
+	*(.reloc)
+}
+
+.dynsym : { *(.dynsym) }
+.dynstr : { *(.dynstr) }
 }
