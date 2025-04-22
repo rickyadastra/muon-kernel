@@ -4,6 +4,8 @@ CheckOptions:
     value:            CamelCase
   - key:              readability-identifier-naming.VariableCase
     value:            camelBack
+  - key:              readability-identifier-naming.StructMemberCase
+    value:            camelBack
   - key:              readability-identifier-naming.FunctionCase
     value:            lower_case
   - key:              readability-identifier-naming.StructCase
