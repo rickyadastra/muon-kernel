@@ -4,6 +4,7 @@ include_directories(boson PRIVATE ${CMAKE_SOURCE_DIR}/shared/include)
 
 file(GLOB BOSON_SOURCES
     "src/*.c"
+    "src/efi/*.c"
 )
 
 add_library(${BOOTLOADER} STATIC ${BOSON_SOURCES})

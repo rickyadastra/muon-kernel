@@ -14,11 +14,16 @@ add_custom_command(
     COMMAND mformat -i ${FAT_IMAGE} -f 1440 ::
     COMMAND mmd -i ${FAT_IMAGE} ::/EFI
     COMMAND mmd -i ${FAT_IMAGE} ::/EFI/BOOT
-    COMMAND mcopy -i ${FAT_IMAGE} ${UEFI_EXPORT} ::/EFI/BOOT 
     DEPENDS uefi-app
     COMMENT "[bootloader] Making FAT image ${FAT_IMAGE}"
 )
 
-add_custom_target(fat-image ALL
+add_custom_target(fat-image-create ALL
     DEPENDS ${FAT_IMAGE}
+)
+
+add_custom_target(fat-image-copy
+    COMMAND mcopy -o -i ${FAT_IMAGE} ${UEFI_EXPORT} ::/EFI/BOOT
+    DEPENDS fat-image-create
+    COMMENT "[bootloader] Copying updated files to FAT image"
 )
