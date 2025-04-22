@@ -1,6 +1,6 @@
 if (NOT DEFINED BOOTLOADER)
-    message(STATUS "Bootloader not defined, defaulting to boson-uefi")
-    set(BOOTLOADER boson-uefi CACHE STRING "Bootloader")
+    message(STATUS "Bootloader not defined, defaulting to boson")
+    set(BOOTLOADER boson CACHE STRING "Bootloader")
 endif()
 
 message(STATUS "Bootloader: ${BOOTLOADER}")

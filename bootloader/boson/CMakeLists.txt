@@ -7,7 +7,7 @@ configure_file(
     @ONLY
 )
 
-include_directories(boson-uefi PRIVATE ${CMAKE_SOURCE_DIR}/shared/include)
+include_directories(boson PRIVATE ${CMAKE_SOURCE_DIR}/shared/include)
 
 file(GLOB BOSON_SOURCES
     "src/*.c"
@@ -43,7 +43,7 @@ add_custom_command(
         $<TARGET_FILE:${BOOTLOADER}>
         -o ${UEFI_APP_OUT}
     DEPENDS ${BOOTLOADER}
-    COMMENT "[boson-uefi] Linking executable ${UEFI_APP_OUT}"
+    COMMENT "[boson] Linking executable ${UEFI_APP_OUT}"
 )
 
 add_custom_target(uefi-app ALL
