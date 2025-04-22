@@ -1,11 +1,4 @@
 set(ENTRY_POINT "efi_main")
-set(LINKER_SCRIPT ${CMAKE_BINARY_DIR}/${BOOTLOADER}.ld)
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/linkerscript.ld.in
-    ${LINKER_SCRIPT}
-    @ONLY
-)
 
 include_directories(boson PRIVATE ${CMAKE_SOURCE_DIR}/shared/include)
 
