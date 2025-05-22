@@ -2,9 +2,9 @@
 
 #include "class.h"
 
-#define OBJECT_METHODS(S, M, T) \
-    M(T, S, T, init) \
-    M(T, S, Class*, get_class, T* self)
+#define OBJECT_METHODS(TYPE, SUPER, FUNC) \
+    FUNC(TYPE, SUPER, TYPE, init) \
+    FUNC(TYPE, SUPER, Class*, get_class, TYPE* self)
 
 BASECLASSDEF(Object, OBJECT_METHODS)
 

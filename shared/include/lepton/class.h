@@ -19,8 +19,6 @@
  */
 #pragma once
 
-#include <null.h>
-
 typedef struct _Class_struct Class;
 struct _Class_struct {
     const char* name;
@@ -42,10 +40,10 @@ struct _Class_struct {
     typedef struct _##NAME##_struct NAME; \
     \
     struct _##NAME##_interface { \
-        METHODS(ROOT, VIRTUALDEF, NAME) \
+        METHODS(NAME, ROOT, VIRTUALDEF) \
     }; \
     \
-    METHODS(ROOT, METHODDECL, NAME) \
+    METHODS(NAME, ROOT, METHODDECL) \
     \
     struct _##NAME##_struct { \
         Class* classmeta; \
@@ -55,10 +53,10 @@ struct _Class_struct {
     typedef struct _##NAME##_struct NAME; \
     \
     struct _##NAME##_interface { \
-        METHODS(VIRTUALDEF, NAME) \
+        METHODS(NAME, SUPER, VIRTUALDEF) \
     }; \
     \
-    METHODS(METHODDECL, NAME) \
+    METHODS(NAME, SUPER, METHODDECL) \
     \
     struct _##NAME##_struct { \
         union { \
@@ -75,7 +73,7 @@ struct _Class_struct {
 
 #define DECLAREMETHODS(NAME, SUPER, METHODS) \
     NAME##Interface I##NAME; \
-    METHODS(SUPER, METHODDECL, NAME)
+    METHODS(NAME, SUPER, METHODDECL)
 
 #define PACKAGECLASS(CLASS, SUPER, METHODS, SUPER_METHODS) \
     CLASSMETADEF(CLASS, SUPER, METHODS, SUPER_METHODS) \
@@ -84,15 +82,15 @@ struct _Class_struct {
 #define CLASSMETADEF(NAME, SUPER, METHODS, SUPER_METHODS) \
     Class _##NAME##_classmeta = { \
         .name = #NAME, \
-        .super_class = _##SUPER##_classmeta, \
+        .super_class = &_##SUPER##_classmeta, \
         .interface = &I##NAME \
     }; 
 
 #define INITIALIZERDEF(NAME, SUPER, METHODS, SUPER_METHODS) \
-    Bool _##NAME##_lazy_initialized = false; \
+    int _##NAME##_lazy_initialized = 0; \
     \
-    void _##NAME##_lazy() { \
+    void _##NAME##_iface_init_lazy() { \
         I##NAME = (I##NAME) { \
-            METHODS(SUPER, IFACEASSIGN, NAME) \
+            METHODS(NAME, SUPER, IFACEASSIGN) \
         }; \
     }
