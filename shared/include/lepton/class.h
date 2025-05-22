@@ -28,8 +28,10 @@ struct _Class_struct {
     void* interface;
 };
 
-#define VIRTUALDEF(CLASS, RET, NAME, ...) RET (*NAME)(__VA_ARGS__);
-#define METHODDECL(CLASS, RET, NAME, ...) RET CLASS##_##NAME(__VA_ARGS__);
+#define VIRTUALDEF(SUPER, CLASS, RET, NAME, ...) RET (*NAME)(__VA_ARGS__);
+#define METHODDECL(SUPER, CLASS, RET, NAME, ...) RET CLASS##_##NAME(__VA_ARGS__);
+#define IFACEMETHOD(SUPER, CLASS, RET, METHOD, ...) ((I##CLASS*)(_##SUPER##_classmeta.interface))->METHOD
+#define IFACEASSIGN(SUPER, CLASS, RET, METHOD, ...) .METHOD = CLASS##_##METHOD ? CLASS##_##METHOD : IFACEMETHOD(SUPER, CLASS, RET, METHOD, ##__VA_ARGS__),
 
 #define _ROOT_classmeta ((Class*)null)
 
@@ -40,10 +42,10 @@ struct _Class_struct {
     typedef struct _##NAME##_struct NAME; \
     \
     struct _##NAME##_interface { \
-        METHODS(VIRTUALDEF, NAME) \
+        METHODS(ROOT, VIRTUALDEF, NAME) \
     }; \
     \
-    METHODS(METHODDECL, NAME) \
+    METHODS(ROOT, METHODDECL, NAME) \
     \
     struct _##NAME##_struct { \
         Class* classmeta; \
@@ -67,21 +69,30 @@ struct _Class_struct {
 #define ENDCLASSDEF(NAME) \
     }; \
     extern Class _##NAME##_classmeta; \
-    extern NAME##Interface I##NAME; \
-    NAME _##NAME##_init(); 
+    extern NAME##Interface I##NAME; 
 
 // SOURCE FILE MACROS --------------- 
 
-#define DECLAREMETHODS(NAME, METHODS) \
-    static NAME##Interface I##NAME; \
-    METHODS(METHODDECL, NAME)
+#define DECLAREMETHODS(NAME, SUPER, METHODS) \
+    NAME##Interface I##NAME; \
+    METHODS(SUPER, METHODDECL, NAME)
 
-#define PACKAGECLASS(NAME, SUPER) \
-    CLASSMETADEF(NAME, SUPER)
+#define PACKAGECLASS(CLASS, SUPER, METHODS, SUPER_METHODS) \
+    CLASSMETADEF(CLASS, SUPER, METHODS, SUPER_METHODS) \
+    INITIALIZERDEF(CLASS, SUPER, METHODS, SUPER_METHODS)
 
-#define CLASSMETADEF(NAME, SUPER) \
-    static Class _##NAME##_classmeta = { \
+#define CLASSMETADEF(NAME, SUPER, METHODS, SUPER_METHODS) \
+    Class _##NAME##_classmeta = { \
         .name = #NAME, \
         .super_class = _##SUPER##_classmeta, \
         .interface = &I##NAME \
     }; 
+
+#define INITIALIZERDEF(NAME, SUPER, METHODS, SUPER_METHODS) \
+    Bool _##NAME##_lazy_initialized = false; \
+    \
+    void _##NAME##_lazy() { \
+        I##NAME = (I##NAME) { \
+            METHODS(SUPER, IFACEASSIGN, NAME) \
+        }; \
+    }
