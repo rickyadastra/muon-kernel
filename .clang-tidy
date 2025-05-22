@@ -8,6 +8,8 @@ CheckOptions:
     value:            camelBack
   - key:              readability-identifier-naming.FunctionCase
     value:            lower_case
+  - key:              readability-identifier-naming.FunctionIgnoredRegexp
+    value:            "([A-Z][a-z0-9]+)+_.+"
   - key:              readability-identifier-naming.StructCase
     value:            Leading_upper_snake_case
   - key:              readability-identifier-naming.StructPrefix
