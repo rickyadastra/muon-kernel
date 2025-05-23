@@ -16,6 +16,9 @@ struct _Class_struct {
 
 #define _ROOT_classmeta ((Class*)null)
 
+int subclassof(Class*, Class*);
+#define INSTANCEOF(OBJECT, CLASS) subclassof((OBJECT)->classmeta, &_##CLASS##_classmeta)
+
 // HEADER FILE MACROS --------------- 
 
 #define IFACEDEF(NAME, METHODS) \
