@@ -28,8 +28,10 @@ struct _Class_struct {
 
 #define VIRTUALDEF(SUPER, CLASS, RET, NAME, ...) RET (*NAME)(__VA_ARGS__);
 #define METHODDECL(SUPER, CLASS, RET, NAME, ...) RET CLASS##_##NAME(__VA_ARGS__);
-#define IFACEMETHOD(SUPER, CLASS, RET, METHOD, ...) ((I##CLASS*)(_##SUPER##_classmeta.interface))->METHOD
-#define IFACEASSIGN(SUPER, CLASS, RET, METHOD, ...) .METHOD = CLASS##_##METHOD ? CLASS##_##METHOD : IFACEMETHOD(SUPER, CLASS, RET, METHOD, ##__VA_ARGS__),
+#define WEAKMETHODDECL(SUPER, CLASS, RET, NAME, ...) __attribute__((weak)) RET CLASS##_##NAME(__VA_ARGS__);
+#define IFACEMETHOD(SUPER, CLASS, RET, METHOD, ...) ((CLASS##Interface*)(_##SUPER##_classmeta.interface))->METHOD
+#define IFACEASSIGN(CLASS, SUPER, RET, METHOD, ...) .METHOD = CLASS##_##METHOD
+#define IFACEOVERRIDE(CLASS, SUPER, RET, METHOD, ...) .METHOD = CLASS##_##METHOD ? CLASS##_##METHOD : IFACEMETHOD(SUPER, CLASS, RET, METHOD, ##__VA_ARGS__),
 
 #define _ROOT_classmeta ((Class*)null)
 
@@ -73,7 +75,7 @@ struct _Class_struct {
 
 #define DECLAREMETHODS(NAME, SUPER, METHODS) \
     NAME##Interface I##NAME; \
-    METHODS(NAME, SUPER, METHODDECL)
+    METHODS(NAME, NAME, METHODDECL)
 
 #define PACKAGECLASS(CLASS, SUPER, METHODS, SUPER_METHODS) \
     CLASSMETADEF(CLASS, SUPER, METHODS, SUPER_METHODS) \
@@ -90,7 +92,20 @@ struct _Class_struct {
     int _##NAME##_lazy_initialized = 0; \
     \
     void _##NAME##_iface_init_lazy() { \
-        I##NAME = (I##NAME) { \
+        I##NAME = (NAME##Interface) { \
+            SUPER_METHODS(NAME, SUPER, IFACEOVERRIDE) \
             METHODS(NAME, SUPER, IFACEASSIGN) \
         }; \
-    }
+        _##NAME##_lazy_initialized = 1; \
+    } \
+    NAME NAME##_init() { \
+        if (_##NAME##_lazy_initialized == 0) _##NAME##_iface_init_lazy(); \
+        return (NAME) {.classmeta = &_##NAME##_classmeta}; \
+    } \
+
+#define INHERITCLASS(NAME, SUPER_METHODS, METHODS) \
+    SUPER_METHODS(NAME, NAME, WEAKMETHODDECL) \
+    METHODS(NAME, NAME, METHODDECL) \
+    NAME##Interface I##NAME = { \
+        .init = NAME##_init, \
+    };
