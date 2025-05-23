@@ -1,21 +1,28 @@
 /**
  * @file class.h
- * @brief Defines the class structure and related macros for the Lepton object system.
+ * @brief This file defines macros for declaring and defining classes and interfaces in C.
  *
- * This file provides the foundation for creating and managing classes,
- * supporting inheritance and virtual methods through a vtable-based interface.
+ * The macros provided in this file simplify the creation of class-like structures with inheritance and virtual methods.
+ * It includes macros for defining base classes, derived classes, interfaces, and methods, as well as macros for initializing class metadata and interfaces.
  *
- * The core concept is the `Class` structure, which holds metadata about a class,
- * including its name, superclass, and interface (vtable).  Macros are provided
- * to simplify the definition of classes, their interfaces, and their methods.
- *
- * Key macros:
- *   - `BASECLASSDEF`: Defines a base class with its interface and structure.
- *   - `CLASSDEF`: Defines a class inheriting from a superclass.
- *   - `ENDCLASSDEF`: Completes the class definition and declares the class metadata and interface.
- *   - `VIRTUALDEF`: Defines a virtual method within an interface.
- *   - `METHODDECL`: Declares a method implementation for a class.
- *   - `DECLAREMETHODS`: Declares the interface and method implementations for a class.
+ * @defgroup Class Definition Macros
+ * @{
+ * @def BASECLASSDEF(NAME, METHODS) Defines a base class with an interface and methods.
+ * @def CLASSDEF(NAME, SUPER, METHODS) Defines a class inheriting from a superclass, with its own interface and methods.
+ * @def ENDCLASSDEF(NAME) Completes the class definition and declares the class metadata and interface.
+ * @def DECLAREMETHODS(NAME, SUPER, METHODS) Declares the interface and methods for a class.
+ * @def PACKAGECLASS(CLASS, SUPER, METHODS, SUPER_METHODS) Packages the class by defining its metadata and initializer.
+ * @def CLASSMETADEF(NAME, SUPER, METHODS, SUPER_METHODS) Defines the class metadata structure.
+ * @def INITIALIZERDEF(NAME, SUPER, METHODS, SUPER_METHODS) Defines the initializer function for the class.
+ * @def INHERITCLASS(NAME, SUPER_METHODS, METHODS) Inherits methods from a superclass and defines new methods for the class.
+ * @def VIRTUALDEF(SUPER, CLASS, RET, NAME, ...) Defines a virtual method in the interface.
+ * @def METHODDECL(SUPER, CLASS, RET, NAME, ...) Declares a method for a class.
+ * @def WEAKMETHODDECL(SUPER, CLASS, RET, NAME, ...) Declares a weak method for a class.
+ * @def IFACEMETHOD(SUPER, CLASS, RET, METHOD, ...) Accesses a method from the superclass's interface.
+ * @def IFACEASSIGN(CLASS, SUPER, RET, METHOD, ...) Assigns a method to the interface.
+ * @def IFACEOVERRIDE(CLASS, SUPER, RET, METHOD, ...) Overrides a method in the interface, falling back to the superclass's implementation if not defined.
+ * @def _ROOT_classmeta The classmeta of the root class.
+ * @}
  */
 #pragma once
 
