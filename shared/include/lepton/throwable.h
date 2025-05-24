@@ -53,10 +53,11 @@ extern ThrowableContext* currentExcContext;
 #define FINALLY \
     if (currentExcContext != null) currentExcContext = ctx.prev;
 
+
+// TODO: non usare printf
 #define THROW(T) \
     if (!currentExcContext) { \
         printf("Uncaught throwable"); \
-        break; \
     } \
     currentExcContext->throwable = (Throwable*)&T; \
     LOAD_EXC_CONTEXT((void**)&currentExcContext->context, 1)
