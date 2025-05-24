@@ -41,10 +41,7 @@ int subclassof(Class*, Class*);
     IFACEDEF(NAME, METHODS) \
     \
     struct _##NAME##_struct { \
-        union { \
-            SUPER super; \
-            SUPER; \
-        }; \
+        SUPER;
 
 #define ENDCLASSDEF(NAME) \
     }; \
