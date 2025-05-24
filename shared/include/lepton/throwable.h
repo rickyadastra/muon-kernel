@@ -3,7 +3,8 @@
 #include "lepton/class.h"
 #include "lepton/object.h"
 
-#define _THROWABLE_METHODS(TYPE, SUPER, FUNC)
+#define _THROWABLE_METHODS(TYPE, SUPER, FUNC) \
+    FUNC(TYPE, SUPER, void, set, TYPE* self, const char* message, const char* file, int line)
 
 #define THROWABLE_METHODS(TYPE, SUPER, FUNC) \
     OBJECT_METHODS(TYPE, SUPER, FUNC) \
@@ -20,7 +21,7 @@ typedef struct _ThrowableContext_struct ThrowableContext;
 
 struct _ThrowableContext_struct {
     JumpContext context;
-    Throwable throwable;
+    Throwable* throwable;
     ThrowableContext* prev;
 };
 
@@ -37,13 +38,13 @@ extern ThrowableContext* currentExcContext;
         if (SAVE_EXC_CONTEXT((void**)&ctx.context) == 0)
 
 #define CATCH(T, e) \
-    else if (INSTANCEOF(&ctx.throwable, T)) { \
-        Throwable* t = &ctx.throwable; \
+    else if (INSTANCEOF(ctx.throwable, T)) { \
+        Throwable* t = ctx.throwable; \
         currentExcContext = ctx.prev;
 
 #define ORCATCH(T, e) \
-    } else if (INSTANCEOF(&ctx.throwable, T)) { \
-        Throwable* t = &ctx.throwable; \
+    } else if (INSTANCEOF(ctx.throwable, T)) { \
+        Throwable* t = ctx.throwable; \
         currentExcContext = ctx.prev;
 
 #define ENDTRY \
@@ -57,5 +58,5 @@ extern ThrowableContext* currentExcContext;
         printf("Uncaught throwable"); \
         break; \
     } \
-    currentExcContext->throwable = T; \
-    LOAD_EXC_CONTEXT((void**)&currentExcContext->context, 1);
+    currentExcContext->throwable = (Throwable*)&T; \
+    LOAD_EXC_CONTEXT((void**)&currentExcContext->context, 1)
