@@ -74,6 +74,7 @@ int subclassof(Class*, Class*);
     int _##NAME##_lazy_initialized = 0; \
     \
     void _##NAME##_iface_init_lazy() { \
+        if (_##NAME##_classmeta.super_class) I##SUPER.init(); \
         I##NAME = (NAME##Interface) { \
             SUPER_METHODS(NAME, SUPER, IFACEOVERRIDE) \
             METHODS(NAME, SUPER, IFACEASSIGN) \
