@@ -39,7 +39,6 @@ int subclassof(Class*, Class*);
     typedef struct _##NAME##_interface NAME##Interface; \
     typedef struct _##NAME##_struct NAME; \
     IFACEDEF(NAME, METHODS) \
-    METHODS(NAME, SUPER, METHODDECL) \
     \
     struct _##NAME##_struct { \
         union { \
@@ -88,7 +87,7 @@ int subclassof(Class*, Class*);
         return (NAME) {.classmeta = &_##NAME##_classmeta}; \
     } \
 
-#define INHERITCLASS(NAME, SUPER_METHODS, METHODS) \
+#define INHERITCLASS(NAME, METHODS, SUPER_METHODS) \
     SUPER_METHODS(NAME, NAME, WEAKMETHODDECL) \
     METHODS(NAME, NAME, METHODDECL) \
     NAME##Interface I##NAME = { \
