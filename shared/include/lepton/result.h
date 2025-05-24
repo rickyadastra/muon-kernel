@@ -1,6 +1,7 @@
 #pragma once
 
 #include <int.h>
+#include <lepton/exception/result_exception.h>
 
 typedef enum {
     RESULT_STATUS_PRESENT,
@@ -21,8 +22,8 @@ typedef enum {
     (RESULT.status == RESULT_STATUS_PRESENT) ?  \
         (typeof(RESULT.data))RESULT.data :  \
         ({ \
-            Exception t = IException.init(); \
-            IException.set(&t, "ResultException", __FILE__, __LINE__); \
+            ResultException t = IResultException.init(); \
+            IResultException.set(&t, "tried unwrapping a bad result", __FILE__, __LINE__); \
             THROW(t); \
             (typeof(RESULT.data)) 0; \
         })
