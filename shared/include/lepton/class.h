@@ -18,6 +18,7 @@ struct _Class_struct {
 
 int subclassof(Class*, Class*);
 #define INSTANCEOF(OBJECT, CLASS) subclassof((OBJECT)->classmeta, &_##CLASS##_classmeta)
+#define CAST(OBJECT, CLASS) (*(CLASS*)(&(OBJECT)))
 
 // HEADER FILE MACROS --------------- 
 
