@@ -39,12 +39,12 @@ extern ThrowableContext* currentExcContext;
 
 #define CATCH(T, e) \
     else if (INSTANCEOF(ctx.throwable, T)) { \
-        Throwable* t = ctx.throwable; \
+        T* e = (T*)ctx.throwable; \
         currentExcContext = ctx.prev;
 
 #define ORCATCH(T, e) \
     } else if (INSTANCEOF(ctx.throwable, T)) { \
-        Throwable* t = ctx.throwable; \
+        T* e = (T*)ctx.throwable; \
         currentExcContext = ctx.prev;
 
 #define ENDTRY \
