@@ -1,6 +1,6 @@
 #include <null.h>
-#include <lepton/class.h>
-#include <lepton/object.h>
+#include <lepton/core/class.h>
+#include <lepton/core/object.h>
 
 int inline subclassof(Class* objClass, Class* classmeta) {
     if (objClass == classmeta) return 1;

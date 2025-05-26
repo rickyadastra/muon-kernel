@@ -1,7 +1,6 @@
 #pragma once
 
-#include "lepton/class.h"
-#include "lepton/object.h"
+#include <lepton/core.h>
 
 #define _THROWABLE_METHODS(TYPE, SUPER, FUNC) \
     FUNC(TYPE, SUPER, void, set, TYPE* self, const char* message, const char* file, int line)
