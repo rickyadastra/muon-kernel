@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lepton/core/object.h>
+#include <lepton/runtime.h>
 
 #define _THROWABLE_METHODS(TYPE, SUPER, FUNC) \
     FUNC(TYPE, SUPER, void, set, TYPE* self, const char* message, const char* file, int line)
@@ -24,9 +25,6 @@ struct _ThrowableContext_struct {
     ThrowableContext* prev;
 };
 
-#define SAVE_EXC_CONTEXT __builtin_setjmp
-#define LOAD_EXC_CONTEXT __builtin_longjmp
-
 extern ThrowableContext* currentExcContext;
 
 #define TRY \
@@ -34,7 +32,7 @@ extern ThrowableContext* currentExcContext;
         ThrowableContext ctx; \
         ctx.prev = currentExcContext; \
         currentExcContext = &ctx; \
-        if (SAVE_EXC_CONTEXT((void**)&ctx.context) == 0)
+        if (Lepton_setjmp((void**)&ctx.context) == 0)
 
 #define CATCH(T, e) \
     else if (INSTANCEOF(ctx.throwable, T)) { \
@@ -53,10 +51,9 @@ extern ThrowableContext* currentExcContext;
     if (currentExcContext != null) currentExcContext = ctx.prev;
 
 
-// TODO: non usare printf
 #define THROW(T) \
     if (!currentExcContext) { \
-        printf("Uncaught throwable"); \
+        Lepton_print("Uncaught throwable"); \
     } \
     currentExcContext->throwable = (Throwable*)&T; \
-    LOAD_EXC_CONTEXT((void**)&currentExcContext->context, 1)
+    Lepton_longjmp((void**)&currentExcContext->context, 1)
