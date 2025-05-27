@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lepton/core.h>
+#include <lepton/core/object.h>
 #include <lepton/throwable.h>
 
 #define _EXCEPTION_METHODS(TYPE, SUPER, FUNC)

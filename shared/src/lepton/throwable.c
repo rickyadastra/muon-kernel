@@ -1,5 +1,5 @@
 #include <lepton/throwable.h>
-#include <lepton/class.h>
+#include <lepton/core/class.h>
 #include <null.h>
 
 ThrowableContext* currentExcContext = null;

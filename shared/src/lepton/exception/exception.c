@@ -1,4 +1,4 @@
-#include "lepton/class.h"
+#include <lepton/core/class.h>
 #include <lepton/exception/exception.h>
 
 INHERITCLASS(Exception, _EXCEPTION_METHODS, THROWABLE_METHODS)
