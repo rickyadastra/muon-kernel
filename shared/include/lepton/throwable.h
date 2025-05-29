@@ -16,7 +16,7 @@ CLASSDEF(Throwable, Object, THROWABLE_METHODS)
     unsigned int line;
 ENDCLASSDEF(Throwable)
 
-typedef void* JumpContext[5];
+typedef void* JumpContext[10];
 typedef struct _ThrowableContext_struct ThrowableContext; 
 
 struct _ThrowableContext_struct {
