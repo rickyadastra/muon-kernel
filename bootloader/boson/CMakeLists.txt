@@ -1,16 +1,10 @@
 set(ENTRY_POINT "efi_main")
-set(LINKER_SCRIPT ${CMAKE_BINARY_DIR}/${BOOTLOADER}.ld)
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/linkerscript.ld.in
-    ${LINKER_SCRIPT}
-    @ONLY
-)
-
-include_directories(boson-uefi PRIVATE ${CMAKE_SOURCE_DIR}/shared/include)
+include_directories(boson PRIVATE ${CMAKE_SOURCE_DIR}/shared/include)
 
 file(GLOB BOSON_SOURCES
     "src/*.c"
+    "src/efi/*.c"
 )
 
 add_library(${BOOTLOADER} STATIC ${BOSON_SOURCES})
@@ -43,7 +37,7 @@ add_custom_command(
         $<TARGET_FILE:${BOOTLOADER}>
         -o ${UEFI_APP_OUT}
     DEPENDS ${BOOTLOADER}
-    COMMENT "[boson-uefi] Linking executable ${UEFI_APP_OUT}"
+    COMMENT "[boson] Linking executable ${UEFI_APP_OUT}"
 )
 
 add_custom_target(uefi-app ALL

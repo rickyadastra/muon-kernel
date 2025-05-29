@@ -1,0 +1,12 @@
+#pragma once
+
+#include <lepton/exception/exception.h>
+
+#define _RESULT_EXCEPTION_METHODS(TYPE, SUPER, FUNC)
+
+#define RESULT_EXCEPTION_METHODS(TYPE, SUPER, FUNC) \
+    THROWABLE_METHODS(TYPE, SUPER, FUNC) \
+    _RESULT_EXCEPTION_METHODS(TYPE, SUPER, FUNC)
+
+CLASSDEF(ResultException, Exception, RESULT_EXCEPTION_METHODS)
+ENDCLASSDEF(ResultException)

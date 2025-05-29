@@ -39,7 +39,7 @@ add_custom_target(run
         -net none 
         -drive file=fat.img,format=raw
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    DEPENDS fat-image
+    DEPENDS fat-image-create fat-image-copy
     USES_TERMINAL
     COMMENT "Launching qemu"
 )
