@@ -11,3 +11,5 @@ typedef __INT8_TYPE__ Int8;
 
 typedef __UINTPTR_TYPE__ UPtr;
 typedef __INTPTR_TYPE__ IPtr;
+
+typedef char* BytePtr;
