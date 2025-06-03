@@ -1,3 +1,6 @@
+#include "lepton/result.h"
+#include <lepton/core.h>
+#include <int.h>
 #include <bool.h>
 #include <null.h>
 #include <wchar.h>
@@ -7,6 +10,8 @@
 #include <efi/image_protocol.h>
 #include <efi/time.h>
 #include <efi/runtime_services.h>
+#include <elf/elf.h>
+#include <core/bytearray.h>
 
 WChar16 buffer[64];
 EfiSimpleTextOutputProtocol* efiOut;
@@ -68,6 +73,21 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         return status;
     }
     efi_log(L"Loaded muon.sys");
+
+    Elf64Header elfHeader;
+    UINTN headerSize = sizeof(elfHeader);
+
+    status = file->Read(file, &headerSize, &elfHeader);
+    if (EFI_ERROR(status)) {
+        efi_log(L"Cannot read file header");
+        return status;
+    }
+    efi_log(L"Read muon.sys header");
+
+    Int8Result res = IByteArray.compare_n(elfHeader.common.magic, ELF_MAGIC, 4);
+    if (UNWRAP(RESULT) == 0) {
+        efi_log(L"yippie");
+    }
 
     efi_pause();
 
