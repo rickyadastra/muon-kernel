@@ -9,6 +9,6 @@ CompileFlags:
   CompilationDatabase: build/boson
 ---
 If:
-  PathMatch: bootloader/kernel/.*
+  PathMatch: kernel/.*
 CompileFlags:
-  CompilationDatabase: build/kernel
+  CompilationDatabase: build/muon
