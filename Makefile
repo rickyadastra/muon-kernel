@@ -20,7 +20,6 @@ $(BOSON_TARGET):
 
 muon:
 	@echo "[Make] Building muon kernel"
-	@meson compile -C $(BUILD_DIR)
 
 setup:
 	@meson setup build/boson . --cross-file $(TOOLCHAIN_DIR)/boson-toolchain.txt -Dtarget=boson-bootloader
