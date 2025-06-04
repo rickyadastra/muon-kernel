@@ -38,7 +38,6 @@ $(BUILD_DIR)/$(FATIMG): boson
 	@mmd -i $@ ::/EFI
 	@mmd -i $@ ::/EFI/BOOT
 	@mcopy -i $@ $(BOSON_TARGET) ::/EFI/BOOT/BOOTX64.EFI -v
-    # @mcopy -o -i ${FAT_IMAGE} ${CMAKE_BINARY_DIR}/kernel/muon.sys ::/EFI/BOOT
 
 run: $(BUILD_DIR)/$(FATIMG)
 	$(QEMU) $(QEMU_FLAGS) -drive file=$<,format=raw
