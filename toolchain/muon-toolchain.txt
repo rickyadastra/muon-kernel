@@ -1,6 +1,5 @@
 [binaries]
 c = 'x86_64-elf-gcc'
-c_ld = 'x86_64-elf-ld'
 
 [host_machine]
 system = 'none'
