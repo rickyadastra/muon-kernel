@@ -1,7 +1,14 @@
 SemanticTokens:
   DisabledKinds: [Typedef, Type]
-CompileFlags:
-  CompilationDatabase: build/debug
-  Add: [-target, x86_64-pc-win32-coff, -mabi=ms, -ffreestanding]
 Diagnostics:
   Suppress: ["unsupported option '-mabi='", "microsoft-anon-tag"]
+
+If:
+  PathMatch: bootloader/boson/.*
+CompileFlags:
+  CompilationDatabase: build/boson
+---
+If:
+  PathMatch: bootloader/kernel/.*
+CompileFlags:
+  CompilationDatabase: build/kernel
