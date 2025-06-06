@@ -1,9 +1,8 @@
-#include "lepton/result.h"
+#include <lepton/result.h>
 #include <lepton/core.h>
 #include <int.h>
 #include <bool.h>
 #include <null.h>
-#include <wchar.h>
 #include <efi/efi.h>
 #include <efi/file_protocol.h>
 #include <efi/boot_services.h>
@@ -12,21 +11,10 @@
 #include <efi/runtime_services.h>
 #include <elf/elf.h>
 #include <core/bytearray.h>
-
-WChar16 buffer[64];
-EfiSimpleTextOutputProtocol* efiOut;
-EfiSimpleTextInputProtocol* efiIn;
-EfiRuntimeServices* runtimeServices;
-EfiBootServices* bootServices;
-
-EfiStatus efi_log_full(WChar16* msg, Bool showTimestamp);
-EfiStatus efi_announce(WChar16* msg);
-EfiStatus efi_log(WChar16* msg);
-EfiInputKey efi_pause();
+#include <utils/log.h>
 
 EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
     EfiStatus status;
-    EfiInputKey key;
 
     efiOut = systemTable->ConOut;
     efiIn = systemTable->ConIn;
@@ -75,7 +63,7 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
     efi_log(L"Loaded muon.sys");
 
     Elf64Header elfHeader;
-    UINTN headerSize = sizeof(elfHeader);
+    UINTN headerSize = sizeof(Elf64Header);
 
     status = file->Read(file, &headerSize, &elfHeader);
     if (EFI_ERROR(status)) {
@@ -85,46 +73,14 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
     efi_log(L"Read muon.sys header");
 
     Int8Result res = IByteArray.compare_n(elfHeader.common.magic, ELF_MAGIC, 4);
-    if (UNWRAP(RESULT) == 0) {
-        efi_log(L"yippie");
+    if (UNWRAP(RESULT) == 0 && 
+            elfHeader.common.elf_mode == ELF_64BIT && 
+            elfHeader.common.endian_type == ELF_LITTLE_ENDIAN) {
+
+        efi_logf("entry point: %x", elfHeader.entry_point);
     }
 
     efi_pause();
 
     return status;
-}
-
-EfiInputKey efi_pause() {
-    EfiInputKey key;
-    while (efiIn->ReadKeyStroke(efiIn, &key) == EFI_NOT_READY) {}
-    return key;
-}
-
-EfiStatus efi_log_full(WChar16* msg, Bool showTimestamp) {
-    EfiStatus status;
-    
-    if (showTimestamp) {
-        EfiTime time; 
-        EfiStatus timeStatus = runtimeServices->GetTime(&time, null);
-        if (EFI_ERROR(timeStatus)) return timeStatus;
-
-        Size offset = format_datetime(time, buffer, 64);
-
-        status = efiOut->OutputString(efiOut, buffer);
-        if (EFI_ERROR(status)) return status;
-    }
-
-    status = efiOut->OutputString(efiOut, msg);
-    if (EFI_ERROR(status)) return status;
-    status = efiOut->OutputString(efiOut, L"\r\n");
-    return status;
-}
-
-
-EfiStatus efi_announce(WChar16* msg) {
-    return efi_log_full(msg, false);
-}
-
-EfiStatus efi_log(WChar16* msg) {
-    return efi_log_full(msg, true);
 }

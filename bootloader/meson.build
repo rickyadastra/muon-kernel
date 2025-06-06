@@ -26,7 +26,8 @@ efi_link_args = [
 boson_sources = files(
     'boson/src/entry.c',
     'boson/src/efi/time.c',
-    'boson/src/string.c',
+    'boson/src/utils/string.c',
+    'boson/src/utils/log.c',
 ) + libcore_sources + liblepton_sources
 
 boson_inc = include_directories(
