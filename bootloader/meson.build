@@ -28,15 +28,14 @@ boson_sources = files(
     'boson/src/efi/time.c'
 ) + libcore_sources + liblepton_sources
 
+boson_inc = include_directories(
+    'boson/include'
+)
+
 executable(
     'boson.efi',
     boson_sources,
-    include_directories: include_directories(
-        [
-            'boson/include/',
-            '../shared/include'
-        ]
-    ),
+    include_directories: [boson_inc, shared_inc],
     c_args: efi_compile_args,
     link_args: efi_link_args,
     install: false

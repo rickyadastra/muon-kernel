@@ -1,5 +1,5 @@
 shared_inc = include_directories(
-    'include/'
+    'include'
 )
 
 libcore_sources = files(
