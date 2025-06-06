@@ -6,26 +6,24 @@
 #define PACKED __attribute__((packed))
 #define ELF_MAGIC "\177ELF"
 
-typedef enum {
+typedef enum : UInt8 {
     ELF_32BIT = 1,
     ELF_64BIT = 2
 } PACKED ElfMode;
 
-typedef enum {
+typedef enum : UInt8 {
     ELF_LITTLE_ENDIAN = 1,
     ELF_BIG_ENDIAN = 2
 } PACKED ElfEndian;
 
-typedef enum {
-    _TYPE_FORCE_16_BIT = 0xffff,
+typedef enum : UInt16 {
     ELF_RELOCATABLE = 1,
     ELF_EXECUTABLE = 2,
     ELF_SHARED = 3,
     ELF_CORE = 4,
 } PACKED ElfType;
 
-typedef enum {
-    _ARCH_FORCE_16_BIT = 0xffff,
+typedef enum : UInt16 {
     ELF_NO_SPECIFIC = 0,
     ELF_SPARC = 2,
     ELF_x86 = 3,
