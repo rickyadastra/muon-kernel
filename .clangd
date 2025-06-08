@@ -12,3 +12,8 @@ If:
   PathMatch: kernel/.*
 CompileFlags:
   CompilationDatabase: build/muon
+---
+If:
+  PathMatch: shared/.*
+CompileFlags:
+  CompilationDatabase: build/muon
