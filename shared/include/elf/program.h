@@ -4,8 +4,7 @@
 #include <int.h>
 #include <bool.h>
 
-typedef enum __elf_segment_type {
-    _SEGTYPE_FORCE_32_BIT = 0xffffffff,
+typedef enum __elf_segment_type : UInt32 {
     SEGMENT_TYPE_NULL = 0,
     SEGMENT_TYPE_LOAD = 1,
     SEGMENT_TYPE_DYNAMIC = 2,
@@ -13,8 +12,7 @@ typedef enum __elf_segment_type {
     SEGMENT_TYPE_NOTE = 4
 } ElfSegmentType;
 
-typedef enum __elf_segment_flags {
-    _SEGFLAGS_FORCE_32_BIT = 0xffffffff,
+typedef enum __elf_segment_flags : UInt32 {
     SEGMENT_FLAGS_EXECUTABLE = 0x1,
     SEGMENT_FLAGS_WRITABLE = 0x2,
     SEGMENT_FLAGS_READABLE = 0x4
