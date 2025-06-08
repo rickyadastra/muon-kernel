@@ -1,5 +1,5 @@
-#include <utils/log.h>
-#include <string.h>
+#include <utils/utils.h>
+#include <utils/string.h>
 #include <wchar.h>
 #include <null.h>
 
@@ -53,4 +53,12 @@ EfiStatus efi_logf(const char* s, ...) {
     vstrf(s, tbuf, args);
 
     return efi_log_full(tbuf, true);
+}
+
+EfiStatus efi_alloc(Size size, void** buffer) {
+    return bootServices->AllocatePool(EFI_BOOT_SERVICES_DATA, size, buffer);
+}
+
+EfiStatus efi_free(void* buffer) {
+    return bootServices->FreePool(buffer);
 }
