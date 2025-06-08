@@ -1,3 +1,4 @@
+#include <utils/string.h>
 #include <null.h>
 #include <int.h>
 #include <size.h>
@@ -9,6 +10,12 @@ char bchars[] = {'0','1','2','3','4','5','6','7','8','9',
     'A','B','C','D','E','F'};
 
 unsigned int strlen(const char* str) {
+    int l;
+    for(l=0; str[l]!='\0'; l++);
+    return l;
+}
+
+unsigned int strlenw(const WChar16* str) {
     int l;
     for(l=0; str[l]!='\0'; l++);
     return l;
@@ -59,6 +66,18 @@ WChar16* vstrf(const char* istr, WChar16* buffer, VAList args) {
         switch (istr[i]) {
             case '%':
                 switch (istr[i+1]) {
+                    case 'w': {
+                        WChar16* c = VAARG(args, WChar16*);
+
+                        for (int j=0; j < strlenw(c); j++) {
+                            *bufferPtr = c[j];
+                            bufferPtr++;
+                        }
+
+                        i++;
+                        break;
+                    }
+
                     case 's': {
                         char* c = VAARG(args, char*);
 
