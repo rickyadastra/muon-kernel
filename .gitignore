@@ -3,3 +3,4 @@
 build/
 *.EFI
 *.img
+*.log
