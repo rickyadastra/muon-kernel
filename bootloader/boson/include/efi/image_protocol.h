@@ -1,6 +1,6 @@
 #pragma once
 
-#include "efi/memory_type.h"
+#include <efi/memory.h>
 #include <int.h>
 #include <efi/efi.h>
 

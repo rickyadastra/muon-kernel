@@ -1,14 +1,18 @@
 #pragma once
 
-#include "efi/memory_type.h"
+#include "int.h"
+#include <efi/memory.h>
 #include <efi/efi.h>
 
 #define EFI_BOOT_SERVICES_SIGNATURE 0x56524553544f4f42
 #define EFI_BOOT_SERVICES_REVISION EFI_SPECIFICATION_VERSION
 
 typedef EfiStatus(*EfiHandleProtocol)(EfiHandle Handle, EfiGUID* Protocol, void** Interface);
+typedef EfiStatus(*EfiAllocatePages)(EfiAllocateType Type, EfiMemoryType MemoryType, UINTN Pages, UPtr* PhysicalAddress);
 typedef EfiStatus(*EfiAllocatePool) (EfiMemoryType PoolType, UINTN Size, void** Buffer);
 typedef EfiStatus(*EfiFreePool) (void* Buffer);
+typedef EfiStatus(*EfiGetMemoryMap) (UINTN* MemoryMapSize, EfiMemoryDescriptor* MemoryMap, UINTN* MapKey, UINTN* DescriptorSize, UInt32* DescriptorVersion);
+typedef EfiStatus(*EfiExitBootServices) (EfiHandle ImageHandle, UINTN MapKey);
 
 typedef struct {
     EfiTableHeader     Hdr;
@@ -22,9 +26,9 @@ typedef struct {
     //
     // Memory Services
     //
-    void*   AllocatePages;  // EFI 1.0+
+    EfiAllocatePages   AllocatePages;  // EFI 1.0+
     void*   FreePages;      // EFI 1.0+
-    void*   GetMemoryMap;   // EFI 1.0+
+    EfiGetMemoryMap   GetMemoryMap;   // EFI 1.0+
     EfiAllocatePool   AllocatePool;   // EFI 1.0+
     EfiFreePool   FreePool;       // EFI 1.0+
 
@@ -58,7 +62,7 @@ typedef struct {
     void*   StartImage;       // EFI 1.0+
     void*   Exit;             // EFI 1.0+
     void*   UnloadImage;      // EFI 1.0+
-    void*   ExitBootServices; // EFI 1.0+
+    EfiExitBootServices   ExitBootServices; // EFI 1.0+
 
     //
     // Miscellaneous Services
