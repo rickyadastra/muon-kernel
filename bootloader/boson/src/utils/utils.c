@@ -1,3 +1,5 @@
+#include "efi/memory.h"
+#include "int.h"
 #include <utils/utils.h>
 #include <utils/string.h>
 #include <wchar.h>
@@ -59,6 +61,22 @@ EfiStatus efi_alloc(Size size, void** buffer) {
     return bootServices->AllocatePool(EFI_BOOT_SERVICES_DATA, size, buffer);
 }
 
+EfiStatus efi_alloc_pages(Size size, UPtr* addr) {
+    return bootServices->AllocatePages(ALLOCATE_ANY_PAGES, EFI_LOADER_DATA, EFI_SIZE_TO_PAGES(size), addr);
+}
+
 EfiStatus efi_free(void* buffer) {
     return bootServices->FreePool(buffer);
+}
+
+void efi_mem_copy(const char* from, char* to, Size size) {
+    for (Size i=0; i<size; i++) {
+        to[i] = from[i];
+    }
+}
+
+void efi_mem_set(char* to, Size size, char value) {
+    for (Size i=0; i<size; i++) {
+        to[i] = value;
+    }
 }
