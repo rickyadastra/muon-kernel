@@ -25,6 +25,7 @@ efi_link_args = [
 
 boson_sources = files(
     'boson/src/entry.c',
+    'boson/src/trampoline.s',
     'boson/src/efi/time.c',
     'boson/src/utils/string.c',
     'boson/src/utils/utils.c',
