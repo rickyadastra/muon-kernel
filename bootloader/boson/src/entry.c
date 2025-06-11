@@ -25,14 +25,13 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
     runtimeServices = systemTable->RuntimeServices;
     bootServices = systemTable->BootServices;
 
-    status = efiOut->ClearScreen(efiOut);
-    if (EFI_ERROR(status)) return status;
+    EFI_ASSERT(efiOut->SetMode(efiOut, 2));
+    EFI_ASSERT(efiOut->ClearScreen(efiOut));
 
-    status = efi_announce(L"Boson Bootloader for Muon Kernel");
-    if (EFI_ERROR(status)) return status;
+    EFI_ASSERT(efi_announce(L"Boson Bootloader for Muon Kernel"));
 
-    status = systemTable->ConIn->Reset(systemTable->ConIn, false);
-    if (EFI_ERROR(status)) return status;
+    EFI_ASSERT(systemTable->ConIn->Reset(systemTable->ConIn, false));
+    
     
     EfiLoadedImageProtocol* loadedImage;
     EfiSimpleFileSystemProtocol* fileSystem;

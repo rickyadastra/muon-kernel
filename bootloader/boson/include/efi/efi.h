@@ -45,6 +45,7 @@ typedef EfiStatus (*EfiTextClearScreen)(void *This);
 typedef EfiStatus (*EfiTextEnableCursor)(void *This, UInt8 Visible);
 typedef EfiStatus (*EfiTextSetAttribute)(void *This, UINTN Attribute);
 typedef EfiStatus (*EfiTextString)(void *This, const WChar16 *String);
+typedef EfiStatus (*EfiTextSetMode) (void* This, UINTN ModeNumber);
 
 typedef EfiStatus (*EfiTextQueryMode)(
 	void  *This,
@@ -62,7 +63,7 @@ typedef struct {
 	EfiTextString              OutputString;
 	EfiPVoid                    TestString;
 	EfiTextQueryMode          QueryMode;
-	EfiPVoid                    SetMode;
+	EfiTextSetMode                    SetMode;
 	EfiTextSetAttribute       SetAttribute;
 	EfiTextClearScreen        ClearScreen;
 	EfiTextSetCursorPosition SetCursorPosition;
