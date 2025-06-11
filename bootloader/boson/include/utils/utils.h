@@ -5,6 +5,19 @@
 #include <efi/runtime_services.h>
 #include <efi/boot_services.h>
 
+#define EFI_ASSERT(EXPR) status = EXPR; \
+    if (EFI_ERROR(status)) return status;
+
+#define EFI_ASSERT_THEN(EXPR, BLOCK) status = EXPR; \
+    if (EFI_ERROR(status)) { \
+        BLOCK \
+        return status; \
+    } 
+
+#define EFI_ASSERT_OR(EXPR) status = EXPR; \
+    if (EFI_ERROR(status)) return status; \
+    else 
+
 EfiStatus efi_log_full(WChar16* msg, Bool showTimestamp);
 EfiStatus efi_announce(WChar16* msg);
 EfiStatus efi_log(WChar16* msg);
