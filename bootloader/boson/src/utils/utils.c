@@ -1,3 +1,4 @@
+#include "efi/efi.h"
 #include "efi/memory.h"
 #include "int.h"
 #include <utils/utils.h>
@@ -62,7 +63,11 @@ EfiStatus efi_alloc(Size size, void** buffer) {
 }
 
 EfiStatus efi_alloc_pages(Size size, UPtr* addr) {
-    return bootServices->AllocatePages(ALLOCATE_ANY_PAGES, EFI_LOADER_DATA, EFI_SIZE_TO_PAGES(size), addr);
+    EfiStatus status;
+    EFI_ASSERT(bootServices->AllocatePages(ALLOCATE_ANY_PAGES, EFI_LOADER_DATA, EFI_SIZE_TO_PAGES(size), addr))
+
+    efi_mem_set((char*)*addr, size, 0);
+    return status;
 }
 
 EfiStatus efi_free(void* buffer) {
