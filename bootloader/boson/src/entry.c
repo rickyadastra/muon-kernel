@@ -17,8 +17,10 @@
 #include <core/bytearray.h>
 #include <utils/utils.h>
 
-extern __attribute__((noreturn)) void start_kernel(UPtr stack, UPtr pml4);
+extern __attribute__((noreturn)) void start_kernel(UPtr stack, UPtr pml4, UPtr entry);
 extern UInt8 trampolineStart, trampolineEnd;
+
+void virtual_map(UPtr paddr, UPtr vaddr, UInt64* pml4);
 
 EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
     EfiStatus status;    
@@ -114,110 +116,53 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
 
         efi_logf("Kernel entry point at %x", elfHeader->entry_point);
 
-        UInt64 *pml4, *pdpt, *identityPdpt, *identityPd, *pd, *pt;
+        UInt64 *pml4, *pdpt, *identityPdpt, *identityPd;
         efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&pml4);
         efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&pdpt);
         efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&identityPdpt);
         efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&identityPd);
-        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&pd);
-        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&pt);
 
         // todo più pagine!!
-        UPtr stack;
-        efi_alloc_pages(2*EFI_PAGE_SIZE, &stack);
+        Size stackSize = 4*EFI_PAGE_SIZE;
+        UPtr stack, stackEnd;
+        efi_alloc_pages(stackSize, &stack);
+        stackEnd = stack + stackSize;
 
         efi_pause();
+
+        efi_logf("%x: %x", pml4, *pml4);
 
         UPtr apicAddr = 0xFEE00000;
 
         pml4[0] = (UInt64)identityPdpt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
         pml4[511] = (UInt64)pdpt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-        pdpt[0] = (UInt64)pd | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-        pd[0] = (UInt64)pt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
 
         identityPdpt[0] = (UInt64)0x0 | EFI_PAGE_PRESENT | EFI_PAGE_RW | EFI_PAGE_HUGE;
         identityPdpt[(apicAddr>>30) & 0x1ff] = (UInt64)identityPd | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-
         identityPd[(apicAddr>>21) & 0x1ff] = (UInt64)apicAddr | EFI_PAGE_PRESENT | EFI_PAGE_RW | EFI_PAGE_HUGE;
 
-        {
-            UPtr addr = (UPtr)stack;
-            UPtr physAddr = ((UInt64)addr & ~((UInt64)0xfff));
-            UPtr pml4e = (addr >> 39) & 0x1ff;
-            UPtr pdpte = (addr >> 30) & 0x1ff;
-            UPtr pde   = (addr >> 21) & 0x1ff;
-            UPtr pte   = (addr >> 12) & 0x1ff;
-            efi_logf("pml4e: %u > pdpte: %u > pde: %u > pte: %u: %x == %x", pml4e, pdpte, pde, pte, addr, physAddr);
-
-            efi_pause();
-
-            UInt64 *thisPml4 = pml4, *thisPdpt = pdpt, *thisPd = 0, *thisPt = 0;
-            if (!(thisPml4[pml4e] & EFI_PAGE_PRESENT)) {
-                efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPdpt);
-                thisPml4[pml4e] = (UInt64)thisPdpt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
-
-            if (!(thisPdpt[pdpte] & EFI_PAGE_PRESENT)) {
-                efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPd);
-                thisPdpt[pdpte] = (UInt64)thisPd | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
-
-            if (!(thisPd[pde] & EFI_PAGE_PRESENT)) {
-                efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPt);
-                thisPd[pde] = (UInt64)thisPt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
-
-            if (!(thisPt[pte] & EFI_PAGE_PRESENT)) {
-                thisPt[pte] = physAddr | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
+        for (Size base=stack; base<stackEnd; base+=EFI_PAGE_SIZE) {
+            virtual_map(base, base, pml4);
         }
 
-        {
-            UPtr addr = (UPtr)&trampolineStart;
-            UPtr physAddr = ((UInt64)addr & ~((UInt64)0xfff));
-            UPtr pml4e = (addr >> 39) & 0x1ff;
-            UPtr pdpte = (addr >> 30) & 0x1ff;
-            UPtr pde   = (addr >> 21) & 0x1ff;
-            UPtr pte   = (addr >> 12) & 0x1ff;
-            efi_logf("pml4e: %u > pdpte: %u > pde: %u > pte: %u: %x == %x", pml4e, pdpte, pde, pte, addr, physAddr);
-
-            efi_pause();
-
-            UInt64 *thisPml4 = pml4, *thisPdpt = pdpt, *thisPd = 0, *thisPt = 0;
-            if (!(thisPml4[pml4e] & EFI_PAGE_PRESENT)) {
-                efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPdpt);
-                thisPml4[pml4e] = (UInt64)thisPdpt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
-
-            if (!(thisPdpt[pdpte] & EFI_PAGE_PRESENT)) {
-                efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPd);
-                thisPdpt[pdpte] = (UInt64)thisPd | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
-
-            if (!(thisPd[pde] & EFI_PAGE_PRESENT)) {
-                efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPt);
-                thisPd[pde] = (UInt64)thisPt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
-
-            if (!(thisPt[pte] & EFI_PAGE_PRESENT)) {
-                thisPt[pte] = physAddr | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-            }
-        }
+        virtual_map((UPtr)&trampolineStart, (UPtr)&trampolineStart, pml4);
 
         Elf64ProgramHeader* programHeader = (Elf64ProgramHeader*)((UPtr)elfHeader + elfHeader->program_offset);
         for (Size i=0; i<elfHeader->programs_count; i++) {
             if (programHeader->type == SEGMENT_TYPE_LOAD) {
-                UPtr addr = 0;
-                status = efi_alloc_pages(programHeader->mem_size, &addr);
-                efi_logf("Allocated %u pages for segment at %x", EFI_SIZE_TO_PAGES(programHeader->mem_size), addr);
+                UPtr paddr = 0;
+                status = efi_alloc_pages(programHeader->mem_size, &paddr);
+                efi_logf("Allocated %u pages for segment at %x", EFI_SIZE_TO_PAGES(programHeader->mem_size), paddr);
 
-                efi_mem_copy((const char*)(fileBuffer + programHeader->file_offset), (char*)addr, programHeader->mem_size);
+                efi_mem_copy((const char*)(fileBuffer + programHeader->file_offset), (char*)paddr, programHeader->mem_size);
 
                 Size fillZero = programHeader->mem_size - programHeader->file_size;
                 if (fillZero > 0) {
                     efi_logf("Zeroing %u bytes...", fillZero);
-                    efi_mem_set((char*)addr, programHeader->mem_size, 0);
+                    efi_mem_set(((char*)paddr + programHeader->file_size), programHeader->mem_size, 0);
                 }
+
+                virtual_map(paddr, programHeader->vaddr, pml4);
             }
 
             programHeader = (Elf64ProgramHeader*)((UPtr)programHeader + elfHeader->programs_size);
@@ -258,21 +203,49 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
             efi_pause();
         })
 
-        start_kernel(stack, (UPtr)pml4);
-
-        __asm__ volatile (
-            "mov %0, %%cr3"
-            :
-            : "r"(pml4)
-            : "memory"
-        );
+        start_kernel(stackEnd, (UPtr)pml4, elfHeader->entry_point);
 
         return status;
-
-        efi_logf("CR3 loaded");
-
-        efi_pause();
     }
 
     return status;
+}
+
+void virtual_map(UPtr paddr, UPtr vaddr, UInt64* pml4) {
+    paddr = (UInt64)paddr & ~((UInt64)0xfff);
+    vaddr = (UInt64)vaddr & ~((UInt64)0xfff);
+
+    UPtr pml4e = (vaddr >> 39) & 0x1ff;
+    UPtr pdpte = (vaddr >> 30) & 0x1ff;
+    UPtr pde   = (vaddr >> 21) & 0x1ff;
+    UPtr pte   = (vaddr >> 12) & 0x1ff;
+    efi_logf("pml4e: %u > pdpte: %u > pde: %u > pte: %u: %x ==> %x", pml4e, pdpte, pde, pte, vaddr, paddr);
+
+    efi_pause();
+
+    UInt64 *thisPml4 = pml4, *thisPdpt = 0, *thisPd = 0, *thisPt = 0;
+    if (!(thisPml4[pml4e] & EFI_PAGE_PRESENT)) {
+        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPdpt);
+        thisPml4[pml4e] = (UInt64)thisPdpt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+    } else
+    thisPdpt = (UInt64*)((UInt64)thisPml4[pml4e] & ~((UInt64)0xfff));
+    efi_logf("pdpt %x", thisPdpt);
+
+    if (!(thisPdpt[pdpte] & EFI_PAGE_PRESENT)) {
+        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPd);
+        thisPdpt[pdpte] = (UInt64)thisPd | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+    } else
+    thisPd = (UInt64*)((UInt64)thisPdpt[pdpte] & ~((UInt64)0xfff));
+    efi_logf("pd %x", thisPd);
+
+    if (!(thisPd[pde] & EFI_PAGE_PRESENT)) {
+        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&thisPt);
+        thisPd[pde] = (UInt64)thisPt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+    } else
+    thisPt = (UInt64*)((UInt64)thisPd[pde] & ~((UInt64)0xfff));
+    efi_logf("pt %x", thisPt);
+
+    if (!(thisPt[pte] & EFI_PAGE_PRESENT)) {
+        thisPt[pte] = paddr | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+    }
 }
