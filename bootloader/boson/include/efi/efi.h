@@ -1,6 +1,7 @@
 #include <int.h>
 #include <wchar.h>
 #include <bool.h>
+#include <efi/status.h>
 
 #pragma once
 
@@ -21,7 +22,7 @@ typedef UINTN EfiStatus;
 #define EFIERR(a) (a | ~(((EfiStatus)-1) >> 1))
 #define EFI_ERROR(a) (a & ~(((EfiStatus)-1) >> 1))
 
-#define EFI_NOT_READY EFIERR(6)
+#define EFI_NOT_READY EFIERR(EFI_NOT_READY)
 
 typedef struct {
 	UInt64 Signature;
@@ -84,17 +85,24 @@ typedef struct {
 } EfiSimpleTextInputProtocol;
 
 typedef struct {
-	EfiTableHeader                Hdr;
-	EfiPVoid                       FirmwareVendor;
-	UInt32                        FirmwareRevision;
-	EfiPVoid                       ConsoleInHandle;
+	EfiTableHeader Hdr;
+	EfiPVoid FirmwareVendor;
+	UInt32 FirmwareRevision;
+	EfiPVoid ConsoleInHandle;
 	EfiSimpleTextInputProtocol  *ConIn;
-	EfiPVoid                       ConsoleOutHandle;
+	EfiPVoid ConsoleOutHandle;
 	EfiSimpleTextOutputProtocol *ConOut;
-	EfiPVoid                       StandardErrorHandle;
+	EfiPVoid StandardErrorHandle;
 	EfiSimpleTextOutputProtocol *StdErr;
-	void                            *RuntimeServices;
-	void                            *BootServices;
-	UINTN                           NumberOfTableEntries;
-	void                            *ConfigurationTable;
+	void* RuntimeServices;
+	void* BootServices;
+	UINTN NumberOfTableEntries;
+	void* ConfigurationTable;
 } EfiSystemTable;
+
+typedef struct {
+	UInt32 TimeLow;
+	UInt16 TimeMid;
+	UInt16 TimeHighAndVersion;
+	UInt8 Data[8];
+} __attribute__((packed)) EfiGUID;

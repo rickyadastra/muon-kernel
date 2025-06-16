@@ -1,0 +1,8 @@
+[binaries]
+c = 'x86_64-elf-gcc'
+
+[host_machine]
+system = 'none'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
