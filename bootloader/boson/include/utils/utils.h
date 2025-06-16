@@ -5,12 +5,12 @@
 #include <efi/runtime_services.h>
 #include <efi/boot_services.h>
 
-#define EFI_THROW(STATUS, TYPE, MESSAGE) \
+#define EFI_THROW(STATUS, TYPE, MESSAGE, ...) \
     if (EFI_ERROR(STATUS)) { \
         TYPE e = I##TYPE.init(); \
         I##TYPE.set(&e, MESSAGE, __FILE__, __LINE__); \
         THROW(e); \
-        return; \
+        return __VA_ARGS__; \
     }
 
 #define EFI_ASSERT(EXPR) status = EXPR; \
