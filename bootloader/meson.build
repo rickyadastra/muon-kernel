@@ -29,6 +29,8 @@ boson_sources = files(
     'boson/src/efi/time.c',
     'boson/src/utils/string.c',
     'boson/src/utils/utils.c',
+    'boson/src/exception/bootloader_exception.c',
+    'boson/src/exception/console_exception.c',
 ) + libcore_sources + liblepton_sources
 
 boson_inc = include_directories(
