@@ -16,7 +16,6 @@ CLASSDEF(Throwable, Object, THROWABLE_METHODS)
     unsigned int line;
 ENDCLASSDEF(Throwable)
 
-typedef void* JumpContext[10];
 typedef struct _ThrowableContext_struct ThrowableContext; 
 
 struct _ThrowableContext_struct {
@@ -32,7 +31,7 @@ extern ThrowableContext* currentExcContext;
         ThrowableContext ctx; \
         ctx.prev = currentExcContext; \
         currentExcContext = &ctx; \
-        if (Lepton_setjmp((void**)&ctx.context) == 0)
+        if (LEPTON_SETJMP(&ctx.context) == 0)
 
 #define CATCH(T, e) \
     else if (INSTANCEOF(ctx.throwable, T)) { \
@@ -52,8 +51,5 @@ extern ThrowableContext* currentExcContext;
 
 
 #define THROW(T) \
-    if (!currentExcContext) { \
-        Lepton_print("Uncaught throwable"); \
-    } \
     currentExcContext->throwable = (Throwable*)&T; \
-    Lepton_longjmp((void**)&currentExcContext->context, 1)
+    LEPTON_LONGJMP(&currentExcContext->context, 1)
