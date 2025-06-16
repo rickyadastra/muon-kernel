@@ -85,3 +85,8 @@ void efi_mem_set(char* to, Size size, char value) {
         to[i] = value;
     }
 }
+
+__attribute__((used, optnone))
+void memcpy(void* to, const void* from, Size size) {
+    efi_mem_copy((const char*) from, (char*) to, size);
+}

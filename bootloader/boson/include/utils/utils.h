@@ -5,6 +5,14 @@
 #include <efi/runtime_services.h>
 #include <efi/boot_services.h>
 
+#define EFI_THROW(STATUS, TYPE, MESSAGE) \
+    if (EFI_ERROR(STATUS)) { \
+        TYPE e = I##TYPE.init(); \
+        I##TYPE.set(&e, MESSAGE, __FILE__, __LINE__); \
+        THROW(e); \
+        return; \
+    }
+
 #define EFI_ASSERT(EXPR) status = EXPR; \
     if (EFI_ERROR(status)) return status;
 
@@ -28,6 +36,8 @@ EfiStatus efi_free(void* buffer);
 EfiStatus efi_alloc_pages(Size size, UPtr* addr);
 void efi_mem_copy(const char* from, char* to, Size size);
 void efi_mem_set(char* to, Size size, char value);
+
+void memcpy(void *dest, const void *src, Size count);
 
 extern EfiSimpleTextOutputProtocol* efiOut;
 extern EfiSimpleTextInputProtocol* efiIn;
