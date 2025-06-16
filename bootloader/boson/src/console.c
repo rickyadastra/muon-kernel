@@ -1,4 +1,5 @@
 #include "efi/efi.h"
+#include <exception/console_exception.h>
 #include "int.h"
 #include <console.h>
 #include <wchar.h>
@@ -25,7 +26,7 @@ void Console_set_mode_and_clear(Console* self, UInt64 mode) {
     
     if (EFI_ERROR(s)) {
         s = self->efiOut->SetMode(self->efiOut, 0);
-        if (EFI_ERROR(s)) return;
+        EFI_THROW(s, ConsoleException, "Cannot set default output mode")
     }
 
     s = self->efiOut->ClearScreen(self->efiOut);
@@ -38,18 +39,18 @@ void Console_output(Console *self, WChar16 *msg, unsigned char showTimestamp) {
     if (showTimestamp) {
         EfiTime time; 
         EfiStatus timeStatus = self->runtimeServices->GetTime(&time, null);
-        if (EFI_ERROR(timeStatus)) return;
+        EFI_THROW(timeStatus, ConsoleException, "Cannot get timestamp")
 
         format_datetime(time, wbuffer, 64);
 
         status = self->efiOut->OutputString(self->efiOut, wbuffer);
-        if (EFI_ERROR(status)) return;
+        EFI_THROW(status, ConsoleException, "Cannot output string")
     }
 
     status = self->efiOut->OutputString(self->efiOut, msg);
-    if (EFI_ERROR(status)) return;
+    EFI_THROW(status, ConsoleException, "Cannot output string")
     status = self->efiOut->OutputString(self->efiOut, L"\r\n");
-    return;
+    EFI_THROW(status, ConsoleException, "Cannot output string")
 }
 
 void Console_announce(Console *self, WChar16 *msg) {
