@@ -2,7 +2,7 @@
 #include <lepton/core/class.h>
 #include <lepton/core/object.h>
 
-int inline subclassof(Class* objClass, Class* classmeta) {
+int subclassof(Class* objClass, Class* classmeta) {
     if (objClass == classmeta) return 1;
 
     Class* superMeta = objClass->super_class;
