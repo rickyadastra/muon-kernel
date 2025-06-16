@@ -13,6 +13,7 @@ liblepton_sources = files(
     'src/lepton/core/class.c',
     'src/lepton/core/object.c',
     'src/lepton/exception/exception.c',
+    'src/lepton/exception/null_exception.c',
     'src/lepton/exception/result_exception.c',
     'src/lepton/exception/exception_runtime.S',
 )
