@@ -1,14 +1,28 @@
 #pragma once
 
-typedef void (*PrintfFunc)(const char*, ...);
-typedef int (*SetJmpFunc)(void**);
-typedef __attribute__((noreturn)) void (*LongJmpFunc)(void**, int);
+#include <lepton/core/class.h>
 
-extern PrintfFunc Lepton_print; 
-extern SetJmpFunc Lepton_setjmp;
-extern LongJmpFunc Lepton_longjmp;
+#define LEPTON_RUNTIME_METHODS(T, S, M) \
+    M(T, S, void, print, const char*, ...) \
 
-#define LEPTON_RUNTIME_INIT(LONGJMP, SETJMP, PRINTF) \
-    LongJmpFunc Lepton_longjmp = (LongJmpFunc) LONGJMP; \
-    SetJmpFunc Lepton_setjmp = (SetJmpFunc) SETJMP; \
-    PrintfFunc Lepton_print = (PrintfFunc) PRINTF;
+IFACEDEF(LeptonRuntime, LEPTON_RUNTIME_METHODS)
+
+typedef struct _LeptonRuntime_interface LeptonRuntimeInterface;
+__attribute__((weak)) extern LeptonRuntimeInterface ILeptonRuntime;
+
+typedef void* JumpContext[10];
+
+#if __STDC_HOSTED__
+    #define LEPTON_SETJMP __builtin_setjmp
+    #define LEPTON_LONGJMP __builtin_longjmp
+#else
+    extern int lepton_setjmp(JumpContext*);
+    extern void lepton_longjmp(JumpContext*, int);
+
+    #if defined (__x86_64__) && (defined (MS_ABI) || defined (SYSV_ABI))
+        #define LEPTON_SETJMP lepton_setjmp
+        #define LEPTON_LONGJMP lepton_longjmp
+    #else
+        #error "Unsupported freestanding architecture"
+    #endif
+#endif
