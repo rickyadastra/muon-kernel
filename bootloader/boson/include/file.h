@@ -2,6 +2,7 @@
 
 #include "efi/file_protocol.h"
 #include "lepton/core/class.h"
+#include "memory_consumer.h"
 #include <lepton/core.h>
 
 #define _FILE_METHODS(T, S, M) \
@@ -10,11 +11,10 @@
     METHOD(T, S, M, Size, get_size)
     
 #define FILE_METHODS(T, S, M) \
-    OBJECT_METHODS(T, S, M) \
+    MEMORYCONSUMER_METHODS(T, S, M) \
     _FILE_METHODS(T, S, M)
 
-CLASSDEF(File, Object, FILE_METHODS)
-    
+CLASSDEF(File, MemoryConsumer, FILE_METHODS)
     EfiFileProtocol* fileProtocol;
     BigSize _infoSize;
     EfiFileInfo* _fileInfo;

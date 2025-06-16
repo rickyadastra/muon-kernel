@@ -1,7 +1,6 @@
 #include "bootloader.h"
 #include "efi/file_protocol.h"
 #include "file.h"
-#include "int.h"
 #include <lepton/exception/null_exception.h>
 #include <efi/efi.h>
 #include <exception/bootloader_exception.h>
@@ -9,7 +8,7 @@
 #include <lepton/core.h>
 #include <null.h>
 
-INHERITCLASS(Bootloader, _BOOTLOADER_METHODS, OBJECT_METHODS)
+INHERITCLASS(Bootloader, _BOOTLOADER_METHODS, MEMORYCONSUMER_METHODS)
 
 void Bootloader_set_handle(Bootloader *self, EfiHandle efiHandle) {
     self->bootloaderHandle = efiHandle;
@@ -45,20 +44,9 @@ Bool Bootloader_open_volume(Bootloader *self) {
 
     self->root = IFile.init();
     IFile.from(&self->root, fileRoot);
+    IFile.set_memory_manager(&self->root, self->memoryManager);
 
     return true;
 }
 
-UPtr Bootloader_alloc(Bootloader *self, Size size, UPtr* buffer) {
-    EfiStatus s = self->bootServices->AllocatePool(EFI_BOOT_SERVICES_DATA, size, (void**)buffer);
-    EFI_THROW(s, BootloaderException, "Cannot allocate memory pool", (UPtr)0);
-
-    return *buffer;
-}
-
-void Bootloader_free(Bootloader *self, UPtr buffer) {
-    EfiStatus s = self->bootServices->FreePool((void*)buffer);
-    EFI_THROW(s, BootloaderException, "Cannot free memory pool");
-}
-
-PACKAGECLASS(Bootloader, Object, _BOOTLOADER_METHODS, OBJECT_METHODS)
+PACKAGECLASS(Bootloader, MemoryConsumer, _BOOTLOADER_METHODS, MEMORYCONSUMER_METHODS)

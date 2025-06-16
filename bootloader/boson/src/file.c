@@ -3,6 +3,8 @@
 #include "efi/file_protocol.h"
 #include <exception/file_exception.h>
 #include <lepton/exception/exception.h>
+#include "int.h"
+#include "memory_manager.h"
 #include "size.h"
 #include "utils/utils.h"
 #include "wchar.h"
@@ -10,7 +12,7 @@
 #include <lepton/core.h>
 #include <null.h>
 
-INHERITCLASS(File, _FILE_METHODS, OBJECT_METHODS)
+INHERITCLASS(File, _FILE_METHODS, MEMORYCONSUMER_METHODS)
 
 void File_from(File *self, EfiFileProtocol *proto) {
     if (proto == null) {
@@ -32,13 +34,15 @@ File File_open(File *self, File *dest, const WChar16 *filename, UInt64 modes) {
     }
 
     IFile.from(dest, proto);
+    IFile.set_memory_manager(dest, self->memoryManager);
     return *dest;
 }
 
 void alloc_file_info(File* self) {
     EfiStatus s = self->fileProtocol->GetInfo(self->fileProtocol, &(EfiGUID)EFI_FILE_INFO_GUID, &self->_infoSize, null);
+    efi_logf("allocating");
     if (s == EFIERR(EFI_BUFFER_TOO_SMALL)) {
-        s = efi_alloc(self->_infoSize, (void**)&self->_fileInfo);
+        s = IMemoryManager.alloc(self->memoryManager, self->_infoSize, (UPtr*)&self->_fileInfo);
     } else {
         EFI_THROW(s, FileException, "Unknown error while allocating file info buffer");
     }
@@ -53,4 +57,4 @@ Size File_get_size(File *self) {
     return self->_fileInfo->FileSize;
 }
 
-PACKAGECLASS(File, Object, _FILE_METHODS, OBJECT_METHODS)
+PACKAGECLASS(File, MemoryConsumer, _FILE_METHODS, MEMORYCONSUMER_METHODS)
