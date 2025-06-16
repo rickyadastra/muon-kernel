@@ -1,5 +1,6 @@
 shared_inc = include_directories(
-    'include'
+    'include',
+    'src/lepton/exception'
 )
 
 libcore_sources = files(
@@ -13,4 +14,5 @@ liblepton_sources = files(
     'src/lepton/core/object.c',
     'src/lepton/exception/exception.c',
     'src/lepton/exception/result_exception.c',
+    'src/lepton/exception/exception_runtime.S',
 )
