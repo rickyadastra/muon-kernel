@@ -3,8 +3,8 @@
 #include "class.h"
 
 #define OBJECT_METHODS(TYPE, SUPER, FUNC) \
-    FUNC(TYPE, SUPER, TYPE, init) \
-    FUNC(TYPE, SUPER, Class*, get_class, TYPE* self)
+    STATIC(TYPE, SUPER, FUNC, TYPE, init) \
+    METHOD(TYPE, SUPER, FUNC, Class*, get_class)
 
 BASECLASSDEF(Object, OBJECT_METHODS)
 

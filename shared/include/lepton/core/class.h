@@ -53,6 +53,12 @@ int subclassof(Class*, Class*);
     typedef struct _##NAME##_interface NAME##Interface; \
     extern NAME##Interface I##NAME; 
 
+#define METHOD(T, S, M, RET, NAME, ...) \
+    M(T, S, RET, NAME, T* self, ##__VA_ARGS__)
+
+#define STATIC(T, S, M, RET, NAME, ...) \
+    M(T, S, RET, NAME, ##__VA_ARGS__)
+
 // SOURCE FILE MACROS --------------- 
 
 #define DECLAREMETHODS(NAME, SUPER, METHODS) \
