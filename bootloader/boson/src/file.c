@@ -40,9 +40,8 @@ File File_open(File *self, File *dest, const WChar16 *filename, UInt64 modes) {
 
 void alloc_file_info(File* self) {
     EfiStatus s = self->fileProtocol->GetInfo(self->fileProtocol, &(EfiGUID)EFI_FILE_INFO_GUID, &self->_infoSize, null);
-    efi_logf("allocating");
     if (s == EFIERR(EFI_BUFFER_TOO_SMALL)) {
-        s = IMemoryManager.alloc(self->memoryManager, self->_infoSize, (UPtr*)&self->_fileInfo);
+        IMemoryManager.alloc(self->memoryManager, self->_infoSize, (UPtr*)&self->_fileInfo);
     } else {
         EFI_THROW(s, FileException, "Unknown error while allocating file info buffer");
     }
@@ -55,6 +54,18 @@ Size File_get_size(File *self) {
     if (self->_fileInfo == null) alloc_file_info(self);
 
     return self->_fileInfo->FileSize;
+}
+
+UPtr File_read(File *self) {
+    if (self->_fileInfo == null) alloc_file_info(self);
+
+    BigSize fileSize = IFile.get_size(self);
+    IMemoryManager.alloc(self->memoryManager, fileSize, &self->_fileBuffer);
+    
+    EfiStatus s = self->fileProtocol->Read(self->fileProtocol, &fileSize, (void*)self->_fileBuffer);
+    EFI_THROW(s, FileException, "Cannot read file content", (UPtr)null)
+
+    return self->_fileBuffer;
 }
 
 PACKAGECLASS(File, MemoryConsumer, _FILE_METHODS, MEMORYCONSUMER_METHODS)
