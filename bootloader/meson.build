@@ -39,7 +39,7 @@ boson_sources = files(
     'boson/src/exception/memory_exception.c',
     'boson/src/exception/bootloader_exception.c',
     'boson/src/exception/console_exception.c',
-) + libcore_sources + liblepton_sources
+) + libcore_sources + liblepton_sources + libshared_sources
 
 boson_inc = include_directories(
     'boson/include'
