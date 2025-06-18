@@ -3,6 +3,10 @@ shared_inc = include_directories(
     'src/lepton/exception'
 )
 
+libshared_sources = files(
+    'src/elf/elf_parser.c'
+)
+
 libcore_sources = files(
     'src/core/bytearray.c',
 )
