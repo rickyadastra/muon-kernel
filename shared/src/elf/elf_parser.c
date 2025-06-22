@@ -1,6 +1,8 @@
 #include "elf/elf_parser.h"
 #include "bool.h"
 #include "core/bytearray.h"
+#include "elf/elf.h"
+#include "int.h"
 #include "lepton/exception/null_exception.h"
 #include "lepton/core.h"
 #include "lepton/result.h"
@@ -21,6 +23,15 @@ Bool ElfParser_check_header(UPtr buffer, ElfMode mode, ElfArch arch, ElfEndian e
         elfHeader->common.elf_mode == mode &&
         elfHeader->common.endian_type == endian &&
         elfHeader->elf_arch == arch);
+}
+
+UPtr ElfParser_get_entry_point(UPtr header) {
+    if (header == 0) {
+        THROW_EXCEPTION(NullException, "header is null")
+        return false;
+    }
+
+    return ((Elf64Header*)header)->entry_point;
 }
 
 PACKAGEIFACE(ElfParser, ELFPARSER_METHODS)
