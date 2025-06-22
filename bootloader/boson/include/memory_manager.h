@@ -17,6 +17,7 @@ typedef UInt64* PageTable;
     METHOD(T, S, M, void, free, UPtr buffer) \
     METHOD(T, S, M, void, free_pages, UPtr addr, Size size) \
     METHOD(T, S, M, void, virtual_map, PageTable pml4, UPtr paddr, UPtr vaddr, Size pages) \
+    METHOD(T, S, M, void, virtual_map_huge, PageTable pml4, UPtr paddr, UPtr vaddr, Size pages) \
 
 #define MEMORYMANAGER_METHODS(T, S, M) \
     OBJECT_METHODS(T, S, M) \

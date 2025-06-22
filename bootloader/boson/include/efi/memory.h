@@ -1,7 +1,9 @@
 #pragma once
 
 #include "int.h"
-#define EFI_PAGE_SIZE  4096
+#define EFI_PAGE_SIZE_HUGE  2097152
+#define EFI_PAGE_SIZE       4096
+#define EFI_SIZE_TO_HUGE_PAGES(x)  (((x) + EFI_PAGE_SIZE - 1) / EFI_PAGE_SIZE_HUGE)
 #define EFI_SIZE_TO_PAGES(x)  (((x) + EFI_PAGE_SIZE - 1) / EFI_PAGE_SIZE)
 
 #define EFI_PAGE_PRESENT ((UInt64) 0x1)

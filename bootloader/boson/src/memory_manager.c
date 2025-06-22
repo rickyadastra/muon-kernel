@@ -51,7 +51,7 @@ void MemoryManager_free_pages(MemoryManager *self, UPtr addr, Size size) {
     EFI_THROW(s, MemoryManagerException, "Cannot free memory pages");
 }
 
-void virtual_map_helper(MemoryManager* self, PageTable pml4, UPtr paddr, UPtr vaddr) {
+void virtual_map_helper(MemoryManager* self, PageTable pml4, UPtr paddr, UPtr vaddr, Bool huge) {
     paddr = (UInt64)paddr & ~((UInt64)0xfff);
     vaddr = (UInt64)vaddr & ~((UInt64)0xfff);
 
@@ -73,14 +73,18 @@ void virtual_map_helper(MemoryManager* self, PageTable pml4, UPtr paddr, UPtr va
     } else
     thisPd = (UInt64*)((UInt64)thisPdpt[pdpte] & ~((UInt64)0xfff));
 
-    if (!(thisPd[pde] & EFI_PAGE_PRESENT)) {
-        thisPt = (PageTable)IMemoryManager.alloc_pages(self, EFI_PAGE_SIZE, true);
-        thisPd[pde] = (UInt64)thisPt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-    } else
-    thisPt = (UInt64*)((UInt64)thisPd[pde] & ~((UInt64)0xfff));
+    if (!huge) {
+        if (!(thisPd[pde] & EFI_PAGE_PRESENT)) {
+            thisPt = (PageTable)IMemoryManager.alloc_pages(self, EFI_PAGE_SIZE, true);
+            thisPd[pde] = (UInt64)thisPt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+        } else
+        thisPt = (UInt64*)((UInt64)thisPd[pde] & ~((UInt64)0xfff));
 
-    if (!(thisPt[pte] & EFI_PAGE_PRESENT)) {
-        thisPt[pte] = paddr | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+        if (!(thisPt[pte] & EFI_PAGE_PRESENT)) {
+            thisPt[pte] = paddr | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+        }
+    } else {
+        thisPd[pde] = (UInt64)paddr | EFI_PAGE_PRESENT | EFI_PAGE_RW | EFI_PAGE_HUGE;
     }
 }
 
@@ -90,7 +94,17 @@ void MemoryManager_virtual_map(MemoryManager* self, PageTable pml4, UPtr paddr, 
     }
 
     for (Size count = 0; count < pages; count++, paddr += EFI_PAGE_SIZE, vaddr += EFI_PAGE_SIZE) {
-        virtual_map_helper(self, pml4, paddr, vaddr);
+        virtual_map_helper(self, pml4, paddr, vaddr, false);
+    }
+}
+
+void MemoryManager_virtual_map_huge(MemoryManager *self, PageTable pml4, UPtr paddr, UPtr vaddr, Size pages) {
+    if (pml4 == null) {
+        THROW_EXCEPTION(NullException, "pml4 is null")
+    }
+
+    for (Size count = 0; count < pages; count++, paddr += EFI_PAGE_SIZE_HUGE, vaddr += EFI_PAGE_SIZE_HUGE) {
+        virtual_map_helper(self, pml4, paddr, vaddr, true);
     }
 }
 
