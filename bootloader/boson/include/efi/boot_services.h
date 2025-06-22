@@ -11,6 +11,7 @@ typedef EfiStatus(*EfiHandleProtocol)(EfiHandle Handle, EfiGUID* Protocol, void*
 typedef EfiStatus(*EfiAllocatePages)(EfiAllocateType Type, EfiMemoryType MemoryType, UINTN Pages, UPtr* PhysicalAddress);
 typedef EfiStatus(*EfiAllocatePool) (EfiMemoryType PoolType, UINTN Size, void** Buffer);
 typedef EfiStatus(*EfiFreePool) (void* Buffer);
+typedef EfiStatus(*EfiFreePages) (UPtr Memory, UINTN Pages);
 typedef EfiStatus(*EfiGetMemoryMap) (UINTN* MemoryMapSize, EfiMemoryDescriptor* MemoryMap, UINTN* MapKey, UINTN* DescriptorSize, UInt32* DescriptorVersion);
 typedef EfiStatus(*EfiExitBootServices) (EfiHandle ImageHandle, UINTN MapKey);
 
@@ -27,7 +28,7 @@ typedef struct {
     // Memory Services
     //
     EfiAllocatePages   AllocatePages;  // EFI 1.0+
-    void*   FreePages;      // EFI 1.0+
+    EfiFreePages   FreePages;      // EFI 1.0+
     EfiGetMemoryMap   GetMemoryMap;   // EFI 1.0+
     EfiAllocatePool   AllocatePool;   // EFI 1.0+
     EfiFreePool   FreePool;       // EFI 1.0+
