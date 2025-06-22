@@ -1,6 +1,10 @@
 #include "bootloader.h"
+#include "bool.h"
 #include "efi/file_protocol.h"
+#include "efi/memory.h"
 #include "file.h"
+#include "int.h"
+#include "memory_manager.h"
 #include <lepton/exception/null_exception.h>
 #include <efi/efi.h>
 #include <exception/bootloader_exception.h>
@@ -47,6 +51,31 @@ Bool Bootloader_open_volume(Bootloader *self) {
     IFile.set_memory_manager(&self->root, self->memoryManager);
 
     return true;
+}
+
+UPtr Bootloader_load_kernel(Bootloader *self, const WChar16 *filename) {
+    IFile.open(&self->root, &self->kernel, filename, EFI_FILE_MODE_READ);
+        
+    UPtr fileBuf = IFile.read(&self->kernel);
+    return fileBuf;
+}
+
+void vmap_in_kernel(Bootloader* self, UPtr paddr, UPtr vaddr, Size size) {
+    if (self->kernelPageTable == null) {
+        self->kernelPageTable = (PageTable)IMemoryManager.alloc_pages(self->memoryManager, EFI_PAGE_SIZE, true);
+    }
+
+    IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, vaddr, EFI_SIZE_TO_PAGES(size));
+}
+
+BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size size) {
+    UPtr base = IMemoryManager.alloc_pages(self->memoryManager, size, true);
+
+    return (BootloaderKernelStack){
+        .base = base,
+        .size = size,
+        .end = base + size
+    };
 }
 
 PACKAGECLASS(Bootloader, MemoryConsumer, _BOOTLOADER_METHODS, MEMORYCONSUMER_METHODS)

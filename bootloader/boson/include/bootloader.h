@@ -1,7 +1,10 @@
 #pragma once
 
 #include "efi/boot_services.h"
+#include "int.h"
+#include "lepton/core/class.h"
 #include "memory_consumer.h"
+#include "memory_manager.h"
 #include <file.h>
 #include <efi/efi.h>
 #include <efi/file_protocol.h>
@@ -9,10 +12,18 @@
 #include <lepton/core.h>
 #include <bool.h>
 
+typedef struct _Bootloader_Kernel_Stack_struct {
+    Size size;
+    UPtr base;
+    UPtr end;
+} BootloaderKernelStack;
+
 #define _BOOTLOADER_METHODS(T, S, M) \
     METHOD(T, S, M, void, set_handle, EfiHandle efiHandle) \
     METHOD(T, S, M, void, set_efi_table, EfiSystemTable* efiTable) \
-    METHOD(T, S, M, Bool, open_volume)
+    METHOD(T, S, M, Bool, open_volume) \
+    METHOD(T, S, M, UPtr, load_kernel, const WChar16* filename) \
+    METHOD(T, S, M, BootloaderKernelStack, prepare_kernel_stack, Size size) \
     
 #define BOOTLOADER_METHODS(T, S, M) \
     MEMORYCONSUMER_METHODS(T, S, M) \
@@ -25,4 +36,8 @@ CLASSDEF(Bootloader, MemoryConsumer, BOOTLOADER_METHODS)
 
     EfiSimpleFileSystemProtocol* fileSystem;
     File root;
+
+    File kernel;
+    PageTable kernelPageTable;
+    BootloaderKernelStack kernelStack;
 ENDCLASSDEF(Bootloader)
