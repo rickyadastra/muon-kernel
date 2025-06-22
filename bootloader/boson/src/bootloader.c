@@ -71,6 +71,8 @@ void vmap_in_kernel(Bootloader* self, UPtr paddr, UPtr vaddr, Size size) {
 BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size size) {
     UPtr base = IMemoryManager.alloc_pages(self->memoryManager, size, true);
 
+    vmap_in_kernel(self, base, base, size);
+
     return (BootloaderKernelStack){
         .base = base,
         .size = size,
