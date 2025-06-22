@@ -3,6 +3,17 @@
 
 DECLAREMETHODS(ByteArray, ROOT, BYTE_ARRAY_METHODS)
 
+BytePtrResult ByteArray_set(char *to, Size size, char value) {
+    if (!to || size < 0) return RESULT_ERROR(BytePtr);
+    if (size == 0) return RESULT(BytePtr, to);
+    
+    for (Size i=0; i<size; i++) {
+        to[i] = value;
+    }
+
+    return RESULT(BytePtr, to);
+}
+
 BytePtrResult ByteArray_copy(const char* from, char* to, Size from_size, Size to_size) {
     return ByteArray_copy_n(from, to, from_size, to_size, (Size)-1);
 }
