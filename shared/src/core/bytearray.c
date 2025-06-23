@@ -21,14 +21,9 @@ BytePtrResult ByteArray_copy(const char* from, char* to, Size from_size, Size to
 BytePtrResult ByteArray_copy_n(const char* from, char* to, Size from_size, Size to_size, Size n) {
     if (!from || !to || to_size == 0) return RESULT_ERROR(BytePtr);
     if (n == 0) return RESULT(BytePtr, to);
-
-    const char* fromPtr = from;
-    char* toPtr = to;
-    Size i = 0;
-
-    while (i <= n && *fromPtr != 0) {
-        *toPtr++ = *fromPtr++;
-        i++;
+    
+    for (Size i=0; i<to_size && i<from_size; i++) {
+        to[i] = from[i];
     }
     
     return RESULT(BytePtr, to);
