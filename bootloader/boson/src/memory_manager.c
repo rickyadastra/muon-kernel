@@ -1,5 +1,6 @@
 #include "memory_manager.h"
 #include "core/bytearray.h"
+#include "efi/efi.h"
 #include "efi/memory.h"
 #include "int.h"
 #include "lepton/exception/exception.h"
@@ -27,6 +28,8 @@ void MemoryManager_set_efi_table(MemoryManager *self, EfiSystemTable *efiTable) 
 
 UPtr MemoryManager_alloc(MemoryManager *self, Size size, UPtr *buffer) {
     EfiStatus s = self->bootServices->AllocatePool(EFI_LOADER_DATA, size, (void**)buffer);
+    
+    self->_memoryMapKey = 0;
     EFI_THROW(s, MemoryManagerException, "Cannot allocate memory pool", (UPtr)0);
 
     return *buffer;
@@ -34,12 +37,16 @@ UPtr MemoryManager_alloc(MemoryManager *self, Size size, UPtr *buffer) {
 
 void MemoryManager_free(MemoryManager *self, UPtr buffer) {
     EfiStatus s = self->bootServices->FreePool((void*)buffer);
+    
+    self->_memoryMapKey = 0;
     EFI_THROW(s, MemoryManagerException, "Cannot free memory pool");
 }
 
 UPtr MemoryManager_alloc_pages(MemoryManager *self, Size size, Bool clearPages) {
     UPtr addr;
     EfiStatus s = self->bootServices->AllocatePages(ALLOCATE_ANY_PAGES, EFI_LOADER_DATA, EFI_SIZE_TO_PAGES(size), &addr);
+    
+    self->_memoryMapKey = 0;
     EFI_THROW(s, MemoryManagerException, "Cannot allocate memory pages", (UPtr)0);
 
     if (clearPages) IByteArray.set((char*)addr, size, 0);
@@ -48,6 +55,8 @@ UPtr MemoryManager_alloc_pages(MemoryManager *self, Size size, Bool clearPages) 
 
 void MemoryManager_free_pages(MemoryManager *self, UPtr addr, Size size) {
     EfiStatus s = self->bootServices->FreePages(addr, EFI_SIZE_TO_PAGES(size));
+    
+    self->_memoryMapKey = 0;
     EFI_THROW(s, MemoryManagerException, "Cannot free memory pages");
 }
 
@@ -106,6 +115,38 @@ void MemoryManager_virtual_map_huge(MemoryManager *self, PageTable pml4, UPtr pa
     for (Size count = 0; count < pages; count++, paddr += EFI_PAGE_SIZE_HUGE, vaddr += EFI_PAGE_SIZE_HUGE) {
         virtual_map_helper(self, pml4, paddr, vaddr, true);
     }
+}
+
+EfiMemoryDescriptor* MemoryManager_get_memory_map(MemoryManager *self, Size* _size, Size *_descriptorSize, UINTN* key) {
+        UINTN mapKey, descriptorSize, size = 0;
+        UInt32 ver;
+        EfiMemoryDescriptor* map = null;
+        
+        EfiStatus status = bootServices->GetMemoryMap(&size, null, &mapKey, &descriptorSize, &ver);
+        if (status == EFIERR(EFI_BUFFER_TOO_SMALL)) {
+            IMemoryManager.alloc(self, size, (UPtr*)&map);
+
+        } else {
+            THROW_EXCEPTION(MemoryManagerException, "Could not get memory map buffer")
+        } 
+
+        status = bootServices->GetMemoryMap(&size, map, &mapKey, &descriptorSize, &ver);
+        EFI_THROW(status, MemoryManagerException, "Could not get memory map", null)
+        
+        self->_memoryMapKey = mapKey;
+        if (_descriptorSize != null) *_descriptorSize = descriptorSize;
+        if (_size != null) *_size = size;
+        if (key != null) *key = mapKey;
+ 
+        return map;
+}
+
+UINTN MemoryManager_get_memory_map_key(MemoryManager *self) {
+    if (self->_memoryMapKey == 0) {
+        THROW_EXCEPTION(MemoryManagerException, "Memory map key is invalid. (get_memory_map must be called again after any allocation)")
+    }
+
+    return self->_memoryMapKey;
 }
 
 PACKAGECLASS(MemoryManager, Object, _MEMORYMANAGER_METHODS, OBJECT_METHODS)

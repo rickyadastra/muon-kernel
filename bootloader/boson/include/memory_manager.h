@@ -1,5 +1,7 @@
 #pragma once
 
+#include "efi/efi.h"
+#include "efi/memory.h"
 #include "int.h"
 #include "lepton/core/class.h"
 #include "size.h"
@@ -18,6 +20,8 @@ typedef UInt64* PageTable;
     METHOD(T, S, M, void, free_pages, UPtr addr, Size size) \
     METHOD(T, S, M, void, virtual_map, PageTable pml4, UPtr paddr, UPtr vaddr, Size pages) \
     METHOD(T, S, M, void, virtual_map_huge, PageTable pml4, UPtr paddr, UPtr vaddr, Size pages) \
+    METHOD(T, S, M, EfiMemoryDescriptor*, get_memory_map, Size* size, Size* descriptorSize, UINTN* key) \
+    METHOD(T, S, M, UINTN, get_memory_map_key) \
 
 #define MEMORYMANAGER_METHODS(T, S, M) \
     OBJECT_METHODS(T, S, M) \
@@ -25,4 +29,5 @@ typedef UInt64* PageTable;
 
 CLASSDEF(MemoryManager, Object, MEMORYMANAGER_METHODS)
     EfiBootServices* bootServices;
+    UINTN _memoryMapKey;
 ENDCLASSDEF(MemoryManager)
