@@ -24,6 +24,8 @@ typedef struct _Bootloader_Kernel_Stack_struct {
     METHOD(T, S, M, Bool, open_volume) \
     METHOD(T, S, M, UPtr, load_kernel, const WChar16* filename) \
     METHOD(T, S, M, BootloaderKernelStack, prepare_kernel_stack, Size size) \
+    METHOD(T, S, M, void, prepare_kernel_programs) \
+    METHOD(T, S, M, void, exit_bootloader) \
     
 #define BOOTLOADER_METHODS(T, S, M) \
     MEMORYCONSUMER_METHODS(T, S, M) \

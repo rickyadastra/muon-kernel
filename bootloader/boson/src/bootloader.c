@@ -1,9 +1,13 @@
 #include "bootloader.h"
 #include "bool.h"
+#include "core/bytearray.h"
 #include "efi/file_protocol.h"
 #include "efi/memory.h"
+#include "elf/elf.h"
+#include "elf/program.h"
 #include "file.h"
 #include "int.h"
+#include "lepton/exception/exception.h"
 #include "memory_manager.h"
 #include <lepton/exception/null_exception.h>
 #include <efi/efi.h>
@@ -11,6 +15,8 @@
 #include <utils/utils.h>
 #include <lepton/core.h>
 #include <null.h>
+
+extern UInt8 trampolineStart, trampolineEnd;
 
 INHERITCLASS(Bootloader, _BOOTLOADER_METHODS, MEMORYCONSUMER_METHODS)
 
@@ -54,8 +60,14 @@ Bool Bootloader_open_volume(Bootloader *self) {
 }
 
 UPtr Bootloader_load_kernel(Bootloader *self, const WChar16 *filename) {
+    if (self->kernelPageTable != null) {
+        THROW_EXCEPTION(BootloaderException, "Kernel has already been loaded")
+    }
+
     IFile.open(&self->root, &self->kernel, filename, EFI_FILE_MODE_READ);
-        
+     
+    self->kernelPageTable = (PageTable)IMemoryManager.alloc_pages(self->memoryManager, EFI_PAGE_SIZE, true);
+
     UPtr fileBuf = IFile.read(&self->kernel);
     return fileBuf;
 }
@@ -73,11 +85,45 @@ BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size siz
 
     vmap_in_kernel(self, base, base, size);
 
-    return (BootloaderKernelStack){
+    self->kernelStack = (BootloaderKernelStack){
         .base = base,
         .size = size,
         .end = base + size
     };
+
+    return self->kernelStack;
+}
+
+void Bootloader_prepare_kernel_programs(Bootloader *self) {
+    Elf64Header* elfHeader = (Elf64Header*)self->kernel._fileBuffer;
+    if (elfHeader == null) {
+        THROW_EXCEPTION(BootloaderException, "Kernel file not loaded");
+    }
+
+    Elf64ProgramHeader* programHeader = (Elf64ProgramHeader*)((UPtr)elfHeader + elfHeader->program_offset);
+
+    for (Size i=0; i < elfHeader->programs_count; i++) {
+        if (programHeader->type != SEGMENT_TYPE_LOAD) continue;
+
+        UPtr paddr = IMemoryManager.alloc_pages(self->memoryManager, programHeader->mem_size, true);
+        
+        IByteArray.copy((const char*)(((char*)self->kernel._fileBuffer) + programHeader->file_offset), (char*)paddr, programHeader->mem_size, programHeader->mem_size);
+        Size fillZero = programHeader->mem_size - programHeader->file_size;
+        if (fillZero > 0) {
+            IByteArray.set(((char*)paddr + programHeader->file_size), programHeader->mem_size, 0);
+        }
+        
+        IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size));
+        programHeader = (Elf64ProgramHeader*)((UPtr)programHeader + elfHeader->programs_size);
+    }
+}
+
+void Bootloader_exit_bootloader(Bootloader *self) {
+    UINTN key;
+    IMemoryManager.get_memory_map(self->memoryManager, null, null, &key);
+    
+    EfiStatus s = self->bootServices->ExitBootServices(self->bootloaderHandle, key);
+    EFI_THROW(s, BootloaderException, "Error exiting UEFI boot services")
 }
 
 PACKAGECLASS(Bootloader, MemoryConsumer, _BOOTLOADER_METHODS, MEMORYCONSUMER_METHODS)
