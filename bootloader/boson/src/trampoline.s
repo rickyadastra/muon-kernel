@@ -3,11 +3,13 @@
 start_kernel:
 .global trampolineStart
 trampolineStart:
+    # rcx: stackEnd
+    # rdx: pml4
+    # r8:  entry 
     movq %rcx, %rsp
     movq %rcx, %rbp
 
     movq %rdx, %cr3
-    movq $0xbeef, %rax
     cli
 
     pushq %r8
