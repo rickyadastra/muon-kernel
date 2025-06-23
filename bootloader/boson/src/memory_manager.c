@@ -122,7 +122,7 @@ EfiMemoryDescriptor* MemoryManager_get_memory_map(MemoryManager *self, Size* _si
         UInt32 ver;
         EfiMemoryDescriptor* map = null;
         
-        EfiStatus status = bootServices->GetMemoryMap(&size, null, &mapKey, &descriptorSize, &ver);
+        EfiStatus status = self->bootServices->GetMemoryMap(&size, null, &mapKey, &descriptorSize, &ver);
         if (status == EFIERR(EFI_BUFFER_TOO_SMALL)) {
             IMemoryManager.alloc(self, size, (UPtr*)&map);
 
@@ -130,7 +130,7 @@ EfiMemoryDescriptor* MemoryManager_get_memory_map(MemoryManager *self, Size* _si
             THROW_EXCEPTION(MemoryManagerException, "Could not get memory map buffer")
         } 
 
-        status = bootServices->GetMemoryMap(&size, map, &mapKey, &descriptorSize, &ver);
+        status = self->bootServices->GetMemoryMap(&size, map, &mapKey, &descriptorSize, &ver);
         EFI_THROW(status, MemoryManagerException, "Could not get memory map", null)
         
         self->_memoryMapKey = mapKey;
