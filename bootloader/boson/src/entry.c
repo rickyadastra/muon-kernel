@@ -1,4 +1,10 @@
+#include "bootloader.h"
+#include "console.h"
 #include "efi/memory.h"
+#include <elf/elf_parser.h>
+#include "lepton/exception/exception.h"
+#include "memory_manager.h"
+#include <lepton/core.h>
 #include <efi/status.h>
 #include <elf/program.h>
 #include <size.h>
@@ -17,198 +23,86 @@
 #include <core/bytearray.h>
 #include <utils/utils.h>
 
+#define APIC_BASE 0xFEE00000
+#define KERNEL_STACK_PAGES 4
+#define KERNEL_FILENAME L"\\EFI\\BOOT\\muon.sys"
+
 extern __attribute__((noreturn)) void start_kernel(UPtr stack, UPtr pml4, UPtr entry);
 extern UInt8 trampolineStart, trampolineEnd;
 
 void virtual_map(UPtr paddr, UPtr vaddr, UInt64* pml4);
 
 EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
-    EfiStatus status;    
-
     efiOut = systemTable->ConOut;
     efiIn = systemTable->ConIn;
     runtimeServices = systemTable->RuntimeServices;
     bootServices = systemTable->BootServices;
 
-    EFI_ASSERT(efiOut->SetMode(efiOut, 2));
-    EFI_ASSERT(efiOut->ClearScreen(efiOut));
-
-    EFI_ASSERT(efi_announce(L"Boson Bootloader for Muon Kernel"));
-
-    EFI_ASSERT(systemTable->ConIn->Reset(systemTable->ConIn, false));
+    Console console = IConsole.init();
+    MemoryManager memManager = IMemoryManager.init();
+    Bootloader bootloader = IBootloader.init();
     
-    
-    EfiLoadedImageProtocol* loadedImage;
-    EFI_ASSERT_THEN(bootServices->HandleProtocol(handle, &(EfiGUID)EFI_LOADED_IMAGE_PROTOCOL_GUID, (void**)&loadedImage), {
-        efi_log(L"Error getting bootloader image information");
-    });
-    
-    EFI_ASSERT(efi_log(L"Retrieved bootloader image information"));
-    
-    EfiSimpleFileSystemProtocol* fileSystem;
-    EFI_ASSERT_THEN(bootServices->HandleProtocol(loadedImage->DeviceHandle, &(EfiGUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (void**)&fileSystem), {
-        efi_log(L"Error getting device partitions");
-    });
-    
-    EFI_ASSERT(efi_log(L"Retrieved device partitions"));
-    
-    EfiFileProtocol *root, *file;
-    EFI_ASSERT_THEN(fileSystem->OpenVolume(fileSystem, &root), {
-        efi_log(L"Error getting file system root");
-    });
+    TRY {
+        IConsole.set_efi_table(&console, systemTable);
+        IConsole.set_mode_and_clear(&console, 2);
+        IConsole.announce(&console, L"Boson Bootloader for Muon Kernel");
 
-    EFI_ASSERT(efi_log(L"Retrieved file sytsem root"));
+        IMemoryManager.set_efi_table(&memManager, systemTable);
+        IConsole.log(&console, L"Memory manager initiliased");
 
-    EFI_ASSERT_THEN(root->Open(root, &file, L"\\EFI\\BOOT\\muon.sys", EFI_FILE_MODE_READ, 0), {
-        efi_log(L"muon.sys not found");
-    });
+        IBootloader.set_handle(&bootloader, handle);
+        IBootloader.set_efi_table(&bootloader, systemTable);
+        IBootloader.set_memory_manager(&bootloader, &memManager);
+        IConsole.logf(&console, "Bootloader information loaded, trampoline @ %x", &trampolineStart);
 
-    efi_log(L"Loaded muon.sys");
+        IBootloader.open_volume(&bootloader);
+        UPtr kernelBuf = IBootloader.load_kernel(&bootloader, KERNEL_FILENAME);
+        IConsole.log(&console, L"Opened kernel file");
 
-    EfiFileInfo* kernelInfo = null;
-    UINTN infoSize = 0;
-
-    status = file->GetInfo(file, &(EfiGUID)EFI_FILE_INFO_GUID, &infoSize, null);
-    if (status == EFIERR(EFI_BUFFER_TOO_SMALL)) {
-        efi_logf("Allocating %u bytes for info structure...", infoSize);
-        status = efi_alloc(infoSize, (void**)kernelInfo);
-    } else {
-        efi_logf("Cannot read file info, reason: %s (%u bytes)", status == EFI_UNSUPPORTED ? "unsupported" : "buffer_too_small", infoSize);
-        efi_pause();
-        return status;
-    }
-
-    status = file->GetInfo(file, &(EfiGUID)EFI_FILE_INFO_GUID, &infoSize, kernelInfo);
-    if (EFI_ERROR(status)) {
-        efi_logf("CRITICAL: cannot read file info, reason: %s (%u bytes)", status == EFI_UNSUPPORTED ? "unsupported" : "buffer_too_small", infoSize);
-        efi_pause();
-        return status;
-    }
-
-    efi_pause();
-
-    UPtr fileBuffer;
-    Elf64Header* elfHeader;
-    UINTN fileSize = kernelInfo->FileSize;
-
-    efi_logf("File '%w' is %u bytes, allocating...", kernelInfo->FileName, fileSize);
-    status = efi_alloc(fileSize, (void**)&fileBuffer);
-    if (EFI_ERROR(status)) {
-        efi_log(L"Cannot allocate file buffer");
-        return status;
-    }
-
-    efi_logf("Allocated buffer of %u bytes", fileSize);
-
-    status = file->Read(file, &fileSize, (void*)fileBuffer);
-    if (EFI_ERROR(status)) {
-        efi_log(L"Cannot read from file");
-        return status;
-    }
-    efi_logf("Read %u bytes from file", fileSize);
-
-    elfHeader = (Elf64Header*)fileBuffer;
-    Int8Result res = IByteArray.compare_n(elfHeader->common.magic, ELF_MAGIC, 4);
-
-    if (UNWRAP(res) == 0 && 
-            elfHeader->common.elf_mode == ELF_64BIT && 
-            elfHeader->common.endian_type == ELF_LITTLE_ENDIAN) {
-
-        efi_logf("Kernel entry point at %x", elfHeader->entry_point);
-
-        UInt64 *pml4, *pdpt, *identityPdpt, *identityPd;
-        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&pml4);
-        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&pdpt);
-        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&identityPdpt);
-        efi_alloc_pages(EFI_PAGE_SIZE, (UPtr*)&identityPd);
-
-        // todo più pagine!!
-        Size stackSize = 4*EFI_PAGE_SIZE;
-        UPtr stack, stackEnd;
-        efi_alloc_pages(stackSize, &stack);
-        stackEnd = stack + stackSize;
-
-        efi_pause();
-
-        efi_logf("%x: %x", pml4, *pml4);
-
-        UPtr apicAddr = 0xFEE00000;
-
-        pml4[0] = (UInt64)identityPdpt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-        pml4[511] = (UInt64)pdpt | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-
-        identityPdpt[0] = (UInt64)0x0 | EFI_PAGE_PRESENT | EFI_PAGE_RW | EFI_PAGE_HUGE;
-        identityPdpt[(apicAddr>>30) & 0x1ff] = (UInt64)identityPd | EFI_PAGE_PRESENT | EFI_PAGE_RW;
-        identityPd[(apicAddr>>21) & 0x1ff] = (UInt64)apicAddr | EFI_PAGE_PRESENT | EFI_PAGE_RW | EFI_PAGE_HUGE;
-
-        for (Size base=stack; base<stackEnd; base+=EFI_PAGE_SIZE) {
-            virtual_map(base, base, pml4);
+        if (!IElfParser.check_header(kernelBuf, ELF_64BIT, ELF_x86_64, ELF_LITTLE_ENDIAN)) {
+            THROW_EXCEPTION(Exception, "Kernel is not a valid ELF file")
         }
 
-        virtual_map((UPtr)&trampolineStart, (UPtr)&trampolineStart, pml4);
-
-        Elf64ProgramHeader* programHeader = (Elf64ProgramHeader*)((UPtr)elfHeader + elfHeader->program_offset);
-        for (Size i=0; i<elfHeader->programs_count; i++) {
-            if (programHeader->type == SEGMENT_TYPE_LOAD) {
-                UPtr paddr = 0;
-                status = efi_alloc_pages(programHeader->mem_size, &paddr);
-                efi_logf("Allocated %u pages for segment at %x", EFI_SIZE_TO_PAGES(programHeader->mem_size), paddr);
-
-                efi_mem_copy((const char*)(fileBuffer + programHeader->file_offset), (char*)paddr, programHeader->mem_size);
-
-                Size fillZero = programHeader->mem_size - programHeader->file_size;
-                if (fillZero > 0) {
-                    efi_logf("Zeroing %u bytes...", fillZero);
-                    efi_mem_set(((char*)paddr + programHeader->file_size), programHeader->mem_size, 0);
-                }
-
-                virtual_map(paddr, programHeader->vaddr, pml4);
-            }
-
-            programHeader = (Elf64ProgramHeader*)((UPtr)programHeader + elfHeader->programs_size);
-        }
-
-        efi_logf("Press any key to load CR3");
-        efi_pause();
-
-        /* EfiMemoryDescriptor* d = *map;
-        for (Size i=0; i<(size/descriptorSize); i++) {
-            efi_logf("attribute: %u, pages: %u, %x -> %x (%d)", d->Attribute, d->NumberOfPages, d->PhysicalStart, d->VirtualStart, d->Type);
-            d = (EfiMemoryDescriptor*)((UInt8*)d + descriptorSize);
-        } */
-
-        efi_logf("trampoline: %x - %x %d", &trampolineStart, &trampolineEnd, &trampolineEnd-&trampolineStart);
-
-                UINTN mapKey, descriptorSize, size = 0;
-        UInt32 ver;
-        EfiMemoryDescriptor** map = null;
+        IMemoryManager.virtual_map(&memManager, bootloader.kernelPageTable, (UPtr)&trampolineStart, 
+            (UPtr)&trampolineStart, EFI_SIZE_TO_PAGES(&trampolineEnd - &trampolineStart));
+        IConsole.logf(&console, "Kernel entry point at %x", IElfParser.get_entry_point(kernelBuf));
         
-        status = bootServices->GetMemoryMap(&size, null, &mapKey, &descriptorSize, &ver);
-        if (status == EFIERR(EFI_BUFFER_TOO_SMALL)) {
-            efi_logf("Allocating %u for memory map...", size);
-            status = efi_alloc(size, (void**)map);
+        IBootloader.prepare_kernel_stack(&bootloader, KERNEL_STACK_PAGES*EFI_PAGE_SIZE);
+        IConsole.log(&console, L"Kernel stack allocated and mapped");
+        
+        IMemoryManager.virtual_map_huge(&memManager, bootloader.kernelPageTable, 0x0, 0x0, 1);
+        IConsole.log(&console, L"Lower 2MB identity mapped");
 
-        } else {
-            efi_logf("Error getting memory map %x %u", status, size);
-            efi_pause();
-            return status;
-        } 
+        IMemoryManager.virtual_map_huge(&memManager, bootloader.kernelPageTable, APIC_BASE, APIC_BASE, 1);
+        IConsole.log(&console, L"APIC identity mapped");
 
-        EFI_ASSERT_THEN(bootServices->GetMemoryMap(&size, *map, &mapKey, &descriptorSize, &ver), {
-            efi_logf("error memory map %x", status);
-            efi_pause();
-        })
-        EFI_ASSERT_THEN(bootServices->ExitBootServices(handle, mapKey), {
-            efi_logf("error exit boot services %x", status);
-            efi_pause();
-        })
+        IBootloader.prepare_kernel_programs(&bootloader);
+        IConsole.log(&console, L"Kernel programs loaded and mapped");
 
-        start_kernel(stackEnd, (UPtr)pml4, elfHeader->entry_point);
+        // Size descriptorSize = 0, size;
+        // EfiMemoryDescriptor* d = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize));
 
-        return status;
-    }
+        
+        // for (Size i=0; i<(size/descriptorSize); i++) {
+            //     efi_logf("attribute: %u, pages: %u, %x -> %x (%d)", d->Attribute, d->NumberOfPages, d->PhysicalStart, d->VirtualStart, d->Type);
+            //     d = (EfiMemoryDescriptor*)((UInt8*)d + descriptorSize);
+            // } 
+        
+        IConsole.log(&console, L"Launching kernel...");
+        IBootloader.exit_bootloader(&bootloader);
+        
+        start_kernel(bootloader.kernelStack.end, (UPtr)bootloader.kernelPageTable, IElfParser.get_entry_point(kernelBuf));
 
-    return status;
+
+    } CATCH(Exception, e) {
+        IConsole.logf(&console, "%s (%s:%u): %s", IException.get_class(e)->name, e->file, e->line, e->message);
+        IConsole.output(&console, L"\nPress any key to return to UEFI shell", false);
+
+        IConsole.pause(&console);
+
+    } ENDTRY
+
+    return EFIERR(EFI_LOAD_ERROR);
 }
 
 void virtual_map(UPtr paddr, UPtr vaddr, UInt64* pml4) {
