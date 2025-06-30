@@ -1,0 +1,46 @@
+#pragma once
+
+#include "int.h"
+#define EFI_PAGE_SIZE_HUGE  2097152
+#define EFI_PAGE_SIZE       4096
+#define EFI_SIZE_TO_HUGE_PAGES(x)  (((x) + EFI_PAGE_SIZE - 1) / EFI_PAGE_SIZE_HUGE)
+#define EFI_SIZE_TO_PAGES(x)  (((x) + EFI_PAGE_SIZE - 1) / EFI_PAGE_SIZE)
+
+#define EFI_PAGE_PRESENT ((UInt64) 0x1)
+#define EFI_PAGE_RW      ((UInt64) 0x2)
+#define EFI_PAGE_HUGE    ((UInt64) 128)
+
+typedef enum : UInt32 {
+    EFI_RESERVED_MEMORY_TYPE,
+    EFI_LOADER_CODE,
+    EFI_LOADER_DATA,
+    EFI_BOOT_SERVICES_CODE,
+    EFI_BOOT_SERVICES_DATA,
+    EFI_RUNTIME_SERVICES_CODE,
+    EFI_RUNTIME_SERVICES_DATA,
+    EFI_CONVENTIONAL_MEMORY,
+    EFI_UNUSABLE_MEMORY,
+    EFI_ACPI_RECLAIM_MEMORY,
+    EFI_ACPI_MEMORY_NVS,
+    EFI_MEMORY_MAPPED_IO,
+    EFI_MEMORY_MAPPED_IO_PORT_SPACE,
+    EFI_PAL_CODE,
+    EFI_PERSISTENT_MEMORY,
+    EFI_UNACCEPTED_MEMORY_TYPE,
+    EFI_MAX_MEMORY_TYPE
+} EfiMemoryType;
+
+typedef enum {
+    ALLOCATE_ANY_PAGES,
+    ALLOCATE_MAX_ADDRESS,
+    ALLOCATE_ADDRESS,
+    MAX_ALLOCATE_TYPE
+} EfiAllocateType;
+
+typedef struct {
+   EfiMemoryType Type;
+   UPtr PhysicalStart;
+   UPtr VirtualStart;
+   UInt64 NumberOfPages;
+   UInt64 Attribute;
+  } EfiMemoryDescriptor;

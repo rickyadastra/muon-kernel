@@ -1,5 +1,6 @@
 #pragma once
 
+#include <efi/time.h>
 #include <int.h>
 #include <efi/efi.h>
 #include <wchar.h>
@@ -54,3 +55,17 @@ struct _EfiSimpleFileSystemProtocol_struct {
     UInt64 Revision;
     EfiSimpleFileSystemProtocolOpenVolume OpenVolume;
 };
+
+#define EFI_FILE_INFO_GUID \
+ {0x09576e92,0x6d3f,0x11d2, {0x8e,0x39,0x00,0xa0,0xc9,0x69,0x72,0x3b}}
+
+typedef struct _EfiFileInfo_struct {
+  UInt64 Size;
+  UInt64 FileSize;
+  UInt64 PhysicalSize;
+  EfiTime CreateTime;
+  EfiTime LastAccessTime;
+  EfiTime ModificationTime;
+  UInt64 Attribute;
+  WChar16 FileName[];
+} EfiFileInfo;

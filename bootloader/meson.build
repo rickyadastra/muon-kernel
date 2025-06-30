@@ -8,6 +8,7 @@ efi_compile_args = [
     '-fms-extensions',
     '-Wno-microsoft',
     '-nostdlib',
+    '-DMS_ABI'
 ]
 
 efi_link_args = [
@@ -25,8 +26,20 @@ efi_link_args = [
 
 boson_sources = files(
     'boson/src/entry.c',
-    'boson/src/efi/time.c'
-) + libcore_sources + liblepton_sources
+    'boson/src/console.c',
+    'boson/src/bootloader.c',
+    'boson/src/memory_manager.c',
+    'boson/src/memory_consumer.c',
+    'boson/src/file.c',
+    'boson/src/trampoline.s',
+    'boson/src/efi/time.c',
+    'boson/src/utils/string.c',
+    'boson/src/utils/utils.c',
+    'boson/src/exception/file_exception.c',
+    'boson/src/exception/memory_exception.c',
+    'boson/src/exception/bootloader_exception.c',
+    'boson/src/exception/console_exception.c',
+) + libcore_sources + liblepton_sources + libshared_sources
 
 boson_inc = include_directories(
     'boson/include'

@@ -1,130 +1,100 @@
-#include "lepton/result.h"
+#include "bootloader.h"
+#include "boson/boson.h"
+#include "console.h"
+#include "efi/memory.h"
+#include "memory_manager.h"
+#include "lepton/exception/exception.h"
+#include <efi/efi.h>
+#include <efi/status.h>
+#include <elf/elf_parser.h>
+#include <elf/elf.h>
+#include <elf/program.h>
 #include <lepton/core.h>
+#include <lepton/result.h>
+#include <size.h>
 #include <int.h>
 #include <bool.h>
 #include <null.h>
-#include <wchar.h>
-#include <efi/efi.h>
-#include <efi/file_protocol.h>
-#include <efi/boot_services.h>
-#include <efi/image_protocol.h>
-#include <efi/time.h>
-#include <efi/runtime_services.h>
-#include <elf/elf.h>
-#include <core/bytearray.h>
 
-WChar16 buffer[64];
-EfiSimpleTextOutputProtocol* efiOut;
-EfiSimpleTextInputProtocol* efiIn;
-EfiRuntimeServices* runtimeServices;
-EfiBootServices* bootServices;
+#define APIC_BASE 0xFEE00000
+#define KERNEL_STACK_PAGES 4
+#define KERNEL_FILENAME L"\\EFI\\BOOT\\muon.sys"
 
-EfiStatus efi_log_full(WChar16* msg, Bool showTimestamp);
-EfiStatus efi_announce(WChar16* msg);
-EfiStatus efi_log(WChar16* msg);
-EfiInputKey efi_pause();
+extern __attribute__((noreturn)) void start_kernel(UPtr stack, UPtr pml4, UPtr entry, BootloaderPayload* payload);
+extern UInt8 trampolineStart, trampolineEnd;
 
 EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
-    EfiStatus status;
-    EfiInputKey key;
-
-    efiOut = systemTable->ConOut;
-    efiIn = systemTable->ConIn;
-    runtimeServices = systemTable->RuntimeServices;
-    bootServices = systemTable->BootServices;
-
-    status = efiOut->ClearScreen(efiOut);
-    if (EFI_ERROR(status)) return status;
-
-    status = efi_announce(L"Boson Bootloader for Muon Kernel");
-    if (EFI_ERROR(status)) return status;
-
-    status = systemTable->ConIn->Reset(systemTable->ConIn, false);
-    if (EFI_ERROR(status)) return status;
+    Console console = IConsole.init();
+    MemoryManager memManager = IMemoryManager.init();
+    Bootloader bootloader = IBootloader.init();
     
-    EfiLoadedImageProtocol* loadedImage;
-    EfiSimpleFileSystemProtocol* fileSystem;
-    EfiFileProtocol* root, *file;
+    TRY {
+        IConsole.set_efi_table(&console, systemTable);
+        IConsole.set_mode_and_clear(&console, 2);
+        IConsole.announce(&console, L"Boson Bootloader for Muon Kernel");
 
-    status = bootServices->HandleProtocol(handle, &(EfiGUID)EFI_LOADED_IMAGE_PROTOCOL_GUID, (void**)&loadedImage);
-    if (EFI_ERROR(status)) {
-        efi_log(L"Error getting bootloader image information");
-        return status;
-    } 
-    efi_log(L"Retrieved bootloader image information");
+        IMemoryManager.set_efi_table(&memManager, systemTable);
+        IConsole.log(&console, L"Memory manager initiliased");
 
-    status = bootServices->HandleProtocol(loadedImage->DeviceHandle, &(EfiGUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (void**)&fileSystem);
-    if (EFI_ERROR(status)) {
-        efi_log(L"Error getting device partitions");
-        return status;
-    }
-    efi_log(L"Retrieved device partitions");
+        IBootloader.set_handle(&bootloader, handle);
+        IBootloader.set_efi_table(&bootloader, systemTable);
+        IBootloader.set_memory_manager(&bootloader, &memManager);
+        IConsole.logf(&console, "Bootloader information loaded, trampoline @ %x", &trampolineStart);
 
-    status = fileSystem->OpenVolume(fileSystem, &root);
-    if (EFI_ERROR(status)) {
-        efi_log(L"Error getting file system root");
-        return status;
-    }
-    efi_log(L"Retrieved file sytsem root");
-    
-    status = root->Open(root, &file, L"\\EFI\\BOOT\\muon.sys", EFI_FILE_MODE_READ, 0);
-    if (EFI_ERROR(status)) {
-        efi_log(L"muon.sys not found");
-        return status;
-    }
-    efi_log(L"Loaded muon.sys");
+        IBootloader.open_volume(&bootloader);
+        UPtr kernelBuf = IBootloader.load_kernel(&bootloader, KERNEL_FILENAME);
+        IConsole.log(&console, L"Opened kernel file");
 
-    Elf64Header elfHeader;
-    UINTN headerSize = sizeof(elfHeader);
+        if (!IElfParser.check_header(kernelBuf, ELF_64BIT, ELF_x86_64, ELF_LITTLE_ENDIAN)) {
+            THROW_EXCEPTION(Exception, "Kernel is not a valid ELF file")
+        }
 
-    status = file->Read(file, &headerSize, &elfHeader);
-    if (EFI_ERROR(status)) {
-        efi_log(L"Cannot read file header");
-        return status;
-    }
-    efi_log(L"Read muon.sys header");
+        IMemoryManager.virtual_map(&memManager, bootloader.kernelPageTable, (UPtr)&trampolineStart, 
+            (UPtr)&trampolineStart, EFI_SIZE_TO_PAGES(&trampolineEnd - &trampolineStart));
+        IConsole.logf(&console, "Kernel entry point at %x", IElfParser.get_entry_point(kernelBuf));
+        
+        IBootloader.prepare_kernel_stack(&bootloader, KERNEL_STACK_PAGES*EFI_PAGE_SIZE);
+        IConsole.log(&console, L"Kernel stack allocated and mapped");
+        
+        IMemoryManager.virtual_map_huge(&memManager, bootloader.kernelPageTable, 0x0, 0x0, 1);
+        IConsole.log(&console, L"Lower 2MB identity mapped");
 
-    Int8Result res = IByteArray.compare_n(elfHeader.common.magic, ELF_MAGIC, 4);
-    if (UNWRAP(RESULT) == 0) {
-        efi_log(L"yippie");
-    }
+        IMemoryManager.virtual_map_huge(&memManager, bootloader.kernelPageTable, APIC_BASE, APIC_BASE, 1);
+        IConsole.log(&console, L"APIC identity mapped");
 
-    efi_pause();
+        IMemoryManager.virtual_self_map(&memManager, bootloader.kernelPageTable, 510);
 
-    return status;
-}
+        IBootloader.prepare_kernel_programs(&bootloader);
+        IConsole.log(&console, L"Kernel programs loaded and mapped");
 
-EfiInputKey efi_pause() {
-    EfiInputKey key;
-    while (efiIn->ReadKeyStroke(efiIn, &key) == EFI_NOT_READY) {}
-    return key;
-}
+        BootloaderPayload* payload;
+        IMemoryManager.alloc(&memManager, sizeof(BootloaderPayload), (UPtr*)&payload);
+        payload->stack = bootloader.kernelStack;
+        payload->pageTablePaddr = (UPtr)bootloader.kernelPageTable;
+        
+        Size descriptorSize = 0, size;
+        MemoryRegion* regions = (MemoryRegion*) IMemoryManager.alloc_pages(&memManager, EFI_PAGE_SIZE, true);
+        EfiMemoryDescriptor* memoryMap = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize, null));
+        BigSize usable = 0;
+        Size entries = 0;
+        
+        IMemoryManager.process_memory_map(memoryMap, descriptorSize, size, regions, &usable, &entries);
+        IConsole.logf(&console, "%d memory entries. Total usable memory: %d KB ", entries, usable*EFI_PAGE_SIZE/1024);
+        payload->memoryRegionEntries = entries;
+        payload->memoryRegionMap = regions;
+        
+        IConsole.log(&console, L"Launching kernel...");
+        IBootloader.exit_bootloader(&bootloader);
+        
+        start_kernel(bootloader.kernelStack.end, (UPtr)bootloader.kernelPageTable, IElfParser.get_entry_point(kernelBuf), payload);
 
-EfiStatus efi_log_full(WChar16* msg, Bool showTimestamp) {
-    EfiStatus status;
-    
-    if (showTimestamp) {
-        EfiTime time; 
-        EfiStatus timeStatus = runtimeServices->GetTime(&time, null);
-        if (EFI_ERROR(timeStatus)) return timeStatus;
+    } CATCH(Exception, e) {
+        IConsole.logf(&console, "%s (%s:%u): %s", IException.get_class(e)->name, e->file, e->line, e->message);
+        IConsole.output(&console, L"\nPress any key to return to UEFI shell", false);
 
-        Size offset = format_datetime(time, buffer, 64);
+        IConsole.pause(&console);
 
-        status = efiOut->OutputString(efiOut, buffer);
-        if (EFI_ERROR(status)) return status;
-    }
+    } ENDTRY
 
-    status = efiOut->OutputString(efiOut, msg);
-    if (EFI_ERROR(status)) return status;
-    status = efiOut->OutputString(efiOut, L"\r\n");
-    return status;
-}
-
-
-EfiStatus efi_announce(WChar16* msg) {
-    return efi_log_full(msg, false);
-}
-
-EfiStatus efi_log(WChar16* msg) {
-    return efi_log_full(msg, true);
+    return EFIERR(EFI_LOAD_ERROR);
 }

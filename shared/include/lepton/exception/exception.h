@@ -11,3 +11,8 @@
 
 CLASSDEF(Exception, Throwable, EXCEPTION_METHODS)
 ENDCLASSDEF(Exception)
+
+#define THROW_EXCEPTION(TYPE, MESSAGE) \
+    TYPE e = I##TYPE.init(); \
+    I##TYPE.set(&e, MESSAGE, __FILE__, __LINE__); \
+    THROW(e);

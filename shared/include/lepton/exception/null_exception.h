@@ -1,0 +1,12 @@
+#pragma once
+
+#include <lepton/exception/exception.h>
+
+#define _NULL_EXCEPTION_METHODS(TYPE, SUPER, FUNC)
+
+#define NULL_EXCEPTION_METHODS(TYPE, SUPER, FUNC) \
+    THROWABLE_METHODS(TYPE, SUPER, FUNC) \
+    _NULL_EXCEPTION_METHODS(TYPE, SUPER, FUNC)
+
+CLASSDEF(NullException, Exception, NULL_EXCEPTION_METHODS)
+ENDCLASSDEF(NullException)

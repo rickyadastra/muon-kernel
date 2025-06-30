@@ -4,6 +4,7 @@
 #include <lepton/core.h>
 
 #define BYTE_ARRAY_METHODS(TYPE, SUPER, FUNC) \
+    FUNC(TYPE, SUPER, BytePtrResult, set, char* to, Size size, char value) \
     FUNC(TYPE, SUPER, BytePtrResult, copy, const char* from, char* to, Size from_size, Size to_size) \
     FUNC(TYPE, SUPER, BytePtrResult, copy_n, const char* from, char* to, Size from_size, Size to_size, Size n) \
     FUNC(TYPE, SUPER, SizeResult, index_of, const char* str, const char c, Size str_size) \
