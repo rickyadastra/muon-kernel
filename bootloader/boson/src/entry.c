@@ -1,4 +1,5 @@
 #include "bootloader.h"
+#include "boson/boson.h"
 #include "console.h"
 #include "efi/memory.h"
 #include "memory_manager.h"
@@ -19,7 +20,7 @@
 #define KERNEL_STACK_PAGES 4
 #define KERNEL_FILENAME L"\\EFI\\BOOT\\muon.sys"
 
-extern __attribute__((noreturn)) void start_kernel(UPtr stack, UPtr pml4, UPtr entry);
+extern __attribute__((noreturn)) void start_kernel(UPtr stack, UPtr pml4, UPtr entry, BootloaderPayload* payload);
 extern UInt8 trampolineStart, trampolineEnd;
 
 EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
@@ -61,22 +62,31 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         IMemoryManager.virtual_map_huge(&memManager, bootloader.kernelPageTable, APIC_BASE, APIC_BASE, 1);
         IConsole.log(&console, L"APIC identity mapped");
 
+        IMemoryManager.virtual_self_map(&memManager, bootloader.kernelPageTable, 510);
+
         IBootloader.prepare_kernel_programs(&bootloader);
         IConsole.log(&console, L"Kernel programs loaded and mapped");
 
-        // Size descriptorSize = 0, size;
-        // EfiMemoryDescriptor* d = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize));
-
+        BootloaderPayload* payload;
+        IMemoryManager.alloc(&memManager, sizeof(BootloaderPayload), (UPtr*)&payload);
+        payload->stack = bootloader.kernelStack;
+        payload->pageTablePaddr = (UPtr)bootloader.kernelPageTable;
         
-        // for (Size i=0; i<(size/descriptorSize); i++) {
-            //     efi_logf("attribute: %u, pages: %u, %x -> %x (%d)", d->Attribute, d->NumberOfPages, d->PhysicalStart, d->VirtualStart, d->Type);
-            //     d = (EfiMemoryDescriptor*)((UInt8*)d + descriptorSize);
-            // } 
+        Size descriptorSize = 0, size;
+        MemoryRegion* regions = (MemoryRegion*) IMemoryManager.alloc_pages(&memManager, EFI_PAGE_SIZE, true);
+        EfiMemoryDescriptor* memoryMap = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize, null));
+        BigSize usable = 0;
+        Size entries = 0;
+        
+        IMemoryManager.process_memory_map(memoryMap, descriptorSize, size, regions, &usable, &entries);
+        IConsole.logf(&console, "%d memory entries. Total usable memory: %d KB ", entries, usable*EFI_PAGE_SIZE/1024);
+        payload->memoryRegionEntries = entries;
+        payload->memoryRegionMap = regions;
         
         IConsole.log(&console, L"Launching kernel...");
         IBootloader.exit_bootloader(&bootloader);
         
-        start_kernel(bootloader.kernelStack.end, (UPtr)bootloader.kernelPageTable, IElfParser.get_entry_point(kernelBuf));
+        start_kernel(bootloader.kernelStack.end, (UPtr)bootloader.kernelPageTable, IElfParser.get_entry_point(kernelBuf), payload);
 
     } CATCH(Exception, e) {
         IConsole.logf(&console, "%s (%s:%u): %s", IException.get_class(e)->name, e->file, e->line, e->message);
