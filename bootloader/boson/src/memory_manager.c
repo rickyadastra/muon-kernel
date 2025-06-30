@@ -1,9 +1,12 @@
 #include "memory_manager.h"
+#include "boson/boson.h"
 #include "core/bytearray.h"
 #include "efi/efi.h"
 #include "efi/memory.h"
 #include "int.h"
+#include "lepton/assert.h"
 #include "lepton/exception/exception.h"
+#include "size.h"
 #include "utils/utils.h"
 #include <lepton/exception/null_exception.h>
 #include <exception/memory_exception.h>
@@ -117,6 +120,18 @@ void MemoryManager_virtual_map_huge(MemoryManager *self, PageTable pml4, UPtr pa
     }
 }
 
+void MemoryManager_virtual_self_map(MemoryManager *self, PageTable pml4, UInt32 index) {
+    if (pml4 == null) {
+        THROW_EXCEPTION(NullException, "pml4 is null")
+    }
+
+    if (index >= PAGE_ENTRIES_COUNT) {
+        THROW_EXCEPTION(MemoryManagerException, "index out of bounds")
+    }
+
+    pml4[index] = ((UInt64)pml4 & ~((UInt64)0xfff)) | EFI_PAGE_PRESENT | EFI_PAGE_RW;
+}
+
 EfiMemoryDescriptor* MemoryManager_get_memory_map(MemoryManager *self, Size* _size, Size *_descriptorSize, UINTN* key) {
         UINTN mapKey, descriptorSize, size = 0;
         UInt32 ver;
@@ -147,6 +162,95 @@ UINTN MemoryManager_get_memory_map_key(MemoryManager *self) {
     }
 
     return self->_memoryMapKey;
+}
+
+void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descriptorSize, Size mapSize, MemoryRegion* regionsBuffer, BigSize* usable, Size* entriesCount) {
+    ASSERT_NONNULL(memoryMap)
+    ASSERT_NONNULL(regionsBuffer)
+    ASSERT_NONNULL(usable)
+    ASSERT_NONNULL(entriesCount)
+
+    MemoryRegion* regionPtr = regionsBuffer;
+    EfiMemoryDescriptor* d = memoryMap;
+
+    BigSize uunusable = 0;
+    BigSize* unusable = &uunusable;
+
+    UPtr base = -1, lastBase = -1;
+    Size length = 0;
+    MemoryRegionType lastType = MEMORY_REGION_RESERVED;
+
+    for (Size i=0; i<(mapSize/descriptorSize); i++) {
+        if ((regionPtr - regionsBuffer) >= MEMORY_REGION_MAX_COUNT) break;
+
+        MemoryRegionType type;
+        switch (d->Type) {
+            case EFI_LOADER_DATA:
+                type = MEMORY_REGION_BOOTLOADER;
+                *usable += d->NumberOfPages;
+                break;
+            case EFI_LOADER_CODE:
+            case EFI_BOOT_SERVICES_CODE:
+            case EFI_CONVENTIONAL_MEMORY:
+            case EFI_BOOT_SERVICES_DATA:
+                type = MEMORY_REGION_AVAILABLE;
+                *usable += d->NumberOfPages;
+                break;
+            case EFI_RUNTIME_SERVICES_CODE:
+            case EFI_RUNTIME_SERVICES_DATA:
+                type = MEMORY_REGION_FIRMWARE;
+                *unusable += d->NumberOfPages;
+                break;
+            case EFI_ACPI_RECLAIM_MEMORY:
+            case EFI_ACPI_MEMORY_NVS:
+                type = MEMORY_REGION_ACPI;
+                *unusable += d->NumberOfPages;
+                break;
+            case EFI_MEMORY_MAPPED_IO:
+            case EFI_MEMORY_MAPPED_IO_PORT_SPACE:
+                type = MEMORY_REGION_MMIO;
+                *unusable += d->NumberOfPages;
+                break;
+            case EFI_UNUSABLE_MEMORY:
+            case EFI_PAL_CODE:
+            case EFI_RESERVED_MEMORY_TYPE:
+            default:
+                type = MEMORY_REGION_RESERVED;
+                *unusable += d->NumberOfPages;
+                break;
+        }
+
+        if (lastType == type && base + length == d->PhysicalStart) {
+            length += d->NumberOfPages * EFI_PAGE_SIZE;
+        } else {
+            if (base != -1) {
+                (*regionPtr) = (MemoryRegion){
+                    .base = base,
+                    .size = length,
+                    .type = lastType
+                };
+                regionPtr++;
+            }
+
+            lastBase = base;
+            base = d->PhysicalStart;
+            lastType = type;
+            length = d->NumberOfPages * EFI_PAGE_SIZE;
+        }
+
+        d = (EfiMemoryDescriptor*)((UInt8*)d + descriptorSize);
+    } 
+
+    if (lastBase != base) {
+        (*regionPtr) = (MemoryRegion){
+            .base = base,
+            .size = length,
+            .type = lastType
+        };
+        regionPtr++;
+    }
+
+    *entriesCount = regionPtr - regionsBuffer;
 }
 
 PACKAGECLASS(MemoryManager, Object, _MEMORYMANAGER_METHODS, OBJECT_METHODS)
