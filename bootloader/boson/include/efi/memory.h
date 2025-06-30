@@ -10,7 +10,7 @@
 #define EFI_PAGE_RW      ((UInt64) 0x2)
 #define EFI_PAGE_HUGE    ((UInt64) 128)
 
-typedef enum {
+typedef enum : UInt32 {
     EFI_RESERVED_MEMORY_TYPE,
     EFI_LOADER_CODE,
     EFI_LOADER_DATA,
@@ -38,7 +38,7 @@ typedef enum {
 } EfiAllocateType;
 
 typedef struct {
-   UInt32 Type;
+   EfiMemoryType Type;
    UPtr PhysicalStart;
    UPtr VirtualStart;
    UInt64 NumberOfPages;
