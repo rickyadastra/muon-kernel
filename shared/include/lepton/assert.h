@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lepton/core.h>
+#include <lepton.h>
 
 #define ASSERT_OR_THROW(COND, EXC, MSG, ...) \
     if (!COND) { \

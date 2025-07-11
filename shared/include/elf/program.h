@@ -1,8 +1,6 @@
 #pragma once
 
 #include <elf/elf.h>
-#include <int.h>
-#include <bool.h>
 
 typedef enum __elf_segment_type : UInt32 {
     SEGMENT_TYPE_NULL = 0,

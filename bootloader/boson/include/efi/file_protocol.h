@@ -1,9 +1,8 @@
 #pragma once
 
 #include <efi/time.h>
-#include <int.h>
 #include <efi/efi.h>
-#include <wchar.h>
+#include <boson/wchar.h>
 
 #define EFI_FILE_PROTOCOL_REVISION           0x00010000
 #define EFI_FILE_PROTOCOL_REVISION2          0x00020000

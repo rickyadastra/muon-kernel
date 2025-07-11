@@ -1,6 +1,6 @@
 #pragma once
 
-#include <int.h>
+#include <base.h>
 
 #define PACKED __attribute__((packed))
 #define ELF_MAGIC "\177ELF"

@@ -1,7 +1,6 @@
 #include <lepton/core/class.h>
 #include <lepton/core/object.h>
-#include <bool.h>
-#include <null.h>
+#include <base.h>
 
 DECLAREMETHODS(Object, ROOT, OBJECT_METHODS)
 

@@ -9,12 +9,8 @@
 #include <elf/elf_parser.h>
 #include <elf/elf.h>
 #include <elf/program.h>
-#include <lepton/core.h>
+#include <lepton.h>
 #include <lepton/result.h>
-#include <size.h>
-#include <int.h>
-#include <bool.h>
-#include <null.h>
 
 #define APIC_BASE 0xFEE00000
 #define KERNEL_STACK_PAGES 4

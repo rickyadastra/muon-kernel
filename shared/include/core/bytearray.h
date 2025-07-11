@@ -1,7 +1,7 @@
 #pragma once
 
-#include <size.h>
-#include <lepton/core.h>
+#include <base.h>
+#include <lepton.h>
 
 #define BYTE_ARRAY_METHODS(TYPE, SUPER, FUNC) \
     FUNC(TYPE, SUPER, BytePtrResult, set, char* to, Size size, char value) \

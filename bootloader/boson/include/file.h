@@ -1,10 +1,10 @@
 #pragma once
 
 #include "efi/file_protocol.h"
-#include "int.h"
+#include <base/int.h>
 #include "lepton/core/class.h"
 #include "memory_consumer.h"
-#include <lepton/core.h>
+#include <lepton.h>
 
 #define _FILE_METHODS(T, S, M) \
     METHOD(T, S, M, void, from, EfiFileProtocol* proto) \

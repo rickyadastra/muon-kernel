@@ -3,15 +3,13 @@
 #include "core/bytearray.h"
 #include "efi/efi.h"
 #include "efi/memory.h"
-#include "int.h"
+#include <base/int.h>
 #include "lepton/assert.h"
 #include "lepton/exception/exception.h"
-#include "size.h"
 #include "utils/utils.h"
 #include <lepton/exception/null_exception.h>
 #include <exception/memory_exception.h>
-#include <lepton/core.h>
-#include <null.h>
+#include <lepton.h>
 
 INHERITCLASS(MemoryManager, _MEMORYMANAGER_METHODS, OBJECT_METHODS)
 

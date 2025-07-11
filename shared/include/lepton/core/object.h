@@ -1,6 +1,6 @@
 #pragma once
 
-#include "class.h"
+#include <lepton/core/class.h>
 
 #define OBJECT_METHODS(TYPE, SUPER, FUNC) \
     STATIC(TYPE, SUPER, FUNC, TYPE, init) \

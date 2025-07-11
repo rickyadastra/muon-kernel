@@ -1,6 +1,5 @@
 #include "memory_consumer.h"
 #include "lepton/exception/null_exception.h"
-#include "null.h"
 
 INHERITCLASS(MemoryConsumer, _MEMORYCONSUMER_METHODS, OBJECT_METHODS)
 

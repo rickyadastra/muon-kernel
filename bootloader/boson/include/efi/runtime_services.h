@@ -1,6 +1,5 @@
 #pragma once
 
-#include <int.h>
 #include <efi/efi.h>
 #include <efi/time.h>
 

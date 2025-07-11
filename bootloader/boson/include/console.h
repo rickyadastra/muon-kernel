@@ -2,9 +2,8 @@
 
 #include "efi/efi.h"
 #include <efi/runtime_services.h>
-#include <lepton/core.h>
-#include <wchar.h>
-#include <bool.h>
+#include <lepton.h>
+#include <boson/wchar.h>
 
 #define _CONSOLE_METHODS(T, S, M) \
     METHOD(T, S, M, void, set_efi_table, EfiSystemTable* efiTable) \

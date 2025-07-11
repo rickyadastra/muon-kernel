@@ -1,7 +1,5 @@
-#include <int.h>
-#include <wchar.h>
-#include <bool.h>
 #include <efi/status.h>
+#include <boson/wchar.h>
 
 #pragma once
 

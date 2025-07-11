@@ -1,7 +1,6 @@
 #pragma once
 
 #include <efi/memory.h>
-#include <int.h>
 #include <efi/efi.h>
 
 #define EFI_LOADED_IMAGE_PROTOCOL_GUID \

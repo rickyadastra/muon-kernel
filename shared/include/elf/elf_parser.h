@@ -1,9 +1,8 @@
 #pragma once
 
-#include <int.h>
-#include <bool.h>
+#include <base.h>
 #include <elf/elf.h>
-#include <lepton/core.h>
+#include <lepton.h>
     
 #define ELFPARSER_METHODS(T, S, M) \
     STATIC(T, S, M, Bool, check_header, UPtr buffer, UInt8 mode, UInt16 arch, UInt8 endian) \

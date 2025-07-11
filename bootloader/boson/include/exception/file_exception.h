@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lepton/core.h>
+#include <lepton.h>
 #include <exception/bootloader_exception.h>
 
 #define _FILE_EXCEPTION_METHODS(TYPE, SUPER, FUNC)

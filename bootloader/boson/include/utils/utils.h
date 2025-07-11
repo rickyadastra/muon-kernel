@@ -1,6 +1,5 @@
 #pragma once
 
-#include <size.h>
 #include <efi/efi.h>
 #include <efi/runtime_services.h>
 #include <efi/boot_services.h>

@@ -1,6 +1,4 @@
 #include <efi/efi.h>
-#include <int.h>
-#include <size.h>
 
 #pragma once
 

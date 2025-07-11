@@ -3,14 +3,11 @@
 #include "efi/file_protocol.h"
 #include <exception/file_exception.h>
 #include <lepton/exception/exception.h>
-#include "int.h"
 #include "memory_manager.h"
-#include "size.h"
 #include "utils/utils.h"
-#include "wchar.h"
+#include <boson/wchar.h>
 #include <lepton/exception/null_exception.h>
-#include <lepton/core.h>
-#include <null.h>
+#include <lepton.h>
 
 INHERITCLASS(File, _FILE_METHODS, MEMORYCONSUMER_METHODS)
 

@@ -1,4 +1,4 @@
-#include "lepton/result.h"
+#include <lepton/result.h>
 #include <core/bytearray.h>
 
 DECLAREMETHODS(ByteArray, ROOT, BYTE_ARRAY_METHODS)

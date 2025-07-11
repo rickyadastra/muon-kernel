@@ -1,20 +1,17 @@
 #include "bootloader.h"
-#include "bool.h"
 #include "core/bytearray.h"
 #include "efi/file_protocol.h"
 #include "efi/memory.h"
 #include "elf/elf.h"
 #include "elf/program.h"
 #include "file.h"
-#include "int.h"
 #include "lepton/exception/exception.h"
 #include "memory_manager.h"
 #include <lepton/exception/null_exception.h>
 #include <efi/efi.h>
 #include <exception/bootloader_exception.h>
 #include <utils/utils.h>
-#include <lepton/core.h>
-#include <null.h>
+#include <lepton.h>
 
 extern UInt8 trampolineStart, trampolineEnd;
 

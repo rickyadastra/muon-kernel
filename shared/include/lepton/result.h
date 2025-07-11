@@ -1,6 +1,6 @@
 #pragma once
 
-#include <int.h>
+#include <base.h>
 #include <lepton/exception/result_exception.h>
 
 typedef enum {

@@ -1,11 +1,10 @@
-#include "elf/elf_parser.h"
-#include "bool.h"
-#include "core/bytearray.h"
-#include "elf/elf.h"
-#include "int.h"
-#include "lepton/exception/null_exception.h"
-#include "lepton/core.h"
-#include "lepton/result.h"
+#include <elf/elf_parser.h>
+#include <core/bytearray.h>
+#include <elf/elf.h>
+#include <base/int.h>
+#include <lepton/exception/null_exception.h>
+#include <lepton.h>
+#include <lepton/result.h>
 
 DECLAREMETHODS(ElfParser, ROOT, ELFPARSER_METHODS)
 

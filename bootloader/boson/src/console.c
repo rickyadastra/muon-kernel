@@ -1,12 +1,9 @@
 #include "efi/efi.h"
 #include <exception/console_exception.h>
-#include "int.h"
 #include <console.h>
-#include <wchar.h>
+#include <boson/wchar.h>
 #include <efi/time.h>
-#include <lepton/core.h>
-#include <null.h>
-#include <vargs.h>
+#include <lepton.h>
 #include <utils/string.h>
 #include <utils/utils.h>
 

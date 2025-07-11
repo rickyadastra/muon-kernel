@@ -1,7 +1,6 @@
 #pragma once
 
-#include "int.h"
-#include "size.h"
+#include <base/int.h>
 
 typedef enum {
     MEMORY_REGION_BOOTLOADER,

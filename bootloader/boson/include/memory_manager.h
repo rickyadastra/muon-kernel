@@ -2,10 +2,7 @@
 
 #include "efi/efi.h"
 #include "efi/memory.h"
-#include "int.h"
-#include "lepton/core/class.h"
-#include "size.h"
-#include <lepton/core.h>
+#include <lepton.h>
 #include <efi/boot_services.h>
 #include <boson/boson.h>
 

@@ -1,9 +1,6 @@
 #pragma once
 
-#warning "<lepton.h> has been deprecated. Use <lepton.h> instead"
-
-#include <base/size.h>
-#include <base/int.h>
+#include <base.h>
 
 #include <lepton/runtime.h>
 #include <lepton/core/class.h>

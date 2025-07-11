@@ -1,6 +1,5 @@
 #pragma once
 
-#include "int.h"
 #include <efi/memory.h>
 #include <efi/efi.h>
 

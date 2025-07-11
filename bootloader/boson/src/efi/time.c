@@ -1,8 +1,6 @@
-#include "int.h"
 #include <efi/efi.h>
 #include <efi/time.h>
-#include <wchar.h>
-#include <size.h>
+#include <boson/wchar.h>
 
 WChar16 format_digit(UInt8 digit, Size scale) {
     return L'0' + ((digit/scale)%10);

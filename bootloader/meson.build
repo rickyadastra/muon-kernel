@@ -1,5 +1,7 @@
 boson_cc = meson.get_compiler('c')
 
+add_project_arguments('-include', 'base.h', language: 'c')
+
 efi_compile_args = [
     '-target', 'x86_64-unknown-windows-msvc',
     '-ffreestanding',
@@ -50,6 +52,7 @@ executable(
     boson_sources,
     include_directories: [boson_inc, shared_inc],
     c_args: efi_compile_args,
+    nasm_args: [], 
     link_args: efi_link_args,
     install: false
 )
