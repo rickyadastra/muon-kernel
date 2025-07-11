@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.imgur.com/7lzQi0P.png" height=224/>
+  <img src="https://i.imgur.com/bxSeMca.png" height=224/>
   </br>
   A minimal, capability-based, <b>x86-64 kernel</b> with <b>UEFI bootloader</b>, OOP-like structure in C, pre-emptive multitasking and soon-to-come modern features. Also an open-source educational and study project.
 </p>
