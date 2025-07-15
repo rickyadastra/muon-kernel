@@ -11,9 +11,9 @@ void kstart() {
 
     char msg[] = "hello world\n";
 
-    for (Size i=0; i<sizeof(msg); i++) {
-        IPort.write(&com1, msg[i]);
-    }
+    // for (Size i=0; i<sizeof(msg); i++) {
+    //     IPort.write(&com1, msg[i]);
+    // }
 
     for (;;) {}
 }
