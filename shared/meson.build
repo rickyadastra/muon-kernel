@@ -19,5 +19,6 @@ liblepton_sources = files(
     'src/lepton/exception/exception.c',
     'src/lepton/exception/null_exception.c',
     'src/lepton/exception/result_exception.c',
+    'src/lepton/exception/invalid_parameter_exception.c',
     'src/lepton/exception/exception_runtime_@0@_@1@.s'.format(arch, abi)
 )
