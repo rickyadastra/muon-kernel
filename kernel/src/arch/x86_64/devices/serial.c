@@ -4,11 +4,11 @@
 
 INHERITCLASS(Serial, SERIAL_ONLY_METHODS, OBJECT_METHODS)
 
-void Serial_setup(Serial *self, UInt16 port) {
+Bool Serial_setup(Serial *self, UInt16 port) {
     if (port != COM1 && port != COM2 && port != COM3 && port != COM4 &&
         port != COM5 && port != COM6 && port != COM7 && port != COM8) {
         THROW_EXCEPTION(InvalidParameterException, "The port is not a valid serial port");
-        return;
+        return false;
     }
     self->port = port;
 
@@ -30,11 +30,28 @@ void Serial_setup(Serial *self, UInt16 port) {
         .interrupt_trigger_level=INT_TRIGGER_BYTES_14
     });
 
+    //? Test port via loopback
+    ISerial.set_modem_ctrl_reg(self, (SerialModemCtrlReg){
+        .request_to_send=1,
+        .out_2_irq=1,
+        .out_1=1,
+        .loop=1
+    });
+
+    // Send byte and check for return
+    IPort.out8(self->port, 0xAE);
+    if (IPort.in8(self->port) != 0xAE) {
+        return false;
+    }
+    
     ISerial.set_modem_ctrl_reg(self, (SerialModemCtrlReg){
         .data_terminal_ready=1,
         .request_to_send=1,
-        .out_2_irq=1
+        .out_2_irq=1,
+        .out_1=1
     });
+
+    return true;
 }
 
 SerialLineCtrlReg Serial_get_line_ctrl_reg(Serial *self) {

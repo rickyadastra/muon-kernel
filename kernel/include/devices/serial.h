@@ -86,7 +86,7 @@ typedef union _SerialModemStatusReg_struct {
 } SerialModemStatusReg;
 
 #define SERIAL_ONLY_METHODS(TYPE, SUPER, FUNC) \
-    METHOD(TYPE, SUPER, FUNC, void, setup, UInt16 port) \
+    METHOD(TYPE, SUPER, FUNC, Bool, setup, UInt16 port) \
     METHOD(TYPE, SUPER, FUNC, void, set_baud_rate_divisor, UInt16 divisor) \
     METHOD(TYPE, SUPER, FUNC, SerialLineCtrlReg, get_line_ctrl_reg) \
     METHOD(TYPE, SUPER, FUNC, void, set_line_ctrl_reg, SerialLineCtrlReg value) \
