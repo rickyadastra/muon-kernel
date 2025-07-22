@@ -23,7 +23,7 @@ typedef union _SerialInterruptEnableReg_struct {
     };
 } SerialInterruptEnableReg;
 
-typedef union _SerialFIFOReg_struct {
+typedef union _SerialFIFOCtrlReg_struct {
     UInt8 raw;
     struct {
         Bool fifo_enable : 1;
@@ -33,7 +33,7 @@ typedef union _SerialFIFOReg_struct {
         UInt8 __reserved : 2;
         UInt8 interrupt_trigger_level : 2;
     };
-} SerialFIFOReg;
+} SerialFIFOCtrlReg;
 
 typedef union _SerialInterruptIdentificationReg_struct {
     UInt8 raw;
@@ -44,7 +44,7 @@ typedef union _SerialInterruptIdentificationReg_struct {
         UInt8 __reserved : 2;
         UInt8 fifo_buffer_state : 2;
     };
-} InterruptIdentificationReg;
+} SerialInterruptIdentificationReg;
 
 typedef union _SerialModemCtrlReg_struct {
     UInt8 raw;
@@ -55,7 +55,7 @@ typedef union _SerialModemCtrlReg_struct {
         Bool out_2_irq : 1;
         Bool loop : 1;
     };
-} ModemCtrlReg;
+} SerialModemCtrlReg;
 
 typedef union _SerialLineStatusReg_struct {
     UInt8 raw;
@@ -69,7 +69,7 @@ typedef union _SerialLineStatusReg_struct {
         Bool transmitter_idle : 1;
         Bool impending_error : 1;
     };
-} LineStatusReg;
+} SerialLineStatusReg;
 
 typedef union _SerialModemStatusReg_struct {
     UInt8 raw;
@@ -83,12 +83,19 @@ typedef union _SerialModemStatusReg_struct {
         Bool ri : 1;
         Bool dcd : 1;
     };
-} ModemStatusReg;
+} SerialModemStatusReg;
 
 #define SERIAL_ONLY_METHODS(TYPE, SUPER, FUNC) \
     METHOD(TYPE, SUPER, FUNC, void, setup, UInt16 port) \
-    METHOD(TYPE, SUPER, FUNC, void, set_interrupt_enable, Bool enable) \
     METHOD(TYPE, SUPER, FUNC, void, set_baud_rate_divisor, UInt16 divisor) \
+    METHOD(TYPE, SUPER, FUNC, SerialLineCtrlReg, get_line_ctrl_reg) \
+    METHOD(TYPE, SUPER, FUNC, void, set_line_ctrl_reg, SerialLineCtrlReg value) \
+    METHOD(TYPE, SUPER, FUNC, SerialInterruptEnableReg, get_interrupt_enable_reg) \
+    METHOD(TYPE, SUPER, FUNC, void, set_interrupt_enable_reg, SerialInterruptEnableReg value) \
+    METHOD(TYPE, SUPER, FUNC, SerialFIFOCtrlReg, get_fifo_ctrl_reg) \
+    METHOD(TYPE, SUPER, FUNC, void, set_fifo_ctrl_reg, SerialFIFOCtrlReg value) \
+    METHOD(TYPE, SUPER, FUNC, SerialModemCtrlReg, get_modem_ctrl_reg) \
+    METHOD(TYPE, SUPER, FUNC, void, set_modem_ctrl_reg, SerialModemCtrlReg value) \
 
 #define SERIAL_METHODS(TYPE, SUPER, FUNC) \
     OBJECT_METHODS(TYPE, SUPER, FUNC) \
@@ -97,7 +104,6 @@ typedef union _SerialModemStatusReg_struct {
 CLASSDEF(Serial, Object, SERIAL_METHODS)
     Port port;
 ENDCLASSDEF(Serial)
-
 
 #define COM1 0x3f8
 #define COM2 0x2f8
@@ -110,7 +116,7 @@ ENDCLASSDEF(Serial)
 
 #define RECV_BUFFER_OFFSET  0
 #define WRIT_BUFFER_OFFSET  0
-#define INTER_OFFSET        1
+#define INTER_ENABLE_OFFSET 1
 #define BRDR_LSB_OFFSET     0
 #define BRDR_MSB_OFFSET     1
 #define INTER_ID_OFFSET     2
@@ -120,3 +126,22 @@ ENDCLASSDEF(Serial)
 #define LINE_STATUS_OFFSET  5
 #define MODEM_STATUS_OFFSET 6
 #define SCRATCH_REG_OFFSET  7
+
+#define DATA_BITS_5 0b00
+#define DATA_BITS_6 0b01
+#define DATA_BITS_7 0b10
+#define DATA_BITS_8 0b11
+
+#define STOP_BITS_1 0b0
+#define STOP_BITS_2 0b1
+
+#define PARITY_BITS_NONE    0b000
+#define PARITY_BITS_ODD     0b001
+#define PARITY_BITS_EVEN    0b011
+#define PARITY_BITS_MARK    0b101
+#define PARITY_BITS_SPACE   0b111
+
+#define INT_TRIGGER_BYTES_1   0b00
+#define INT_TRIGGER_BYTES_4   0b01
+#define INT_TRIGGER_BYTES_8   0b10
+#define INT_TRIGGER_BYTES_14  0b11
