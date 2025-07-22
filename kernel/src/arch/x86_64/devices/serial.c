@@ -94,6 +94,12 @@ void Serial_set_modem_ctrl_reg(Serial *self, SerialModemCtrlReg value) {
     IPort.out8(self->port + MODEM_CTRL_OFFSET, value.raw);
 }
 
+SerialLineStatusReg Serial_get_line_status_reg(Serial *self) {
+    SerialLineStatusReg lineStatusReg;
+    lineStatusReg.raw = IPort.in8(self->port + LINE_STATUS_OFFSET);
+    return lineStatusReg;
+}
+
 void Serial_set_baud_rate_divisor(Serial *self, UInt16 divisor) {
     SerialLineCtrlReg lineCtrlReg = ISerial.get_line_ctrl_reg(self);
     
@@ -108,6 +114,29 @@ void Serial_set_baud_rate_divisor(Serial *self, UInt16 divisor) {
     // Clear DLAB
     lineCtrlReg.divisor_latch_access_bit = false;
     ISerial.set_line_ctrl_reg(self, lineCtrlReg);
+}
+
+void Serial_put(Serial *self, char data) {
+    while (!ISerial.can_write(self));
+    IPort.out8(self->port, data);
+}
+
+void Serial_write(Serial *self, char* msg) {
+    while (*msg != 0) 
+        ISerial.put(self, *msg++);
+}
+
+UInt8 Serial_get(Serial *self) {
+    while (!ISerial.can_read(self));
+    return IPort.in8(self->port);
+}
+
+Bool Serial_can_write(Serial *self) {
+    return ISerial.get_line_status_reg(self).can_send_data;
+}
+
+Bool Serial_can_read(Serial *self) {
+    return ISerial.get_line_status_reg(self).data_ready;
 }
 
 PACKAGECLASS(Serial, Object, SERIAL_ONLY_METHODS, OBJECT_METHODS)

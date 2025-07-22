@@ -96,6 +96,12 @@ typedef union _SerialModemStatusReg_struct {
     METHOD(TYPE, SUPER, FUNC, void, set_fifo_ctrl_reg, SerialFIFOCtrlReg value) \
     METHOD(TYPE, SUPER, FUNC, SerialModemCtrlReg, get_modem_ctrl_reg) \
     METHOD(TYPE, SUPER, FUNC, void, set_modem_ctrl_reg, SerialModemCtrlReg value) \
+    METHOD(TYPE, SUPER, FUNC, SerialLineStatusReg, get_line_status_reg) \
+    METHOD(TYPE, SUPER, FUNC, void, put, char data) \
+    METHOD(TYPE, SUPER, FUNC, void, write, char* msg) \
+    METHOD(TYPE, SUPER, FUNC, Bool, can_write) \
+    METHOD(TYPE, SUPER, FUNC, Bool, can_read) \
+    METHOD(TYPE, SUPER, FUNC, UInt8, get) \
 
 #define SERIAL_METHODS(TYPE, SUPER, FUNC) \
     OBJECT_METHODS(TYPE, SUPER, FUNC) \
