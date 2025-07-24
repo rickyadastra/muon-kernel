@@ -14,6 +14,7 @@ struct _Class_struct {
 #define IFACEASSIGN(CLASS, SUPER, RET, METHOD, ...) .METHOD = CLASS##_##METHOD,
 #define IFACEOVERRIDE(CLASS, SUPER, RET, METHOD, ...) .METHOD = CLASS##_##METHOD ? CLASS##_##METHOD : IFACEMETHOD(SUPER, CLASS, RET, METHOD, ##__VA_ARGS__),
 
+#define NO_METHODS(T, S, M) 
 #define _ROOT_classmeta ((Class*)null)
 
 int subclassof(Class*, Class*);
