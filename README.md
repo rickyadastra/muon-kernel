@@ -20,8 +20,23 @@
    - Modern set of syscalls
 
 # Milestones
-- [ ] **Milestone 0** – Boot & Foundation 
-   - [x] UEFI bootloader to kernel entry
-   - [x] UEFI memory map passing to kernel
-   - [ ] Kernel ports and UART driver
-   - [ ] Kernel serial port driver
+- [x] 🚀 **Milestone 0** – Bootloader
+   - [x] Boson UEFI loader and ELF loading
+   - [x] Setup kernel page tables (identity + higher-half mapping)
+   - [x] Setup kernel stack and call C entry point
+- [ ] 🏗️ **Milestone 0.1** – Foundations
+   - [x] UART serial logging driver (output)
+   - [ ] Global Descriptor Table
+   - [ ] Interrupt Descriptor Table
+   - [ ] Exception handlers (page fault, GPF, etc.)
+   - [ ] HPET timer driver for preemptive IRQ
+   - [ ] UART serial interrupt-based driver (input)
+- [ ] 📗 **Milestone 0.2** – Memory Management
+   - [ ] Physical frame allocator (bitmap slab allocator)
+   - [ ] Virtual memory mapping (paging interface)
+   - [ ] Kernel heap allocator (buddy allocator)
+- [ ] 🐎 **Milestone 0.3** – Kernel mode scheduler
+   - [ ] Task/Thread structure with context and stack
+   - [ ] Cooperative `yield()` function 
+   - [ ] Preemptive switch via timer interrupt
+   - [ ] Basic shell to launch programs
