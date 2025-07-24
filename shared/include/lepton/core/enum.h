@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lepton/core/class.h>
+#include <lepton/exception/no_such_enum_member_exception.h>
 
 #define MEMBERDECL(TYPE, NAME, VAL) TYPE NAME;
 #define MEMBERDEF(TYPE, NAME, VAL) .NAME = VAL,
