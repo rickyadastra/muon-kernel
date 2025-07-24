@@ -5,6 +5,7 @@
 #include <lepton/runtime.h>
 #include <lepton/core/class.h>
 #include <lepton/core/object.h>
+#include <lepton/core/enum.h>
 #include <lepton/throwable.h>
 #include <lepton/result.h>
 
