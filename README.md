@@ -26,7 +26,7 @@
    - [x] Setup kernel stack and call C entry point
 - [ ] 🏗️ **Milestone 0.1** – Foundations
    - [x] UART serial logging driver (output)
-   - [ ] Global Descriptor Table
+   - [x] Global Descriptor Table
    - [ ] Interrupt Descriptor Table
    - [ ] Exception handlers (page fault, GPF, etc.)
    - [ ] HPET timer driver for preemptive IRQ
