@@ -37,7 +37,7 @@
     }; \
     struct _##NAME##Enum_interface { \
         Size size; \
-        const char* (*get_label)(const BaudRateEnumType* enumMember); \
+        const char* (*get_label)(const NAME##EnumType* enumMember); \
         METHODS(NAME, ROOT, VIRTUALDEF) \
     }; \
     ENDIFACEDEF(NAME##Enum)
