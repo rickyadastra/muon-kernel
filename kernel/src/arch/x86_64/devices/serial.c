@@ -2,11 +2,15 @@
 #include <lepton/exception/invalid_parameter_exception.h>
 #include <devices/serial.h>
 
+ENUMPACKAGE(SerialPort, , SERIALPORT_MEMBERS)
+
 INHERITCLASS(Serial, SERIAL_ONLY_METHODS, OBJECT_METHODS)
 
 Bool Serial_setup(Serial *self, UInt16 port) {
-    if (port != COM1 && port != COM2 && port != COM3 && port != COM4 &&
-        port != COM5 && port != COM6 && port != COM7 && port != COM8) {
+    if (port != SerialPort.COM1 && port != SerialPort.COM2 &&
+        port != SerialPort.COM3 && port != SerialPort.COM4 &&
+        port != SerialPort.COM5 && port != SerialPort.COM6 &&
+        port != SerialPort.COM7 && port != SerialPort.COM8) {
         THROW_EXCEPTION(InvalidParameterException, "The port is not a valid serial port");
         return false;
     }
@@ -17,17 +21,17 @@ Bool Serial_setup(Serial *self, UInt16 port) {
     ISerial.set_baud_rate_divisor(self, 3);
 
     ISerial.set_line_ctrl_reg(self, (SerialLineCtrlReg){
-        .data_bits=DATA_BITS_8,
-        .parity_bits=PARITY_BITS_NONE,
+        .data_bits=SerialDataBits.EIGHT,
+        .parity_bits=SerialParityBits.NONE,
         .break_enable_bit=0,
-        .stop_bit=STOP_BITS_1
+        .stop_bit=SerialStopBits.ONE
     });
 
     ISerial.set_fifo_ctrl_reg(self, (SerialFIFOCtrlReg){
         .fifo_enable=1,
         .clear_recv_fifo=1,
         .clear_transm_fifo=1,
-        .interrupt_trigger_level=INT_TRIGGER_BYTES_14
+        .interrupt_trigger_level=SerialInterruptTriggerBytes.FOURTEEN
     });
 
     //? Test port via loopback
@@ -56,47 +60,47 @@ Bool Serial_setup(Serial *self, UInt16 port) {
 
 SerialLineCtrlReg Serial_get_line_ctrl_reg(Serial *self) {
     SerialLineCtrlReg lineCtrlReg;
-    lineCtrlReg.raw = IPort.in8(self->port + LINE_CTRL_OFFSET);
+    lineCtrlReg.raw = IPort.in8(self->port + SerialPortRegister.LINE_CTRL);
     return lineCtrlReg;
 }
 
 void Serial_set_line_ctrl_reg(Serial *self, SerialLineCtrlReg value) {
-    IPort.out8(self->port + LINE_CTRL_OFFSET, value.raw);
+    IPort.out8(self->port + SerialPortRegister.LINE_CTRL, value.raw);
 }
 
 SerialInterruptEnableReg Serial_get_interrupt_enable_reg(Serial *self) {
     SerialInterruptEnableReg intEnableReg;
-    intEnableReg.raw = IPort.in8(self->port + INTER_ENABLE_OFFSET);
+    intEnableReg.raw = IPort.in8(self->port + SerialPortRegister.INTER_ENABLE);
     return intEnableReg;
 }
 
 void Serial_set_interrupt_enable_reg(Serial *self, SerialInterruptEnableReg value) {
-    IPort.out8(self->port + INTER_ENABLE_OFFSET, value.raw);
+    IPort.out8(self->port + SerialPortRegister.INTER_ENABLE, value.raw);
 }
 
 SerialFIFOCtrlReg Serial_get_fifo_ctrl_reg(Serial *self) {
     SerialFIFOCtrlReg fifoCtrlReg;
-    fifoCtrlReg.raw = IPort.in8(self->port + FIFO_CTRL_OFFSET);
+    fifoCtrlReg.raw = IPort.in8(self->port + SerialPortRegister.FIFO_CTRL);
     return fifoCtrlReg;
 }
 
 void Serial_set_fifo_ctrl_reg(Serial *self, SerialFIFOCtrlReg value) {
-    IPort.out8(self->port + FIFO_CTRL_OFFSET, value.raw);
+    IPort.out8(self->port + SerialPortRegister.FIFO_CTRL, value.raw);
 }
 
 SerialModemCtrlReg Serial_get_modem_ctrl_reg(Serial *self) {
     SerialModemCtrlReg modemCtrlReg;
-    modemCtrlReg.raw = IPort.in8(self->port + MODEM_CTRL_OFFSET);
+    modemCtrlReg.raw = IPort.in8(self->port + SerialPortRegister.MODEM_CTRL);
     return modemCtrlReg;
 }
 
 void Serial_set_modem_ctrl_reg(Serial *self, SerialModemCtrlReg value) {
-    IPort.out8(self->port + MODEM_CTRL_OFFSET, value.raw);
+    IPort.out8(self->port + SerialPortRegister.MODEM_CTRL, value.raw);
 }
 
 SerialLineStatusReg Serial_get_line_status_reg(Serial *self) {
     SerialLineStatusReg lineStatusReg;
-    lineStatusReg.raw = IPort.in8(self->port + LINE_STATUS_OFFSET);
+    lineStatusReg.raw = IPort.in8(self->port + SerialPortRegister.LINE_STATUS);
     return lineStatusReg;
 }
 
@@ -108,8 +112,8 @@ void Serial_set_baud_rate_divisor(Serial *self, UInt16 divisor) {
     ISerial.set_line_ctrl_reg(self, lineCtrlReg);
 
     // Send the LSB to BRDR_LSB and MSB to BRDR_MSB
-    IPort.out8(self->port+BRDR_LSB_OFFSET, (UInt8)divisor);
-    IPort.out8(self->port+BRDR_MSB_OFFSET, (UInt8)(divisor>>8));
+    IPort.out8(self->port+SerialPortRegister.BRDR_LSB, (UInt8)divisor);
+    IPort.out8(self->port+SerialPortRegister.BRDR_MSB, (UInt8)(divisor>>8));
     
     // Clear DLAB
     lineCtrlReg.divisor_latch_access_bit = false;

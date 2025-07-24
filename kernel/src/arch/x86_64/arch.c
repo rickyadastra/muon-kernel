@@ -4,7 +4,7 @@ void kstart() {
     asm("cli");
     
     Serial logSerial = ISerial.init();
-    ISerial.setup(&logSerial, COM1);
+    ISerial.setup(&logSerial, SerialPort.COM1);
 
     ISerial.write(&logSerial, "hello world\n");
 

@@ -111,43 +111,55 @@ CLASSDEF(Serial, Object, SERIAL_METHODS)
     Port port;
 ENDCLASSDEF(Serial)
 
-#define COM1 0x3f8
-#define COM2 0x2f8
-#define COM3 0x3e8
-#define COM4 0x2e8
-#define COM5 0x5f8
-#define COM6 0x4f8
-#define COM7 0x5e8
-#define COM8 0x4e8
+#define SERIALPORT_MEMBERS(T, F) \
+    F(T, COM1, 0x3f8) \
+    F(T, COM2, 0x2f8) \
+    F(T, COM3, 0x3e8) \
+    F(T, COM4, 0x2e8) \
+    F(T, COM5, 0x5f8) \
+    F(T, COM6, 0x4f8) \
+    F(T, COM7, 0x5e8) \
+    F(T, COM8, 0x4e8) 
+ENUMDEF(SerialPort, UInt16, SERIALPORT_MEMBERS, NO_METHODS)
 
-#define RECV_BUFFER_OFFSET  0
-#define WRIT_BUFFER_OFFSET  0
-#define INTER_ENABLE_OFFSET 1
-#define BRDR_LSB_OFFSET     0
-#define BRDR_MSB_OFFSET     1
-#define INTER_ID_OFFSET     2
-#define FIFO_CTRL_OFFSET    2
-#define LINE_CTRL_OFFSET    3
-#define MODEM_CTRL_OFFSET   4
-#define LINE_STATUS_OFFSET  5
-#define MODEM_STATUS_OFFSET 6
-#define SCRATCH_REG_OFFSET  7
+#define SERIALPORTREGISTER_MEMBERS(T, F) \
+    F(T, RECV_BUFFER, 0) \
+    F(T, WRIT_BUFFER, 0) \
+    F(T, INTER_ENABLE, 1) \
+    F(T, BRDR_LSB, 0) \
+    F(T, BRDR_MSB, 1) \
+    F(T, INTER_ID, 2) \
+    F(T, FIFO_CTRL, 2) \
+    F(T, LINE_CTRL, 3) \
+    F(T, MODEM_CTRL, 4) \
+    F(T, LINE_STATUS, 5) \
+    F(T, MODEM_STATUS, 6) \
+    F(T, SCRATCH_REG, 7) 
+ENUMDEF(SerialPortRegister, UInt8, SERIALPORTREGISTER_MEMBERS, NO_METHODS)
 
-#define DATA_BITS_5 0b00
-#define DATA_BITS_6 0b01
-#define DATA_BITS_7 0b10
-#define DATA_BITS_8 0b11
+#define SERIALDATABITS_MEMBERS(T, F) \
+    F(T, FIVE, 0b00) \
+    F(T, SIX, 0b01) \
+    F(T, SEVEN, 0b10) \
+    F(T, EIGHT, 0b11) 
+ENUMDEF(SerialDataBits, UInt8, SERIALDATABITS_MEMBERS, NO_METHODS)
 
-#define STOP_BITS_1 0b0
-#define STOP_BITS_2 0b1
+#define STOP_BITS_MEMBERS(T, F) \
+    F(T, ONE, 0b0) \
+    F(T, TWO, 0b1)
+ENUMDEF(SerialStopBits, UInt8, STOP_BITS_MEMBERS, NO_METHODS)
 
-#define PARITY_BITS_NONE    0b000
-#define PARITY_BITS_ODD     0b001
-#define PARITY_BITS_EVEN    0b011
-#define PARITY_BITS_MARK    0b101
-#define PARITY_BITS_SPACE   0b111
+#define PARITY_BITS_MEMBERS(T, F) \
+    F(T, NONE, 0b000) \
+    F(T, ODD, 0b001) \
+    F(T, EVEN, 0b011) \
+    F(T, MARK, 0b101) \
+    F(T, SPACE, 0b111)
+ENUMDEF(SerialParityBits, UInt8, PARITY_BITS_MEMBERS, NO_METHODS)
 
-#define INT_TRIGGER_BYTES_1   0b00
-#define INT_TRIGGER_BYTES_4   0b01
-#define INT_TRIGGER_BYTES_8   0b10
-#define INT_TRIGGER_BYTES_14  0b11
+#define INT_TRIGGER_BYTES_MEMBERS(T, F) \
+    F(T, ONE, 0b00) \
+    F(T, FOUR, 0b01) \
+    F(T, EIGHT, 0b10) \
+    F(T, FOURTEEN, 0b11)
+ENUMDEF(SerialInterruptTriggerBytes, UInt8, INT_TRIGGER_BYTES_MEMBERS, NO_METHODS)
