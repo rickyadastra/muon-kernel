@@ -35,6 +35,8 @@ link_args = [
 muon_arch_sources = files(
     'src/arch/@0@/devices/port.c'.format(arch),
     'src/arch/@0@/devices/serial.c'.format(arch),
+    'src/arch/@0@/gdt.c'.format(arch),
+    'src/arch/@0@/gdts.s'.format(arch),
     'src/arch/@0@/arch.c'.format(arch)
 )
 
