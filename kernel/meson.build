@@ -1,8 +1,5 @@
-muon_cc = meson.get_compiler('c')
+muon_c3c = 'c3c'
 arch = host_machine.cpu()
-
-add_project_arguments('-include', 'base.h', language: 'c')
-add_project_arguments('-include', 'lepton.h', language: 'c')
 
 linker_file = '@0@.ld'.format(arch)
 
@@ -32,27 +29,36 @@ link_args = [
     '-ztext',
 ]
 
-muon_arch_sources = files(
-    'src/arch/@0@/devices/port.c'.format(arch),
-    'src/arch/@0@/devices/serial.c'.format(arch),
-    'src/arch/@0@/gdt.c'.format(arch),
-    'src/arch/@0@/gdts.s'.format(arch),
-    'src/arch/@0@/arch.c'.format(arch)
+muon_sources = [
+    'src/dev/serial.c3',
+    'src/dev/port.c3',
+    'src/entry.c3'
+]
+
+muon_sources_asm = files(
+    'src/arch/@0@/dev/port.s'.format(arch)
 )
 
-muon_common_sources = files(
-)
-
-muon_sources = muon_arch_sources + muon_common_sources + libcore_sources + liblepton_sources
-
-muon_inc = include_directories(
-    'include',
+c3_objs = []
+c3_objs += custom_target(
+    input: muon_sources,
+    output: 'muon_c3.o',
+    command: [
+        'c3c', 'compile-only',
+        '@INPUT@',
+        '-o', '@OUTPUT@',
+        '--link-libc=no',
+        '--use-stdlib=no',
+        '--build-dir', 'kernel/',
+        '--single-module=yes'
+    ],
+    build_by_default: true
 )
 
 executable(
     'muon.elf',
-    muon_sources,
-    include_directories: [muon_inc, shared_inc],
+    muon_sources_asm,
+    objects: c3_objs,
     c_args: compile_args,
     link_args: link_args,
     install: false
