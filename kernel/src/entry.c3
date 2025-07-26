@@ -6,7 +6,7 @@ fn void kstart() @export("kstart") {
     log.setup(SerialPort.COM1);
     log.write("Serial port setup complete\n");
 
-    arch::init();
+    arch::init(&log);
     
     arch::idle();
 }
