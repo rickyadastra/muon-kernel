@@ -1,5 +1,6 @@
 [binaries]
 c = 'x86_64-elf-gcc'
+strip = 'true'
 
 [host_machine]
 system = 'none'

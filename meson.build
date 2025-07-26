@@ -1,6 +1,7 @@
 project(
     'project-root',
-    'c'
+    'c',
+    meson_version: '>=1.1.0'
 )
 
 target = get_option('target')

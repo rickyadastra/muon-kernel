@@ -1,4 +1,4 @@
-muon_c3c = 'c3c'
+muon_c3c = find_program('c3c', required: true, version: '>0.7.0')
 arch = host_machine.cpu()
 
 linker_file = '@0@.ld'.format(arch)
@@ -47,7 +47,7 @@ c3_objs += custom_target(
     input: muon_sources,
     output: 'muon_c3.o',
     command: [
-        'c3c', 'compile-only',
+        muon_c3c, 'compile-only',
         '@INPUT@',
         '-o', '@OUTPUT@',
         '--link-libc=no',
