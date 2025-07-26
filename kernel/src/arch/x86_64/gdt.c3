@@ -115,11 +115,9 @@ fn void setup() {
 }
 
 fn void install() {
-    SegmentDescriptor* gdtptr = &gdt;
-    ushort sz = SegmentDescriptor.sizeof * GDT_ENTRIES;
     GDTRegister gdtr = {
-        .offset = gdtptr,
-        .size = sz
+        .offset = &gdt,
+        .size = SegmentDescriptor.sizeof * GDT_ENTRIES
     };
 
     gdt_load(&gdtr);
