@@ -30,13 +30,15 @@ link_args = [
 ]
 
 muon_sources = [
+    f'src/arch/@arch@/gdt.c3',
     'src/dev/serial.c3',
     'src/dev/port.c3',
     'src/entry.c3'
 ]
 
 muon_sources_asm = files(
-    'src/arch/@0@/dev/port.s'.format(arch)
+    f'src/arch/@arch@/dev/port.s',
+    f'src/arch/@arch@/gdt.s',
 )
 
 c3_objs = []
