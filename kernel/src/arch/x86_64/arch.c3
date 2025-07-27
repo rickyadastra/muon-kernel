@@ -8,7 +8,7 @@ macro void @log(#log, #msg) @private {
 
 fn void init(Serial* log = null) {
     gdt::setup();
-    @log(log, "GDT install complete\n");
+    @log(log, "GDT setup complete\n");
 
     gdt::install();
     @log(log, "GDT install complete\n");
