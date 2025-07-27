@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://i.imgur.com/bxSeMca.png" height=224/>
   </br>
-  A minimal, capability-based, <b>x86-64 kernel</b> with <b>UEFI bootloader</b>, OOP-like structure in C, pre-emptive multitasking and soon-to-come modern features. Also an open-source educational and study project.
+  A minimal, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source educational and study project. 
 </p>
 
 # Core Features
@@ -9,7 +9,7 @@
    - Loads and parses ELF kernel binaries
    - Initializes PML4 page tables and long-mode environment
 
-2. **Lepton** – Pure-C OOP framework
+2. **Lepton** – Pure-C OOP framework (bootloader only)
    - Simulated classes, interfaces, and exceptions with minimal overhead
    - Organized kernel modules with structured dispatch and lifecycle
    - Java-like syntax with class and interfaces inheritance
@@ -40,3 +40,10 @@
    - [ ] Cooperative `yield()` function 
    - [ ] Preemptive switch via timer interrupt
    - [ ] Basic shell to launch programs
+
+## Why C3?
+[C3](https://c3-lang.org/) is a C evolution aiming to be safer and more powerful while being familiar to the old C. It provides several additions useful to kernel programming like more granular bitstructs, methods, semantic macros and zero-overhead error checks, being fully compatible with the C ABI.
+
+A quick overview of the main differences from C development:
+- **no `include/` dir and header `.h` files** – files are logically grouped in modules; to keep source code tidy, definitions and functions/methods are split in `*.types.c3` and `*.c3` files respectively
+- **clearer functions** – thanks to the module system, each function can be called via its module name using `module::function` thus having a code that is simpler to read. New and existing types can have methods when they represent a mutable object

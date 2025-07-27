@@ -1,6 +1,6 @@
 .text
-.globl load_gdt
-load_gdt:
+.globl gdt_load
+gdt_load:
     cli
     lgdt (%rdi)
 

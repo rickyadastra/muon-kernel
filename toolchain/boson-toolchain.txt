@@ -1,5 +1,6 @@
 [binaries]
 c = 'clang'
+strip = 'true'
 
 [host_machine]
 system = 'uefi'
