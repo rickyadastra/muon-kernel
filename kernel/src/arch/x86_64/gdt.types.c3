@@ -5,13 +5,6 @@ enum DescriptorType : char {
     DATA_OR_CODE
 }
 
-enum PrivilegeLevel : char {
-    KERNEL,
-    LEVEL_1,
-    LEVEL_2,
-    USER,
-}
-
 enum Direction : char {
     GROW_UP,
     GROW_DOWN,
