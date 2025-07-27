@@ -1,48 +1,5 @@
 module dev::serial;
 
-import dev::port;
-
-enum SerialPort : ushort (Port value) {
-    COM1 = 0x3f8,
-    COM2 = 0x2f8,
-    COM3 = 0x3e8,
-    COM4 = 0x2e8,
-    COM5 = 0x5f8,
-    COM6 = 0x4f8,
-    COM7 = 0x5e8,
-    COM8 = 0x4e8,
-}
-
-enum SerialPortRegister : ushort (char offset) {
-    RECEIVE_BUFFER = 0,
-    TRANSMIT_BUFFER = 0,
-    INTERRUPT_ENABLE = 1,
-    BAUD_RATE_LSB = 0,
-    BAUD_RATE_MSB = 1,
-    INTERRUPT_ID = 2,
-    FIFO_CTRL = 2,
-    LINE_CTRL = 3,
-    MODEM_CTRL = 4,
-    LINE_STATUS = 5,
-    MODEM_STATUS = 6,
-    SCRATCH = 7, 
-}
-
-bitstruct LineStatusRegister : char {
-    bool data_ready : 0;
-    bool overrun_error : 1;
-    bool parity_error : 2;
-    bool framing_error : 3;
-    bool break_indicator : 4;
-    bool can_send_data : 5;
-    bool transmitter_idle : 6;
-    bool impending_error : 7;
-}
-
-struct Serial {
-    Port port;
-}
-
 fn void Serial.setup(Serial* this, SerialPort port) {
     this.port = port.value;
 
