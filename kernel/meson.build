@@ -33,8 +33,14 @@ link_args = [
 muon_sources = [
     f'src/arch/@arch@/arch.types.c3',
     f'src/arch/@arch@/gdt.types.c3',
-    f'src/arch/@arch@/gdt.c3',
+    f'src/arch/@arch@/interrupts/interrupts.types.c3',
     'src/dev/serial.types.c3',
+    ########################################
+    f'src/arch/@arch@/arch.c3',
+    f'src/arch/@arch@/gdt.c3',
+    f'src/arch/@arch@/interrupts/routines.c3',
+    f'src/arch/@arch@/interrupts/handlers.c3',
+    f'src/arch/@arch@/interrupts/interrupts.c3',
     'src/dev/serial.c3',
     'src/dev/port.c3',
     'src/entry.c3'
@@ -56,7 +62,8 @@ c3_objs += custom_target(
         '--link-libc=no',
         '--use-stdlib=no',
         '--build-dir', 'kernel/',
-        '--single-module=yes'
+        '--single-module=yes',
+        '--emit-llvm',
     ],
     build_by_default: true
 )
