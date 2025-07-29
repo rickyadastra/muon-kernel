@@ -6,3 +6,5 @@ enum PrivilegeLevel : char {
     LEVEL_2,
     USER,
 }
+
+alias Register = ulong;
