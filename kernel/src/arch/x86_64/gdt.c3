@@ -3,7 +3,11 @@ module arch::gdt;
 extern fn void gdt_load(GDTRegister*);
 
 const usz GDT_ENTRIES = 5;
-SegmentDescriptor[GDT_ENTRIES] gdt;
+SegmentDescriptor[GDT_ENTRIES] gdt @private;
+
+macro @segment_selector_of(#segment) {
+    return #segment * SegmentDescriptor.sizeof;
+}
 
 /*
     Default segment access is: 0 00 1 0 0 0 0
