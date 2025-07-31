@@ -2,8 +2,6 @@ module arch::interrupts;
 
 import arch::gdt;
 
-// extern fn void idt_load(IDTRegister*);
-
 const usz IDT_ENTRIES = 256;
 GateDescriptor[IDT_ENTRIES] idt @private;
 
@@ -58,17 +56,26 @@ fn GateDescriptor construct_descriptor(uint irq, InterruptHandler handler, char 
     };
 }
 
-fn bool is_kernel_handled(KnownInterrupt val) @local {
+fn bool is_kernel_handled(KnownInterrupt val) @local @inline {
     foreach (KnownInterrupt e : KERNEL_HANDLED_INTS) {
         if (e == val) return true;
     }
     return false;
 } 
 
-fn void setup() @export {
+fn void setup() {
     for (uint i = 0; i < IRQS; i++) {
-        char ist = (i < 0x16 && is_kernel_handled(KnownInterrupt.from_ordinal(i))) ? 1 : 0;
+        char ist = (i < EXCEPTIONS && is_kernel_handled(KnownInterrupt.from_ordinal(i))) ? 1 : 0;
         
         idt[i] = construct_descriptor(i, irqs[i], ist: ist, type: GateType.INTERRUPT);
     }
+}
+
+fn void install() {
+    IDTRegister idtr = {
+        .offset = &idt,
+        .size = (GateDescriptor.sizeof * IDT_ENTRIES) - 1
+    };
+
+    idt_load(&idtr);
 }
