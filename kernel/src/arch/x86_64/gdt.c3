@@ -57,25 +57,35 @@ enum KnownDescriptor : uint {
 }
 
 fn void setup() {
-    gdt[KnownDescriptor.NULL] = construct_descriptor(0, 0, segment_access_of(), SegmentType.NULL);
+    gdt[KnownDescriptor.NULL.ordinal] = construct_descriptor(
+        0, 0,
+        segment_access_of(),
+        SegmentType.NULL
+    );
 
-    gdt[KnownDescriptor.KERNEL_CODE] = construct_descriptor(0, 0xfffff, 
-                                  segment_access_of(readable: true, executable: true, present: true),
-                                  SegmentType.CODE_64
-                                );
-    gdt[KnownDescriptor.KERNEL_DATA] = construct_descriptor(0, 0xfffff,
-                                  segment_access_of(writable: true, present: true),
-                                  SegmentType.DATA_64
-                                );
+    gdt[KnownDescriptor.KERNEL_CODE.ordinal] = construct_descriptor(
+        0, 0xfffff, 
+        segment_access_of(readable: true, executable: true, present: true),
+        SegmentType.CODE_64
+    );
+
+    gdt[KnownDescriptor.KERNEL_DATA.ordinal] = construct_descriptor(
+        0, 0xfffff,
+        segment_access_of(writable: true, present: true),
+        SegmentType.DATA_64
+    );
     
-    gdt[KnownDescriptor.USER_CODE] = construct_descriptor(0, 0xfffff,
-                                  segment_access_of(readable: true, executable: true, privilege_level: USER, present: true),
-                                  SegmentType.CODE_64
-                                );
-    gdt[KnownDescriptor.USER_DATA] = construct_descriptor(0, 0xfffff,
-                                  segment_access_of(writable: true, privilege_level: USER, present: true),
-                                  SegmentType.DATA_64
-                                );
+    gdt[KnownDescriptor.USER_CODE.ordinal] = construct_descriptor(
+        0, 0xfffff,
+        segment_access_of(readable: true, executable: true, privilege_level: USER, present: true),
+        SegmentType.CODE_64
+    );
+
+    gdt[KnownDescriptor.USER_DATA.ordinal] = construct_descriptor(
+        0, 0xfffff,
+        segment_access_of(writable: true, privilege_level: USER, present: true),
+        SegmentType.DATA_64
+    );
 }
 
 fn void install() {
