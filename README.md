@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://i.imgur.com/bxSeMca.png" height=224/>
   </br>
-  A minimal, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source educational and study project. 
+  A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source educational and study project. 
 </p>
 
 # Core Features
