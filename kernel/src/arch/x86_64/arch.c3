@@ -12,6 +12,9 @@ fn void init(Serial* log = null) {
 
     gdt::install();
     @log(log, "GDT install complete\n");
+
+    interrupts::setup();
+    @log(log, "IDT setup complete\n");
 }
 
 fn void idle() {
