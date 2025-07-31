@@ -91,7 +91,7 @@ fn void setup() {
 fn void install() {
     GDTRegister gdtr = {
         .offset = &gdt,
-        .size = SegmentDescriptor.sizeof * GDT_ENTRIES
+        .size = (SegmentDescriptor.sizeof * GDT_ENTRIES) - 1
     };
 
     gdt_load(&gdtr);
