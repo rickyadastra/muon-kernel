@@ -24,7 +24,7 @@ struct GateDescriptor {
     bitstruct : ushort {
         char ist_offset : 0..2;
         // bits 3..7 are reserved
-        GateType type : 8..11;
+        char type : 8..11;
         // bit 12 is always 0
         PrivilegeLevel privilege_level : 13..14;
         bool present : 15;
