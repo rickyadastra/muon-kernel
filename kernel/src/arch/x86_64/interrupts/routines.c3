@@ -59,7 +59,7 @@ fn void exception_routine() @IntRoutine @private @export @extern("exception_rout
     }
 }
 
-fn void interrupt_routine() @IntRoutine @private @extern("interrupt_routine") {
+fn void interrupt_routine() @IntRoutine @private @export @extern("interrupt_routine") {
     asm { cld; }
     pushall();
 
@@ -74,33 +74,37 @@ fn void interrupt_routine() @IntRoutine @private @extern("interrupt_routine") {
     }
 }
 
-fn void idt_load() @naked {
-    asm ("lidt (%rsi)");
+fn void idt_load(IDTRegister* reg) @naked {
+    asm ("lidt (%rdi)");
 }
 
-macro @irq_exception(#num) @local {
+macro @irq_body(#num, $exc) @local {
     $if (#num >= KnownInterrupt.len) ||| !(KnownInterrupt.from_ordinal(#num).has_error_code):
         asm { push 0xff; }
     $endif
     
     asm { push (#num); };
-    asm("jmp exception_routine");
+    $if $exc:
+        asm("jmp exception_routine");
+    $else
+        asm("jmp interrupt_routine");
+    $endif
 }
 
-macro InterruptHandler @irq($i) {
+macro InterruptHandler @irq($i, $exc) {
     var $_i = $i; 
-    return fn () @IntRoutine { @irq_exception($i); };
+    return fn () @IntRoutine { @irq_body($i, $exc); };
 }
 
 macro InterruptHandler[*] construct_irqs($n) {
     InterruptHandler[$n] $irqs;
 
     $for var $i = 0; $i < $n; $i++:
-        $irqs[$i] = @irq($i);
+        $irqs[$i] = @irq($i, $i < 32);
     $endfor
     
     return $irqs;
 }
 
 const usz IRQS = 48;
-InterruptHandler[*] irqs @export = construct_irqs(IRQS);
+InterruptHandler[*] irqs = construct_irqs(IRQS);
