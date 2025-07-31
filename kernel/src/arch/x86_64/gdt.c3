@@ -48,23 +48,31 @@ fn SegmentDescriptor construct_descriptor(uptr base, uint limit, SegmentAccess a
     };
 }
 
-fn void setup() {
-    gdt[0] = construct_descriptor(0, 0, segment_access_of(), SegmentType.NULL);
+enum KnownDescriptor : uint {
+    NULL,
+    KERNEL_CODE,
+    KERNEL_DATA,
+    USER_CODE,
+    USER_DATA
+}
 
-    gdt[1] = construct_descriptor(0, 0xfffff, 
+fn void setup() {
+    gdt[KnownDescriptor.NULL] = construct_descriptor(0, 0, segment_access_of(), SegmentType.NULL);
+
+    gdt[KnownDescriptor.KERNEL_CODE] = construct_descriptor(0, 0xfffff, 
                                   segment_access_of(readable: true, executable: true, present: true),
                                   SegmentType.CODE_64
                                 );
-    gdt[2] = construct_descriptor(0, 0xfffff,
+    gdt[KnownDescriptor.KERNEL_DATA] = construct_descriptor(0, 0xfffff,
                                   segment_access_of(writable: true, present: true),
                                   SegmentType.DATA_64
                                 );
     
-    gdt[3] = construct_descriptor(0, 0xfffff,
+    gdt[KnownDescriptor.USER_CODE] = construct_descriptor(0, 0xfffff,
                                   segment_access_of(readable: true, executable: true, privilege_level: USER, present: true),
                                   SegmentType.CODE_64
                                 );
-    gdt[4] = construct_descriptor(0, 0xfffff,
+    gdt[KnownDescriptor.USER_DATA] = construct_descriptor(0, 0xfffff,
                                   segment_access_of(writable: true, privilege_level: USER, present: true),
                                   SegmentType.DATA_64
                                 );
