@@ -15,6 +15,9 @@ fn void init(Serial* log = null) {
 
     interrupts::setup();
     @log(log, "IDT setup complete\n");
+
+    interrupts::install();
+    @log(log, "IDT install complete\n");
 }
 
 fn void idle() {
