@@ -83,21 +83,24 @@ macro @irq_exception(#num) @local {
         asm { push 0xff; }
     $endif
     
-    asm { push (#num); }
+    asm { push (#num); };
     asm("jmp exception_routine");
 }
 
-macro InterruptHandler irq($in) @const {
-    return fn () @naked => @irq_exception($in);
+macro InterruptHandler @irq($i) {
+    var $_i = $i; 
+    return fn () @IntRoutine { @irq_exception($i); };
 }
 
-macro InterruptHandler[IRQS] construct_irqs($to) {
-    InterruptHandler[IRQS] $irqs;
-    $for var $i = 0; $i < $to; $i++:
-        $irqs[$i] = irq($i);
-    $endfor 
+macro InterruptHandler[*] construct_irqs($n) {
+    InterruptHandler[$n] $irqs;
+
+    $for var $i = 0; $i < $n; $i++:
+        $irqs[$i] = @irq($i);
+    $endfor
+    
     return $irqs;
 }
 
 const usz IRQS = 48;
-InterruptHandler[IRQS] irqs @export = construct_irqs(IRQS);
+InterruptHandler[*] irqs @export = construct_irqs(IRQS);
