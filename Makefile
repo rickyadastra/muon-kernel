@@ -15,8 +15,12 @@ QEMU_DEBUG 		:= -serial file:serial.log -s -S -d cpu_reset,int \
 				   -D qemu.log
 
 GDB				= gdb
-GDB_FLAGS 		= -ex "target remote localhost:1234" -ex "layout split" \
-				  -ex "set scheduler-locking step" -ex "set disassembly-flavor intel" \
+GDB_FLAGS 		= -ex "target remote localhost:1234" \
+				  -ex "layout split" \
+				  -ex "set scheduler-locking step" \
+				  -ex "set disassembly-flavor intel" \
+				  -ex "focus cmd" \
+				  -ex "set confirm off" \
 				  -ex "symbol-file ${MUON_TARGET}"
 
 all: boson muon
