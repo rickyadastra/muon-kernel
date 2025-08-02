@@ -58,7 +58,6 @@ struct InterruptStack @packed {
 
     ulong irq;
     ulong error_code;
-    Register __rbp; // pushed by C3 lambda call, fixed in https://github.com/c3lang/c3c/issues/2346
     
     Register rip;
     Register cs;

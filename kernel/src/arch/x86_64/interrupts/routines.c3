@@ -54,7 +54,7 @@ fn void exception_routine() @IntRoutine @private @export @extern("exception_rout
 
     popall();
     asm {
-        addq $rsp, 24;
+        addq $rsp, 16;
         iretq;
     }
 }
@@ -69,18 +69,18 @@ fn void interrupt_routine() @IntRoutine @private @export @extern("interrupt_rout
 
     popall();
     asm {
-        addq $rsp, 24;
+        addq $rsp, 16;
         iretq;
     }
 }
 
-fn void idt_load(IDTRegister* reg) @naked {
-    asm ("lidt (%rdi)");
+fn void idt_load(IDTRegister* reg) {
+    asm("lidt (%rdi)");
 }
 
 macro @irq_body(#num, $exc) @local {
     $if (#num >= KnownInterrupt.len) ||| !(KnownInterrupt.from_ordinal(#num).has_error_code):
-        asm { push 0xff; }
+        asm { push 0xff; } // push dummy error code if interrupt has none
     $endif
     
     asm { push (#num); };
@@ -92,7 +92,6 @@ macro @irq_body(#num, $exc) @local {
 }
 
 macro InterruptHandler @irq($i, $exc) {
-    var $_i = $i; 
     return fn () @IntRoutine { @irq_body($i, $exc); };
 }
 

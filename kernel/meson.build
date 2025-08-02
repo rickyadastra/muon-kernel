@@ -1,4 +1,4 @@
-muon_c3c = find_program('c3c', required: true, version: '>=0.7.3')
+muon_c3c = find_program('c3c', required: true, version: '>=0.7.4')
 muon_gcc = find_program('x86_64-elf-gcc', required: true, version: '>=9.4.0')
 arch = host_machine.cpu()
 
