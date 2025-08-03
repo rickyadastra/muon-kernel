@@ -1,22 +1,22 @@
 module arch;
 
 import dev::serial;
+import muon::logging;
 
-macro void @log(#log, #msg) @private {
-    if (#log != null) #log.write(#msg);
-}
-
-fn void init(Serial* log = null) {
+fn void init() {
     gdt::setup();
-    @log(log, "GDT setup complete\n");
+    logging::printn("GDT setup complete");
 
     gdt::install();
-    @log(log, "GDT install complete\n");
+    logging::printn("GDT install complete");
 
     interrupts::setup();
-    @log(log, "IDT setup complete\n");
+    logging::printn("IDT setup complete");
 
     interrupts::install();
+    logging::printn("IDT install complete");
+
+    asm("int $$32");
     @log(log, "IDT install complete\n");
 }
 

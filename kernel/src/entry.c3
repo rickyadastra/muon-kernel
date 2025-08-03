@@ -1,12 +1,9 @@
-import dev::serial;
 import arch;
+import muon::logging;
 
 fn void kstart() @export("kstart") {
-    Serial log;
-    log.setup(SerialPort.COM1);
-    log.write("Serial port setup complete\n");
-
-    arch::init(&log);
+    logging::init();
+    arch::init();
     
     arch::idle();
 }
