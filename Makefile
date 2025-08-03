@@ -18,7 +18,7 @@ GDB				= gdb
 GDB_FLAGS 		= -ex "target remote localhost:1234" \
 				  -ex "layout split" \
 				  -ex "set scheduler-locking step" \
-				  -ex "set disassembly-flavor intel" \
+				  -ex "set disassembly-flavor att" \
 				  -ex "focus cmd" \
 				  -ex "set confirm off" \
 				  -ex "symbol-file ${MUON_TARGET}"
