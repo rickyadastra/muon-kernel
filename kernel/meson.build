@@ -34,16 +34,19 @@ muon_sources = [
     f'src/arch/@arch@/arch.types.c3',
     f'src/arch/@arch@/gdt.types.c3',
     f'src/arch/@arch@/interrupts/interrupts.types.c3',
-    'src/dev/serial.types.c3',
+    f'src/dev/serial.types.c3',
     ########################################
     f'src/arch/@arch@/arch.c3',
     f'src/arch/@arch@/gdt.c3',
     f'src/arch/@arch@/interrupts/routines.c3',
     f'src/arch/@arch@/interrupts/handlers.c3',
     f'src/arch/@arch@/interrupts/interrupts.c3',
-    'src/dev/serial.c3',
-    'src/dev/port.c3',
-    'src/entry.c3'
+    f'src/logging.c3',
+    f'src/formatting.c3',
+    f'src/dev/serial.c3',
+    f'src/dev/port.c3',
+    f'src/entry.c3',
+    f'src/lang.c3',
 ]
 
 muon_sources_asm = files(
