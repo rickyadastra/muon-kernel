@@ -17,9 +17,28 @@ fn void init() {
     logging::printn("IDT install complete");
 
     asm("int $$32");
-    @log(log, "IDT install complete\n");
+}
+
+fn void set_interrupts(bool val) {
+    if (val) {
+        asm("sti");
+    } else {
+        asm("cli");
+    }
 }
 
 fn void idle() {
     asm("hlt");
 }
+
+macro void panic() {
+    arch::set_interrupts(false);
+    arch::idle();
+}
+
+fn void log_and_panic(String message) {
+    logging::panic(message);
+    arch::panic();
+}
+
+fn void stack_check_fail() @noreturn @export @extern("__stack_chk_fail") => log_and_panic("stack smashing detected");
