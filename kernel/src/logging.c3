@@ -14,7 +14,7 @@ macro void @throw_excuse(#excuse, #msg) @private {
     serial.write("\"\n");
 }
 
-fn void print(String format, any... args, char terminator = '\0') {
+fn void print(String format, args..., char terminator = '\0') {
     Formatter formatter;
     String? f = formatter.format(format, ...args);
 
@@ -28,6 +28,7 @@ fn void print(String format, any... args, char terminator = '\0') {
 }
 
 macro void printn(String format, args...) => print(format, ...args, terminator: '\n');
+macro void newline() => print("", terminator: '\n');
 
 fn void panic(String reason) {
     serial.write("MUON PANIC: ");
