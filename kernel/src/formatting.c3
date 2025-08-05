@@ -4,7 +4,7 @@ import lang;
 
 const usz INTERNAL_BUFFER_SIZE = 1024;
 const usz INTERNAL_FORMAT_BUFFER_SIZE = 128;
-const char[*] DIGITS = "0123456789abcde";
+const char[*] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 faultdef BAD_VALUE, FORMAT_BUFFER_EXCEEDED, INTERNAL_BUFFER_EXCEEDED, MISSING_ARGUMENT;
 
@@ -87,9 +87,10 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10) {
         }
     }
 
-    while (true) {
+    do {
         fmtBuf[fmtLen++] = DIGITS[(char)(value % base)];
         value /= base;
+    } while (value != 0);
 
         if (value == 0) break;
     } 
@@ -158,7 +159,7 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
                 self.base = 16;
                 nextcase 'd';
             case 'd':
-                len += format_any_to_decimal(@get_arg(args, va_i), self.buffer[len..])!;
+                len += format_any_to_decimal(@get_arg(args, va_i), self.buffer[len..], base: self.base)!;
             case 'c':
                 char arg = *(char*)@get_arg(args, va_i)!;
                 if (len + 1 > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED?;
