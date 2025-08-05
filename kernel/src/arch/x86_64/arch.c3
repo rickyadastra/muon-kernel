@@ -19,7 +19,7 @@ fn void init() {
     asm("int $$32");
 }
 
-fn void set_interrupts(bool val) {
+fn void set_interrupts(bool val) @inline {
     if (val) {
         asm("sti");
     } else {
@@ -27,7 +27,7 @@ fn void set_interrupts(bool val) {
     }
 }
 
-fn void idle() {
+fn void idle() @inline {
     asm("hlt");
 }
 
