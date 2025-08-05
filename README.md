@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://i.imgur.com/bxSeMca.png" height=224/>
   </br>
-  A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source educational and study project. 
+  A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source personal and academic project. 
 </p>
 
 # Core Features
@@ -14,7 +14,7 @@
    - Organized kernel modules with structured dispatch and lifecycle
    - Java-like syntax with class and interfaces inheritance
 
-3. **Muon** – Minimal and modern kernel
+3. **Muon** – Minimal and modern kernel written in C3
    - Capability-based security and resource sharing via handles and IDs
    - Pre-emptive round-robin scheduler via timer IRQs
    - Modern set of syscalls
@@ -27,8 +27,8 @@
 - [ ] 🏗️ **Milestone 0.1** – Foundations
    - [x] UART serial logging driver (output)
    - [x] Global Descriptor Table
-   - [ ] Interrupt Descriptor Table
-   - [ ] Exception handlers (page fault, GPF, etc.)
+   - [x] Interrupt Descriptor Table
+   - [x] Exception handlers (page fault, GPF, etc.)
    - [ ] HPET timer driver for preemptive IRQ
    - [ ] UART serial interrupt-based driver (input)
 - [ ] 📗 **Milestone 0.2** – Memory Management
@@ -47,3 +47,5 @@
 A quick overview of the main differences from C development:
 - **no `include/` dir and header `.h` files** – files are logically grouped in modules; to keep source code tidy, definitions and functions/methods are split in `*.types.c3` and `*.c3` files respectively
 - **clearer functions** – thanks to the module system, each function can be called via its module name using `module::function` thus having a code that is simpler to read. New and existing types can have methods when they represent a mutable object
+- **semantic macros** – enable powerful meta-programming stuff like [defining a list of lambdas for IRQs](/kernel/src/arch/x86_64/interrupts/routines.c3#L98) at compile time
+- **runtime types and reflection** – possibility to access types, enum and qualified method names, and much more
