@@ -16,8 +16,9 @@ struct Formatter {
 <*
     @param [in] arg
     @param [out] negative
+    @param [out] type
 *>
-fn ulong? any_to_decimal(any arg, bool* negative) {
+fn ulong? any_to_decimal(any arg, bool* negative, typeid* type) {
     ulong value = 0;
     *negative = false;
 
@@ -27,7 +28,7 @@ fn ulong? any_to_decimal(any arg, bool* negative) {
             return (ulong)(uptr)*(void**)arg.ptr;
         case TypeKind.DISTINCT.ordinal:
         case TypeKind.CONST_ENUM.ordinal: 
-            return any_to_decimal(arg.as_inner(), negative)!;
+            return any_to_decimal(arg.as_inner(), negative, type)!;
         default:
             switch (arg.type) {
                 case bool: 
@@ -63,6 +64,7 @@ fn ulong? any_to_decimal(any arg, bool* negative) {
             }
     }
 
+    *type = arg.type;
     return value;
 }
 
@@ -73,8 +75,9 @@ fn ulong? any_to_decimal(any arg, bool* negative) {
 *>
 fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10) {
     bool negative = false;
+    typeid actualType = ulong.typeid;
     char[INTERNAL_FORMAT_BUFFER_SIZE] fmtBuf @noinit;
-    ulong value = any_to_decimal(arg, &negative)!;
+    ulong value = any_to_decimal(arg, &negative, &actualType)!;
     usz fmtLen = 0;
 
     if (negative) {
@@ -92,8 +95,11 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10) {
         value /= base;
     } while (value != 0);
 
-        if (value == 0) break;
-    } 
+    if (base == 16) {
+        while (fmtLen < (actualType.sizeof*2)) {
+            fmtBuf[fmtLen++] = '0';
+        }
+    }
 
     usz totalBufLen = fmtLen + (base != 10 ? 2 : 0) + (negative ? 1 : 0);
     if (totalBufLen > buf.len) return FORMAT_BUFFER_EXCEEDED?;
@@ -130,6 +136,8 @@ macro any? @get_arg(#args, #i) {
 fn String? Formatter.format(Formatter* self, String format, args...) {    
     usz len = 0;
     usz va_i = 0;
+
+    if (format.len == 0) return "";
 
     for (usz i = 0; i < format.len; i++) {
         char c = format[i];
