@@ -3,7 +3,7 @@ module arch::interrupts;
 import muon::logging;
 
 macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @local {
-    logging::printn("——————————————————————————————————————————— STACK DUMP —————————————————————————————————————————————");
+    logging::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
     logging::printn(" rax: %x  rbx: %x  rcx: %x  rdx: %x", #stack.rax, #stack.rbx, #stack.rcx, #stack.rdx);
     logging::printn(" rsi: %x  rdi: %x  rbp: %x  rsp: %x", #stack.rsi, #stack.rdi, #stack.rbp, #stack.rsp);
     logging::printn(" r8:  %x  r9:  %x  r10: %x  r11: %x", #stack.r8, #stack.r9, #stack.r10, #stack.r11);
@@ -13,7 +13,7 @@ macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @local {
     if (intr.has_error_code) logging::printn("with error code: %x", #stack.error_code);
     logging::printn(" rip: %x  cs:  %x  ss:  %x", #stack.rip, (ushort)#stack.cs, (ushort)#stack.ss);
     logging::printn(" rflags: %x", #stack.rflags);
-    logging::printn("————————————————————————————————————————— END STACK DUMP ———————————————————————————————————————————");
+    logging::printn("—————————————————————————————————— END OF INTERRUPT STACK DUMP —————————————————————————————————————");
 }
 
 fn InterruptStack* exception_handler(InterruptStack* stack) @private {
