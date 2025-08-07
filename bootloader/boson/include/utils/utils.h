@@ -26,3 +26,6 @@
     else 
 
 void memcpy(void *dest, const void *src, Size count);
+int memcmp(const void *str1, const void *str2, Size count); 
+
+Bool compare_guid(const EfiGUID* a, const EfiGUID* b);
