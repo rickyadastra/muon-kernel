@@ -71,8 +71,7 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         payload->stack = bootloader.kernelStack;
         payload->pageTablePaddr = (UPtr)bootloader.kernelPageTable;
 
-        // ? Find ACPI table
-
+        // ? Find ACPI table address
         for (Size i = 0; i < systemTable->NumberOfTableEntries; i++) {
             EfiConfigurationTable table = systemTable->ConfigurationTable[i];
             if (compare_guid(&table.VendorGuid, &(EfiGUID)EFI_ACPI_20_TABLE_GUID)) {
@@ -82,11 +81,22 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         }
         
         Size descriptorSize = 0, size;
-        MemoryRegion* regions = (MemoryRegion*) IMemoryManager.alloc_pages(&memManager, EFI_PAGE_SIZE, true);
         EfiMemoryDescriptor* memoryMap = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize, null));
+
+        // ? Identity map ACPI tables 
+        EfiMemoryDescriptor* d = memoryMap;
+        for (Size i=0; i<(size/descriptorSize); i++) {
+            if (d->Type == EFI_ACPI_RECLAIM_MEMORY)
+                IMemoryManager.virtual_map(&memManager, bootloader.kernelPageTable, d->PhysicalStart, d->PhysicalStart, d->NumberOfPages);
+
+            d = (EfiMemoryDescriptor*)((UInt8*)d + descriptorSize);
+        }
+
+        memoryMap = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize, null));
+        MemoryRegion* regions = (MemoryRegion*) IMemoryManager.alloc_pages(&memManager, EFI_PAGE_SIZE, true);
         BigSize usable = 0;
         Size entries = 0;
-        
+    
         IMemoryManager.process_memory_map(memoryMap, descriptorSize, size, regions, &usable, &entries);
         IConsole.logf(&console, "%d memory entries. Total usable memory: %d KB ", entries, usable*EFI_PAGE_SIZE/1024);
         payload->memoryRegionEntries = entries;
