@@ -2,7 +2,7 @@
 
 #include <base/int.h>
 
-typedef enum {
+typedef enum : UInt32 {
     MEMORY_REGION_BOOTLOADER,
     MEMORY_REGION_AVAILABLE,
     MEMORY_REGION_FIRMWARE,
