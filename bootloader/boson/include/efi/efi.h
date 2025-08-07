@@ -84,6 +84,18 @@ typedef struct {
 } EfiSimpleTextInputProtocol;
 
 typedef struct {
+	UInt32 TimeLow;
+	UInt16 TimeMid;
+	UInt16 TimeHighAndVersion;
+	UInt8 Data[8];
+} __attribute__((packed)) EfiGUID;
+
+typedef struct {
+    EfiGUID VendorGuid;
+	EfiPVoid VendorTable;
+} EfiConfigurationTable;
+
+typedef struct {
 	EfiTableHeader Hdr;
 	EfiPVoid FirmwareVendor;
 	UInt32 FirmwareRevision;
@@ -96,12 +108,5 @@ typedef struct {
 	void* RuntimeServices;
 	void* BootServices;
 	UINTN NumberOfTableEntries;
-	void* ConfigurationTable;
+	EfiConfigurationTable* ConfigurationTable;
 } EfiSystemTable;
-
-typedef struct {
-	UInt32 TimeLow;
-	UInt16 TimeMid;
-	UInt16 TimeHighAndVersion;
-	UInt8 Data[8];
-} __attribute__((packed)) EfiGUID;
