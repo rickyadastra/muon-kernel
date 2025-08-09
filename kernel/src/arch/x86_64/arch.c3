@@ -2,6 +2,7 @@ module arch;
 
 import boson;
 import muon::logging;
+import dev::acpi;
 
 fn void init(BootloaderPayload* payload) {
     gdt::setup();
@@ -16,7 +17,9 @@ fn void init(BootloaderPayload* payload) {
     interrupts::install();
     logging::printn("IDT install complete");
 
-    asm("int $$32");
+    if (catch e = acpi::setup(payload.rsdpAddr)) {
+        logging::printn("Error during ACPI setup: %s", e.nameof);
+    }
 }
 
 fn void set_interrupts(bool val) @inline {
