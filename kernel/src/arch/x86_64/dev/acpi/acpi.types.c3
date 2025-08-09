@@ -1,6 +1,6 @@
 module dev::acpi;
 
-faultdef UNSUPPORTED_VERSION, CHECKSUM_FAIL;
+faultdef UNSUPPORTED_VERSION, CHECKSUM_FAIL, NOT_READY, NOT_FOUND;
 
 struct RSDPointer @packed {
     char[8] signature;
@@ -28,6 +28,11 @@ struct SDTHeader @packed {
     uint oemRevision;
     uint creatorId;
     uint creatorRevision;
+}
+
+struct ACPITable @packed {
+    inline SDTHeader header;
+    char[*] data;
 }
 
 struct XSDTable @packed {
