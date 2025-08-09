@@ -1,9 +1,9 @@
 module arch;
 
-import dev::serial;
+import boson;
 import muon::logging;
 
-fn void init() {
+fn void init(BootloaderPayload* payload) {
     gdt::setup();
     logging::printn("GDT setup complete");
 
