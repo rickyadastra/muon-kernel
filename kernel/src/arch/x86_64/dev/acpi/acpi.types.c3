@@ -32,5 +32,5 @@ struct SDTHeader @packed {
 
 struct XSDTable @packed {
     inline SDTHeader header;
-    // ((header-length - SDTHeader.sizeof) / 8) pointers to other SDTs
+    ulong[*] otherSdtPtrs;
 }
