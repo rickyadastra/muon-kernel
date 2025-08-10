@@ -78,7 +78,7 @@ fn void idt_load(IDTRegister* reg) {
     asm("lidt (%rdi)");
 }
 
-macro @irq_body(#num, $exc) @local {
+macro @irq_body(char #num, $exc) @local {
     $if (#num >= KnownInterrupt.len) ||| !(KnownInterrupt.from_ordinal(#num).has_error_code):
         asm { push 0xff; } // push dummy error code if interrupt has none
     $endif
@@ -105,5 +105,5 @@ macro InterruptHandler[*] construct_irqs($n) {
     return $irqs;
 }
 
-const usz IRQS = 48;
+const usz IRQS = IDT_ENTRIES;
 InterruptHandler[*] irqs = construct_irqs(IRQS);

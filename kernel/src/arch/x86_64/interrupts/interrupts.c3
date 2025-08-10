@@ -30,6 +30,7 @@ enum KnownInterrupt : uint (usz num, String mnmem, InterruptType type, bool has_
     CONTROL_PROTECTION_EXC  = {0x15, "#CP", FAULT, true, "Control Protection Exception"},
     // 22..31 reserved
     APIC_TIMER              = {0x20, "N/A", INTERRUPT, false, "APIC Timer Interrupt"},
+    SPURIOUS_INTERRUPT      = {0xff, "N/A", INTERRUPT, false, "Spurious Interrupt"},
 }
 
 const uint EXCEPTIONS = KnownInterrupt.CONTROL_PROTECTION_EXC.ordinal+1;
