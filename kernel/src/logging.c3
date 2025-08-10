@@ -40,3 +40,11 @@ fn void init() {
     serial.setup(SerialPort.COM1);
     printn("Serial port setup complete");
 }
+
+macro void @catch_or_log(#action, #message) {
+    if (catch e = #action) {
+        logging::printn("Error during init: %s", e.nameof);
+    } else {
+        logging::printn(#message);
+    }
+}
