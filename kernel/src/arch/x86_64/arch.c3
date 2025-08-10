@@ -2,7 +2,7 @@ module arch;
 
 import boson;
 import muon::logging;
-import dev::acpi;
+import dev;
 
 fn void init(BootloaderPayload* payload) {
     gdt::setup();
@@ -18,6 +18,10 @@ fn void init(BootloaderPayload* payload) {
     logging::printn("IDT install complete");
 
     logging::@catch_or_log(acpi::init(payload.rsdpAddr), "ACPI init complete");
+
+    logging::@catch_or_log(apic::init(), "APIC init complete");
+
+    // logging::@catch_or_log(hpet::init(), "HPET init complete");
 }
 
 macro void panic() {
