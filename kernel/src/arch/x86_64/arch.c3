@@ -17,25 +17,19 @@ fn void init(BootloaderPayload* payload) {
     interrupts::install();
     logging::printn("IDT install complete");
 
-    if (catch e = acpi::setup(payload.rsdpAddr)) {
-        logging::printn("Error during ACPI setup: %s", e.nameof);
-    }
+    logging::@catch_or_log(acpi::init(payload.rsdpAddr), "ACPI init complete");
+
 }
 
-fn void set_interrupts(bool val) @inline {
-    if (val) {
-        asm("sti");
-    } else {
-        asm("cli");
-    }
-}
+macro void enable_interrupts() { asm("sti"); }
+macro void disable_interrupts() { asm("cli"); }
 
 fn void idle() @inline {
     asm("hlt");
 }
 
 macro void panic() {
-    arch::set_interrupts(false);
+    arch::disable_interrupts();
     arch::idle();
 }
 
