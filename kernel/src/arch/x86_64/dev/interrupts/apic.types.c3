@@ -131,3 +131,17 @@ enum LAPICRegister : const uint {
     TIMER_CURRENT_COUNT         = 0x390,
     TIMER_DIVIDE_CONFIG         = 0x3e0,
 }
+
+enum IOAPICRegister : const uint {
+    IOAPIC_ID                   = 0x00,
+    IOAPIC_VER                  = 0x01,
+    IOAPIC_ARBITRATION_ID       = 0x02,
+}
+
+const uint IOAPIC_REGSEL = 0x00;
+const uint IOAPIC_DATA   = 0x10;
+
+bitstruct IOAPICVerReg : uint {
+    char ioApicVer : 0..7;
+    char maxRedirectIndex : 16..23;
+}
