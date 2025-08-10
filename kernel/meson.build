@@ -48,6 +48,7 @@ muon_sources = [
     f'src/formatting.c3',
     f'src/dev/serial.c3',
     f'src/dev/port.c3',
+    f'src/dev/mmio.c3',
     f'src/entry.c3',
     f'src/boson.c3',
     f'src/lang.c3',
