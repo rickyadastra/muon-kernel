@@ -7,5 +7,5 @@ fn void kstart(BootloaderPayload* payload) @export("kstart") {
     logging::init();
     arch::init(payload);
     
-    arch::idle();
+    arch::cpu::idle();
 }

@@ -18,19 +18,11 @@ fn void init(BootloaderPayload* payload) {
     logging::printn("IDT install complete");
 
     logging::@catch_or_log(acpi::init(payload.rsdpAddr), "ACPI init complete");
-
-}
-
-macro void enable_interrupts() { asm("sti"); }
-macro void disable_interrupts() { asm("cli"); }
-
-fn void idle() @inline {
-    asm("hlt");
 }
 
 macro void panic() {
-    arch::disable_interrupts();
-    arch::idle();
+    cpu::disable_interrupts();
+    cpu::idle();
 }
 
 fn void log_and_panic(String message) {
