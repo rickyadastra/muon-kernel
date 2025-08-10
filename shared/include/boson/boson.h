@@ -2,7 +2,7 @@
 
 #include <base/int.h>
 
-typedef enum {
+typedef enum : UInt32 {
     MEMORY_REGION_BOOTLOADER,
     MEMORY_REGION_AVAILABLE,
     MEMORY_REGION_FIRMWARE,
@@ -28,5 +28,6 @@ typedef struct _Bootloader_Payload_struct {
     BootloaderKernelStack stack;
     MemoryRegion* memoryRegionMap;
     Size memoryRegionEntries;
+    // vendor tables
+    UPtr rsdpAddr;
 } BootloaderPayload;
-

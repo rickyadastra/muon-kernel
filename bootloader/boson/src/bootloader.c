@@ -104,10 +104,11 @@ void Bootloader_prepare_kernel_programs(Bootloader *self) {
 
         UPtr paddr = IMemoryManager.alloc_pages(self->memoryManager, programHeader->mem_size, true);
         
-        IByteArray.copy((const char*)(((char*)self->kernel._fileBuffer) + programHeader->file_offset), (char*)paddr, programHeader->mem_size, programHeader->mem_size);
+        IByteArray.copy((const char*)(((char*)self->kernel._fileBuffer) + programHeader->file_offset), (char*)paddr, programHeader->file_size, programHeader->file_size);
+
         Size fillZero = programHeader->mem_size - programHeader->file_size;
         if (fillZero > 0) {
-            IByteArray.set(((char*)paddr + programHeader->file_size), programHeader->mem_size, 0);
+            IByteArray.set(((char*)paddr + programHeader->file_size), fillZero, 0);
         }
         
         IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size));

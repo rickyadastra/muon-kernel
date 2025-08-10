@@ -10,13 +10,18 @@ MUON_TARGET 	:= $(BUILD_DIR)/muon/kernel/muon.elf
 
 QEMU			:= qemu-system-x86_64
 QEMU_FLAGS		:= -bios /usr/share/OVMF/OVMF_CODE.fd \
-				   -net none -serial stdio -m 1G
+				   -net none -m 1G
 QEMU_DEBUG 		:= -serial file:serial.log -s -S -d cpu_reset,int \
 				   -D qemu.log
 
 GDB				= gdb
-GDB_FLAGS 		= -ex "target remote localhost:1234" -ex "layout split" \
-				  -ex "set scheduler-locking step" -ex "set disassembly-flavor intel"
+GDB_FLAGS 		= -ex "target remote localhost:1234" \
+				  -ex "layout split" \
+				  -ex "set scheduler-locking step" \
+				  -ex "set disassembly-flavor att" \
+				  -ex "focus cmd" \
+				  -ex "set confirm off" \
+				  -ex "symbol-file ${MUON_TARGET}"
 
 all: boson muon
 
@@ -54,7 +59,7 @@ $(BUILD_DIR)/$(FATIMG): boson muon
 	@mcopy -i $@ $(MUON_TARGET) ::/EFI/BOOT/muon.sys
 
 run: $(BUILD_DIR)/$(FATIMG)
-	$(QEMU) $(QEMU_FLAGS) -drive file=$<,format=raw
+	$(QEMU) $(QEMU_FLAGS) -drive file=$<,format=raw -serial stdio
 
 debug: $(BUILD_DIR)/$(FATIMG)
 	@$(QEMU) $(QEMU_FLAGS) -drive file=$<,format=raw $(QEMU_DEBUG) &

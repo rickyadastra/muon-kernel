@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lepton/core/class.h>
+#include <lepton/exception/no_such_enum_member_exception.h>
 
 #define MEMBERDECL(TYPE, NAME, VAL) TYPE NAME;
 #define MEMBERDEF(TYPE, NAME, VAL) .NAME = VAL,
@@ -37,7 +38,7 @@
     }; \
     struct _##NAME##Enum_interface { \
         Size size; \
-        const char* (*get_label)(const BaudRateEnumType* enumMember); \
+        const char* (*get_label)(const NAME##EnumType* enumMember); \
         METHODS(NAME, ROOT, VIRTUALDEF) \
     }; \
     ENDIFACEDEF(NAME##Enum)
