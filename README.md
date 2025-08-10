@@ -24,7 +24,7 @@
    - [x] Boson UEFI loader and ELF loading
    - [x] Setup kernel page tables (identity + higher-half mapping)
    - [x] Setup kernel stack and call C entry point
-- [ ] 🏗️ **Milestone 0.1** – Foundations
+- [x] 🏗️ **Milestone 0.1** – Foundations
    - [x] UART serial logging driver (output)
    - [x] Global Descriptor Table
    - [x] Interrupt Descriptor Table
