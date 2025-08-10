@@ -29,13 +29,17 @@
    - [x] Global Descriptor Table
    - [x] Interrupt Descriptor Table
    - [x] Exception handlers (page fault, GPF, etc.)
-   - [ ] HPET timer driver for preemptive IRQ
-   - [ ] UART serial interrupt-based driver (input)
 - [ ] 📗 **Milestone 0.2** – Memory Management
    - [ ] Physical frame allocator (bitmap slab allocator)
    - [ ] Virtual memory mapping (paging interface)
    - [ ] Kernel heap allocator (buddy allocator)
-- [ ] 🐎 **Milestone 0.3** – Kernel mode scheduler
+- [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing
+   - [x] Interrupt Routing (PIC disable, local APIC configuration)
+   - [ ] UART serial interrupt-based driver (input)
+   - [ ] IOAPIC configuration (VMM mapping and MMIO setup)
+   - [ ] HPET timer for `sleep()` and LAPIC timer calibration
+   - [ ] Local APIC timer for scheduler preemption 
+- [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
    - [ ] Task/Thread structure with context and stack
    - [ ] Cooperative `yield()` function 
    - [ ] Preemptive switch via timer interrupt
