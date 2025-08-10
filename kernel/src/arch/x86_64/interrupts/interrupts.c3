@@ -5,7 +5,7 @@ import arch::gdt;
 const usz IDT_ENTRIES = 256;
 GateDescriptor[IDT_ENTRIES] idt @private;
 
-enum KnownInterrupt : uint (usz num, String mnmem, InterruptType type, bool has_error_code, String name) {
+enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has_error_code, String name) {
     DIVISION_ERROR          = {0x0, "#DE", FAULT, false, "Divide error"},
     DEBUG                   = {0x1, "#DB", TRAP, false, "Debug Exception"},
     NONMASKABLE_INTERRUPT   = {0x2, "NMI", INTERRUPT, false, "NMI Interrupt"},
