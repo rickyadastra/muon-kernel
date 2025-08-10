@@ -2,6 +2,8 @@ module dev::interrupts::apic;
 
 import dev::acpi;
 
+const SDTSignature SIGNATURE @private = "APIC";
+
 enum RecordType : const char {
     LOCAL_APIC,
     IO_APIC,

@@ -2,6 +2,8 @@ module dev::acpi;
 
 faultdef UNSUPPORTED_VERSION, CHECKSUM_FAIL, NOT_READY, NOT_FOUND;
 
+alias SDTSignature = char[4];
+
 struct RSDPointer @packed {
     char[8] signature;
     char checksum;
@@ -19,7 +21,7 @@ struct XSDPointer @packed {
 }
 
 struct SDTHeader @packed {
-    char[4] signature;
+    SDTSignature signature;
     uint length;
     char revision;
     char checksum;
@@ -38,4 +40,17 @@ struct ACPITable @packed {
 struct XSDTable @packed {
     inline SDTHeader header;
     ulong[*] otherSdtPtrs;
+}
+
+enum AddressSpaceID : const char {
+    SYSTEM_MEMORY,
+    SYSTEM_IO,
+}
+
+struct GenericAddress @packed {
+    AddressSpaceID addressSpaceId;
+    char registerBitWidth;
+    char registerBitOffset;
+    char reserved;
+    ulong address;
 }
