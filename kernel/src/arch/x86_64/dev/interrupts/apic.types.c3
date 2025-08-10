@@ -2,6 +2,8 @@ module dev::interrupts::apic;
 
 import dev::acpi;
 
+faultdef APIC_DISABLED;
+
 const SDTSignature SIGNATURE @private = "APIC";
 
 enum RecordType : const char {
@@ -93,4 +95,39 @@ struct LocalX2APICRecord @packed {
     uint x2ApicId;
     LocalAPICRecordFlags flags;
     uint acpiId;
+}
+
+bitstruct APICBaseMSR : ulong {
+    bool isBootstrapProcessor : 8;
+    bool x2ApicEnable : 10;
+    bool globalEnable : 11;
+    ulong baseAddr : 12..35;
+}
+
+enum LAPICRegister : const uint {
+    LAPIC_ID                    = 0x20,
+    LAPIC_VERSION               = 0x30,
+    TASK_PRIORITY               = 0x80,
+    ARBITRATION_PRIORITY        = 0x90,
+    PROCESSOR_PRIORITY          = 0Xa0,
+    EOI                         = 0xb0,
+    REMOTE_READ                 = 0xc0,
+    LOGICAL_DESTINATION         = 0xd0,
+    DESTINATION_FORMAT          = 0xe0,
+    SPURIOUS_INTERR_VECTOR      = 0xf0,
+    IN_SERVICE_BASE             = 0x100,
+    TRIGGER_MODE_BASE           = 0x180,
+    INTERRUPT_REQUEST_BASE      = 0x200,
+    ERROR_STATUS                = 0x280,
+    LVT_CORRECTED_MCI           = 0x2f0,
+    INTERRUPT_COMMAND           = 0x300,
+    LVT_TIMER                   = 0x320,
+    LVT_THERMAL_SENSOR          = 0x330,
+    LVT_PERFORMANCE_MONITOR     = 0x340,
+    LVT_LINT0                   = 0x350,
+    LVT_LINT1                   = 0x360,
+    LVT_ERROR                   = 0x370,
+    TIMER_INITIAL_COUNT         = 0x380,
+    TIMER_CURRENT_COUNT         = 0x390,
+    TIMER_DIVIDE_CONFIG         = 0x3e0,
 }
