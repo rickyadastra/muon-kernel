@@ -4,9 +4,9 @@ import arch::cpu::gdt;
 
 struct TaskStateSegment @packed {
     uint reserved0;
-    ulong rsp0;
-    ulong rsp1;
-    ulong rsp2;
+    Register rsp0;
+    Register rsp1;
+    Register rsp2;
     ulong reserved1;
     ulong ist1;
     ulong ist2;
