@@ -94,6 +94,8 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
 
         memoryMap = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize, null));
         MemoryRegion* regions = (MemoryRegion*) IMemoryManager.alloc_pages(&memManager, EFI_PAGE_SIZE, true);
+        IMemoryManager.virtual_map(&memManager, bootloader.kernelPageTable, (UPtr)regions, (UPtr)regions, 1);
+
         BigSize usable = 0;
         Size entries = 0;
     
