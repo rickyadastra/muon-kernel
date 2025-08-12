@@ -1,4 +1,4 @@
-module arch::gdt;
+module arch::cpu::gdt;
 
 enum DescriptorType : char {
     SYSTEM,

@@ -1,5 +1,7 @@
 module arch::interrupts;
 
+import arch::cpu;
+
 enum InterruptType : char {
     FAULT,
     TRAP,

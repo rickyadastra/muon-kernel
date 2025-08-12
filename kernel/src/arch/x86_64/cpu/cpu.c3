@@ -1,5 +1,14 @@
 module arch::cpu;
 
+enum PrivilegeLevel : char {
+    KERNEL,
+    LEVEL_1,
+    LEVEL_2,
+    USER,
+}
+
+alias Register = ulong;
+
 macro void enable_interrupts() { asm("sti"); }
 macro void disable_interrupts() { asm("cli"); }
 macro void idle() { asm("hlt"); }

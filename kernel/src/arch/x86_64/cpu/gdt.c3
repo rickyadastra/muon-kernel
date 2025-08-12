@@ -1,4 +1,4 @@
-module arch::gdt;
+module arch::cpu::gdt;
 
 extern fn void gdt_load(GDTRegister*);
 

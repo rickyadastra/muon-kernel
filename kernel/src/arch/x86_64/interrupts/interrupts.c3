@@ -1,6 +1,6 @@
 module arch::interrupts;
 
-import arch::gdt;
+import arch::cpu::gdt;
 
 const usz IDT_ENTRIES = 256;
 GateDescriptor[IDT_ENTRIES] idt @private;
@@ -66,7 +66,7 @@ fn bool is_kernel_handled(KnownInterrupt val) @local @inline {
 
 fn void setup() {
     for (uint i = 0; i < IRQS; i++) {
-        char ist = (i < EXCEPTIONS && is_kernel_handled(KnownInterrupt.from_ordinal(i))) ? 1 : 0;
+        char ist = (i < EXCEPTIONS && is_kernel_handled(KnownInterrupt.from_ordinal(i))) ? 0 : 0;
         
         idt[i] = construct_descriptor(i, irqs[i], ist: ist, type: GateType.INTERRUPT);
     }
