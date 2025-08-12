@@ -1,5 +1,6 @@
 #pragma once
 
+#include "base/size.h"
 #include "efi/efi.h"
 #include "efi/memory.h"
 #include <lepton.h>
@@ -23,7 +24,7 @@ typedef UInt64* PageTable;
     METHOD(T, S, M, void, virtual_self_map, PageTable pml4, UInt32 index) \
     METHOD(T, S, M, EfiMemoryDescriptor*, get_memory_map, Size* size, Size* descriptorSize, UINTN* key) \
     METHOD(T, S, M, UINTN, get_memory_map_key) \
-    STATIC(T, S, M, void, process_memory_map, EfiMemoryDescriptor* memoryMap, Size descriptorSize, Size mapSize, MemoryRegion* regionsBuffer, BigSize* total, Size* entriesCount) \
+    STATIC(T, S, M, void, process_memory_map, EfiMemoryDescriptor* memoryMap, Size descriptorSize, Size mapSize, MemoryRegion* regionsBuffer, BigSize* usable, BigSize* total, Size* entriesCount) \
 
 #define MEMORYMANAGER_METHODS(T, S, M) \
     OBJECT_METHODS(T, S, M) \

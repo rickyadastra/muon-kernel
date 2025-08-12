@@ -162,10 +162,11 @@ UINTN MemoryManager_get_memory_map_key(MemoryManager *self) {
     return self->_memoryMapKey;
 }
 
-void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descriptorSize, Size mapSize, MemoryRegion* regionsBuffer, BigSize* usable, Size* entriesCount) {
+void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descriptorSize, Size mapSize, MemoryRegion* regionsBuffer, BigSize* usable, BigSize* total, Size* entriesCount) {
     ASSERT_NONNULL(memoryMap)
     ASSERT_NONNULL(regionsBuffer)
     ASSERT_NONNULL(usable)
+    ASSERT_NONNULL(total)
     ASSERT_NONNULL(entriesCount)
 
     MemoryRegion* regionPtr = regionsBuffer;
@@ -247,7 +248,8 @@ void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descr
         };
         regionPtr++;
     }
-
+    
+    *total = *usable + uunusable;
     *entriesCount = regionPtr - regionsBuffer;
 }
 

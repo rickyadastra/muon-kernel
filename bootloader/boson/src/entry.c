@@ -96,13 +96,14 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         MemoryRegion* regions = (MemoryRegion*) IMemoryManager.alloc_pages(&memManager, EFI_PAGE_SIZE, true);
         IMemoryManager.virtual_map(&memManager, bootloader.kernelPageTable, (UPtr)regions, (UPtr)regions, 1);
 
-        BigSize usable = 0;
+        BigSize usable = 0, total = 0;
         Size entries = 0;
     
-        IMemoryManager.process_memory_map(memoryMap, descriptorSize, size, regions, &usable, &entries);
-        IConsole.logf(&console, "%d memory entries. Total usable memory: %d KB ", entries, usable*EFI_PAGE_SIZE/1024);
+        IMemoryManager.process_memory_map(memoryMap, descriptorSize, size, regions, &usable, &total, &entries);
+        IConsole.logf(&console, "%d memory entries. Usable memory: %d KB. Total memory: %d KB", entries, usable*EFI_PAGE_SIZE/1024, total*EFI_PAGE_SIZE/1024);
         payload->memoryRegionEntries = entries;
         payload->memoryRegionMap = regions;
+        payload->totalMemory = total;
         
         IConsole.log(&console, L"Launching kernel...");
         IBootloader.exit_bootloader(&bootloader);

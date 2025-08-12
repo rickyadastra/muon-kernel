@@ -28,6 +28,7 @@ typedef struct _Bootloader_Payload_struct {
     BootloaderKernelStack stack;
     MemoryRegion* memoryRegionMap;
     Size memoryRegionEntries;
+    BigSize totalMemory;
     // vendor tables
     UPtr rsdpAddr;
 } BootloaderPayload;
