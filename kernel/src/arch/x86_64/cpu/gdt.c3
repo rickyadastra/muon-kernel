@@ -1,9 +1,11 @@
 module arch::cpu::gdt;
 
+import arch::cpu::tss;
+
 extern fn void gdt_load(GDTRegister*);
 
 const usz GDT_ENTRIES = 5;
-SegmentDescriptor[GDT_ENTRIES] gdt @private;
+GlobalDescriptorTable gdt @private;
 
 macro @segment_selector_of(#segment) {
     return #segment * SegmentDescriptor.sizeof;
@@ -11,32 +13,39 @@ macro @segment_selector_of(#segment) {
 
 /*
     Default segment access is: 0 00 1 0 0 0 0
-                               P PL S E D W A
+                               P PL S E D W A (code or data)
+                               P PL S T-Y-P-E (system)
  */
 fn SegmentAccess segment_access_of(bool accessed = false, bool writable = false, bool readable = false,
                                     Direction direction = GROW_UP, Conforming conforming = SAME_PRIVILEGE,
-                                    bool executable = false, DescriptorType type = DATA_OR_CODE, 
-                                    PrivilegeLevel privilege_level = KERNEL, bool present = false) @private {
+                                    bool executable = false, SystemSegmentType sysType = LDT,
+                                    DescriptorType type = DATA_OR_CODE, PrivilegeLevel privilege_level = KERNEL,
+                                    bool present = false) {
     SegmentAccess ret = {
-        .accessed = accessed,
-        .executable = executable,
         .type = type,
         .privilege_level = privilege_level,
         .present = present
     };
 
-    if (ret.executable) {
-        ret.readable = readable;
-        ret.conforming = conforming;
+    if (type == DATA_OR_CODE) {
+        ret.accessed = accessed;
+        ret.executable = executable;
+
+        if (executable) {
+            ret.readable = readable;
+            ret.conforming = conforming;
+        } else {
+            ret.writable = writable;
+            ret.direction = direction;
+        }
     } else {
-        ret.writable = writable;
-        ret.direction = direction;
+        ret.system_type = sysType;
     }
 
     return ret;    
 }
 
-fn SegmentDescriptor construct_descriptor(uptr base, uint limit, SegmentAccess access, SegmentType type) @private {
+fn SegmentDescriptor construct_descriptor(uptr base, uint limit, SegmentAccess access, SegmentType type) {
     return {
         .limit_low = (ushort)(limit & 0xffff),
         .limit_high = (char)((limit >> 16) & 0x0f),
@@ -56,32 +65,34 @@ enum KnownDescriptor : uint {
     USER_DATA
 }
 
-fn void setup() {
-    gdt[KnownDescriptor.NULL.ordinal] = construct_descriptor(
+fn void setup(uptr kernelStack) {
+    tss::setup(&gdt.tss, kernelStack);
+
+    gdt.entries[KnownDescriptor.NULL.ordinal] = construct_descriptor(
         0, 0,
         segment_access_of(),
         SegmentType.NULL
     );
 
-    gdt[KnownDescriptor.KERNEL_CODE.ordinal] = construct_descriptor(
+    gdt.entries[KnownDescriptor.KERNEL_CODE.ordinal] = construct_descriptor(
         0, 0xfffff, 
         segment_access_of(readable: true, executable: true, present: true),
         SegmentType.CODE_64
     );
 
-    gdt[KnownDescriptor.KERNEL_DATA.ordinal] = construct_descriptor(
+    gdt.entries[KnownDescriptor.KERNEL_DATA.ordinal] = construct_descriptor(
         0, 0xfffff,
         segment_access_of(writable: true, present: true),
         SegmentType.DATA_64
     );
     
-    gdt[KnownDescriptor.USER_CODE.ordinal] = construct_descriptor(
+    gdt.entries[KnownDescriptor.USER_CODE.ordinal] = construct_descriptor(
         0, 0xfffff,
         segment_access_of(readable: true, executable: true, privilege_level: USER, present: true),
         SegmentType.CODE_64
     );
 
-    gdt[KnownDescriptor.USER_DATA.ordinal] = construct_descriptor(
+    gdt.entries[KnownDescriptor.USER_DATA.ordinal] = construct_descriptor(
         0, 0xfffff,
         segment_access_of(writable: true, privilege_level: USER, present: true),
         SegmentType.DATA_64
@@ -91,8 +102,9 @@ fn void setup() {
 fn void install() {
     GDTRegister gdtr = {
         .offset = &gdt,
-        .size = (SegmentDescriptor.sizeof * GDT_ENTRIES) - 1
+        .size = GlobalDescriptorTable.sizeof - 1
     };
 
     gdt_load(&gdtr);
+    tss::install();
 }

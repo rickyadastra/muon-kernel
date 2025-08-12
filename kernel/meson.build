@@ -33,6 +33,8 @@ muon_sources = [
     f'src/arch/@arch@/cpu/cpu.c3',
     f'src/arch/@arch@/cpu/gdt.c3',
     f'src/arch/@arch@/cpu/gdt.types.c3',
+    f'src/arch/@arch@/cpu/tss.c3',
+    f'src/arch/@arch@/cpu/tss.types.c3',
 
     f'src/arch/@arch@/dev/acpi/acpi.c3',
     f'src/arch/@arch@/dev/acpi/acpi.types.c3',
