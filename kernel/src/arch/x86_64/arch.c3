@@ -5,7 +5,7 @@ import muon::logging;
 import dev;
 
 fn void init(BootloaderPayload* payload) {
-    gdt::setup();
+    gdt::setup(payload.stack.base);
     logging::printn("GDT setup complete");
 
     gdt::install();

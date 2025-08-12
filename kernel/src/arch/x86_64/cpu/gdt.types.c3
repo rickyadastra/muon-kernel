@@ -1,8 +1,16 @@
 module arch::cpu::gdt;
 
+import arch::cpu::tss;
+
 enum DescriptorType : char {
     SYSTEM,
     DATA_OR_CODE
+}
+
+enum SystemSegmentType : const char {
+    LDT = 0x2,
+    TSS_64_AVAIL = 0x9,
+    TSS_64_BUSY = 0xb,
 }
 
 enum Direction : char {
@@ -21,7 +29,9 @@ bitstruct SegmentAccess : char @overlap {
     bool readable : 1;              // code segments only
     Direction direction : 2..2;     // data segments only
     Conforming conforming : 2..2;   // code segments only
-    bool executable : 3;
+    bool executable : 3;            // code and data segments only
+    SystemSegmentType system_type : 0..3; // system segments only
+
     DescriptorType type : 4..4;
     PrivilegeLevel privilege_level : 5..6;
     bool present : 7;
@@ -48,7 +58,12 @@ struct SegmentDescriptor {
     char base_high;                     // base[24:31]
 }
 
+struct GlobalDescriptorTable @private {
+    SegmentDescriptor[GDT_ENTRIES] entries;
+    TSSDescriptor tss;
+}
+
 struct GDTRegister @packed {
     ushort size;
-    SegmentDescriptor* offset;
+    GlobalDescriptorTable* offset;
 }
