@@ -26,7 +26,7 @@ struct BootloaderPayload {
     BootloaderKernelStack stack;
     MemoryRegion* memoryRegionMap;
     uint memoryRegionEntries;
-    ulong totalMemory;
+    ulong totalMemoryBytes;
     // vendor tables
     uptr rsdpAddr;
 }

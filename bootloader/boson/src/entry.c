@@ -103,7 +103,7 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         IConsole.logf(&console, "%d memory entries. Usable memory: %d KB. Total memory: %d KB", entries, usable*EFI_PAGE_SIZE/1024, total*EFI_PAGE_SIZE/1024);
         payload->memoryRegionEntries = entries;
         payload->memoryRegionMap = regions;
-        payload->totalMemory = total;
+        payload->totalMemoryBytes = total*EFI_PAGE_SIZE;
         
         IConsole.log(&console, L"Launching kernel...");
         IBootloader.exit_bootloader(&bootloader);
