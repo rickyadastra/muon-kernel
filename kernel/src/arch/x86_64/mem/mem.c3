@@ -1,6 +1,7 @@
 module arch::mem;
 
 import boson;
+import mem;
 import muon::logging;
 
 const uptr LEGACY_BIOS_LIMIT = 0x9ffff;

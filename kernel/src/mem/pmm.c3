@@ -1,6 +1,9 @@
-module arch::mem::pmm;
+module mem::pmm;
+
+import muon::logging;
 
 alias BitmapRow = ulong;
+typedef PhysAddr = inline uptr;
 
 enum FrameState : ulong {
     FREE,
@@ -18,6 +21,8 @@ usz physTotal @local = 0;
 usz frameTotal @local = 0;
 usz frameFree @local = 0;
 
+usz allocHint @local = 0;
+
 macro @align_frame(#val) => #val / FRAME_SIZE; 
 macro @bytes_to_frames(#bytes) @local => @align_frame(#bytes);
 macro @frames_to_rows(#frames) @local => ((#frames + BITMAP_FRAMES_PER_ROW-1) / BITMAP_FRAMES_PER_ROW);
@@ -27,7 +32,8 @@ macro @frame_row(#i) @local => #i / BITMAP_FRAMES_PER_ROW;
 macro @frame_bit(#i) @local => #i % BITMAP_FRAMES_PER_ROW;
 macro @frame_count(#i, #state) @local => (#state == USED) ? $$popcount(pmap[#i]) : BITMAP_FRAMES_PER_ROW - $$popcount(pmap[#i]);
 macro @frame_changed(#old, #new) @local => #old != #new;
-macro @frame_of(#addr) => #addr / BITMAP_FRAMES_PER_ROW;
+macro @frame_of(#addr) => @align_frame(#addr);
+macro @row_first_free(#row) => $$ctz(~#row);
 
 <*
   @require amount <= frameTotal
@@ -35,6 +41,7 @@ macro @frame_of(#addr) => #addr / BITMAP_FRAMES_PER_ROW;
 *>
 macro update_stats(FrameState newState, usz amount) {
     frameFree += ((newState == USED) ? -1 : 1) * amount;
+    logging::printn("PMM> total: %d, used: %d, free: %d", frameTotal, frameTotal - frameFree, frameFree);
 }
 
 fn FrameState? get(usz frameId) @inline {
@@ -75,6 +82,37 @@ fn void? mark_region(uptr base, usz size, FrameState state) {
 fn void? mark_region_used(uptr base, usz size) @inline => mark_region(base, size, USED);
 fn void? mark_region_free(uptr base, usz size) @inline => mark_region(base, size, FREE);
 
+fn PhysAddr? alloc() {
+    for (usz i=allocHint; i<allocHint+pmap.len; i++) {
+        usz rowIdx = i % pmap.len;
+
+        BitmapRow row = pmap[rowIdx];
+        if (row == ulong.max) continue;
+
+        usz pos = @row_first_free(row);
+        ulong mask = 1ul << pos;
+
+        if ((row & mask) == 0) {
+            mark_used(rowIdx*BITMAP_FRAMES_PER_ROW + pos)!;
+            allocHint = i;
+            return (PhysAddr)((rowIdx*BITMAP_FRAMES_PER_ROW + pos) * FRAME_SIZE);
+        }
+    }
+
+    return OUT_OF_MEMORY?;
+}
+
+fn void? free(PhysAddr addr) {
+    usz frame = @frame_of(addr);
+
+    if (get(frame)! == USED) {
+        mark_free(frame)!;
+
+    } else {
+        logging::printn("Double pmm::free of %x", addr);
+    }
+}
+ 
 fn void? setup(uptr bitmap, usz totalMemoryBytes) {
     frameTotal = frameFree = @bytes_to_frames(totalMemoryBytes);
     physTotal = totalMemoryBytes;
