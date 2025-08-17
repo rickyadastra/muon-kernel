@@ -30,7 +30,6 @@ macro usz bitmap_alloc_size_of(usz bytes) => @frames_to_rows(@bytes_to_frames(by
 
 macro @frame_row(#i) @local => #i / BITMAP_FRAMES_PER_ROW;
 macro @frame_bit(#i) @local => #i % BITMAP_FRAMES_PER_ROW;
-macro @frame_count(#i, #state) @local => (#state == USED) ? $$popcount(pmap[#i]) : BITMAP_FRAMES_PER_ROW - $$popcount(pmap[#i]);
 macro @frame_changed(#old, #new) @local => #old != #new;
 macro @frame_of(#addr) => @align_frame(#addr);
 macro @row_first_free(#row) => $$ctz(~#row);
