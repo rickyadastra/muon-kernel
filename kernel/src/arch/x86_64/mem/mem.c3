@@ -16,26 +16,28 @@ fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
     return MEMORY_UNAVAILABLE?;
 }
 
-fn void? init(BootloaderPayload* payload) {
-    MemoryRegion[] regions = payload.memoryRegionMap[:payload.memoryRegionEntries];
-    usz bitmapAllocSize = pmm::bitmap_alloc_size_of(payload.totalMemoryBytes);
-    uptr bitmap = find_bitmap_region(regions, bitmapAllocSize)!;
-    
-    logging::printn("bitmap size will be %d B", bitmapAllocSize);
-
-    pmm::setup(bitmap, payload.totalMemoryBytes)!;
-
+fn void? mark_memory_regions(MemoryRegion[] regions, usz totalMemoryBytes) @local {
     foreach (usz i, MemoryRegion reg : regions) {
         if (reg.type != AVAILABLE) {
             logging::printn("%d:\t[%x-%x] %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.size, reg.type.nameof);
 
             // sanitize size: some uefi memory regions are MMIO outside of physical RAM
             usz size = reg.size;
-            if (reg.base + reg.size >= payload.totalMemoryBytes) {
-                size = payload.totalMemoryBytes - reg.base;
+            if (reg.base + reg.size >= totalMemoryBytes) {
+                size = totalMemoryBytes - reg.base;
             }
 
             pmm::mark_region_used(reg.base, size)!;
         }
     }
+}
+
+fn void? init(BootloaderPayload* payload) {
+    MemoryRegion[] regions = payload.memoryRegionMap[:payload.memoryRegionEntries];
+    usz bitmapAllocSize = pmm::bitmap_alloc_size_of(payload.totalMemoryBytes);
+    uptr bitmap = find_bitmap_region(regions, bitmapAllocSize)!;
+    
+    pmm::setup(bitmap, payload.totalMemoryBytes)!;
+
+    mark_memory_regions(regions, payload.totalMemoryBytes)!;
 }
