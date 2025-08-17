@@ -21,6 +21,9 @@ fn void init(BootloaderPayload* payload) {
 
     logging::@catch_or_log(apic::init(), "APIC init complete");
 
+    logging::printn("Total installed memory is %d bytes", payload.totalMemoryBytes);
+    logging::@catch_or_log(mem::init(payload), "Memory manager init complete");
+
     // logging::@catch_or_log(hpet::init(), "HPET init complete");
 }
 

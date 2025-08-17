@@ -46,6 +46,8 @@ muon_sources = [
     f'src/arch/@arch@/dev/timing/hpet.c3',
     f'src/arch/@arch@/dev/timing/hpet.types.c3',
 
+    f'src/arch/@arch@/mem/mem.c3',
+
     f'src/arch/@arch@/interrupts/handlers.c3',
     f'src/arch/@arch@/interrupts/interrupts.c3',
     f'src/arch/@arch@/interrupts/interrupts.types.c3',
@@ -54,6 +56,8 @@ muon_sources = [
     f'src/arch/@arch@/arch.c3',
 
     ########################################
+
+    f'src/mem/pmm.c3',
 
     f'src/dev/mmio.c3',
     f'src/dev/port.c3',
