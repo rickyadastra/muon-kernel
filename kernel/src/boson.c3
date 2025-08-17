@@ -1,6 +1,6 @@
 module boson;
 
-enum MemoryRegionType : const uint {
+enum MemoryRegionType : uint {
     BOOTLOADER,
     AVAILABLE,
     FIRMWARE,
