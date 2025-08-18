@@ -17,6 +17,8 @@ fn void init(BootloaderPayload* payload) {
     interrupts::install();
     logging::printn("IDT install complete");
 
+    logging::@catch_or_log(cpu::cpuid::enable(), "CPUID enabled");
+
     logging::@catch_or_log(acpi::init(payload.rsdpAddr), "ACPI init complete");
 
     logging::@catch_or_log(apic::init(), "APIC init complete");
