@@ -31,6 +31,7 @@ link_args = [
 
 muon_sources = [
     f'src/arch/@arch@/cpu/cpu.c3',
+    f'src/arch/@arch@/cpu/cpuid.c3',
     f'src/arch/@arch@/cpu/gdt.c3',
     f'src/arch/@arch@/cpu/gdt.types.c3',
     f'src/arch/@arch@/cpu/tss.c3',
