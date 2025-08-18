@@ -40,7 +40,6 @@ macro @row_first_free(#row) => $$ctz(~#row);
 *>
 macro update_stats(FrameState newState, usz amount) {
     frameFree += ((newState == USED) ? -1 : 1) * amount;
-    logging::printn("PMM> total: %d, used: %d, free: %d", frameTotal, frameTotal - frameFree, frameFree);
 }
 
 fn FrameState? get(usz frameId) @inline {
