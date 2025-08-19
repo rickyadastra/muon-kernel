@@ -4,6 +4,7 @@ import boson;
 import mem;
 import muon::logging;
 
+const uptr LEGACY_BIOS_BASE = 0x0;
 const uptr LEGACY_BIOS_LIMIT = 0x9ffff;
 
 faultdef MEMORY_UNAVAILABLE;
@@ -17,6 +18,8 @@ fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
 }
 
 fn void? mark_memory_regions(MemoryRegion[] regions, usz totalMemoryBytes) @local {
+    pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
+
     foreach (usz i, MemoryRegion reg : regions) {
         if (reg.type != AVAILABLE) {
             logging::printn("%d:\t[%x-%x] %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.size, reg.type.nameof);
@@ -37,7 +40,6 @@ fn void? init(BootloaderPayload* payload) {
     usz bitmapAllocSize = pmm::bitmap_alloc_size_of(payload.totalMemoryBytes);
     uptr bitmap = find_bitmap_region(regions, bitmapAllocSize)!;
     
-    pmm::setup(bitmap, payload.totalMemoryBytes)!;
-
+    pmm::init(bitmap, payload.totalMemoryBytes)!;
     mark_memory_regions(regions, payload.totalMemoryBytes)!;
 }

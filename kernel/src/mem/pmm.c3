@@ -91,9 +91,11 @@ fn PhysAddr? alloc() {
         ulong mask = 1ul << pos;
 
         if ((row & mask) == 0) {
-            mark_used(rowIdx*BITMAP_FRAMES_PER_ROW + pos)!;
+            usz frameIdx = rowIdx*BITMAP_FRAMES_PER_ROW + pos;
+
             allocHint = i;
-            return (PhysAddr)((rowIdx*BITMAP_FRAMES_PER_ROW + pos) * FRAME_SIZE);
+            mark_used(frameIdx)!;
+            return (PhysAddr)(frameIdx * FRAME_SIZE);
         }
     }
 
@@ -111,7 +113,7 @@ fn void? free(PhysAddr addr) {
     }
 }
  
-fn void? setup(uptr bitmap, usz totalMemoryBytes) {
+fn void? init(uptr bitmap, usz totalMemoryBytes) {
     frameTotal = frameFree = @bytes_to_frames(totalMemoryBytes);
     physTotal = totalMemoryBytes;
 
