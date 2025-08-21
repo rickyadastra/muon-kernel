@@ -1,4 +1,6 @@
 #include "bootloader.h"
+#include "base/int.h"
+#include "boson/boson.h"
 #include "core/bytearray.h"
 #include "efi/file_protocol.h"
 #include "efi/memory.h"
@@ -40,6 +42,11 @@ void Bootloader_set_efi_table(Bootloader *self, EfiSystemTable *efiTable) {
 
     s = self->bootServices->HandleProtocol(self->bootloaderImage->DeviceHandle, &(EfiGUID)EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (void**)&self->fileSystem);
     EFI_THROW(s, BootloaderException, "Cannot load file system information")
+}
+
+void Bootloader_init_memory_map(Bootloader *self) {
+    self->regions = (MemoryRegion*) IMemoryManager.alloc_pages(self->memoryManager, EFI_PAGE_SIZE, true);
+    self->regionEntries = 0;
 }
 
 Bool Bootloader_open_volume(Bootloader *self) {
@@ -91,6 +98,15 @@ BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size siz
     return self->kernelStack;
 }
 
+void add_memory_region(Bootloader* self, UPtr base, Size length, MemoryRegionType type) {
+    *(self->regions + self->regionEntries) = (MemoryRegion){
+        .base = base,
+        .size = length,
+        .type = type
+    };
+    self->regionEntries++;
+}
+
 void Bootloader_prepare_kernel_programs(Bootloader *self) {
     Elf64Header* elfHeader = (Elf64Header*)self->kernel._fileBuffer;
     if (elfHeader == null) {
@@ -110,6 +126,8 @@ void Bootloader_prepare_kernel_programs(Bootloader *self) {
         if (fillZero > 0) {
             IByteArray.set(((char*)paddr + programHeader->file_size), fillZero, 0);
         }
+
+        add_memory_region(self, paddr, EFI_SIZE_TO_PAGES(programHeader->mem_size)*EFI_PAGE_SIZE, MEMORY_REGION_KERNEL);
         
         IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size));
         programHeader = (Elf64ProgramHeader*)((UPtr)programHeader + elfHeader->programs_size);

@@ -14,6 +14,7 @@
 #define _BOOTLOADER_METHODS(T, S, M) \
     METHOD(T, S, M, void, set_handle, EfiHandle efiHandle) \
     METHOD(T, S, M, void, set_efi_table, EfiSystemTable* efiTable) \
+    METHOD(T, S, M, void, init_memory_map) \
     METHOD(T, S, M, Bool, open_volume) \
     METHOD(T, S, M, UPtr, load_kernel, const WChar16* filename) \
     METHOD(T, S, M, BootloaderKernelStack, prepare_kernel_stack, Size size) \
@@ -35,4 +36,7 @@ CLASSDEF(Bootloader, MemoryConsumer, BOOTLOADER_METHODS)
     File kernel;
     PageTable kernelPageTable;
     BootloaderKernelStack kernelStack;
+
+    MemoryRegion* regions;
+    Size regionEntries;
 ENDCLASSDEF(Bootloader)

@@ -7,6 +7,7 @@ enum MemoryRegionType : uint {
     ACPI,
     MMIO,
     RESERVED,
+    KERNEL,
 }
 
 struct BootloaderKernelStack {

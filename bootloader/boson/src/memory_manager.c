@@ -169,7 +169,7 @@ void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descr
     ASSERT_NONNULL(total)
     ASSERT_NONNULL(entriesCount)
 
-    MemoryRegion* regionPtr = regionsBuffer;
+    MemoryRegion* regionPtr = regionsBuffer + *entriesCount;
     EfiMemoryDescriptor* d = memoryMap;
 
     BigSize uunusable = 0;
