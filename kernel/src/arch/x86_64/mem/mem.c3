@@ -1,7 +1,7 @@
 module arch::mem;
 
 import boson;
-import mem;
+import mem @public;
 import muon::logging;
 
 const uptr LEGACY_BIOS_BASE = 0x0;
@@ -17,7 +17,7 @@ fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
     return MEMORY_UNAVAILABLE?;
 }
 
-fn void? mark_memory_regions(MemoryRegion[] regions, usz totalMemoryBytes) @local {
+fn void? mark_memory_regions(MemoryRegion[] regions) @local {
     // mark legacy bios region, should never be used
     pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
 
@@ -27,8 +27,8 @@ fn void? mark_memory_regions(MemoryRegion[] regions, usz totalMemoryBytes) @loca
 
             // sanitize size: some uefi memory regions are MMIO outside of physical RAM
             usz size = reg.size;
-            if (reg.base + reg.size >= totalMemoryBytes) {
-                size = totalMemoryBytes - reg.base;
+            if (reg.base + reg.size >= pmm::physTotal) {
+                size = pmm::physTotal - reg.base;
             }
 
             pmm::mark_region_used(reg.base, size)!;
@@ -43,7 +43,7 @@ fn void? init(BootloaderPayload* payload) {
     uptr bitmap = find_bitmap_region(regions, bitmapAllocSize)!;
     
     pmm::init(bitmap, payload.totalMemoryBytes)!;
-    mark_memory_regions(regions, payload.totalMemoryBytes)!;
-
     vmm::init()!;
+
+    mark_memory_regions(regions)!;
 }

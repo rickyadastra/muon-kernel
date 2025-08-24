@@ -17,7 +17,8 @@ const usz BITMAP_FRAMES_PER_ROW = (BitmapRow.sizeof * 8);
 
 BitmapRow[] pmap @local;
 usz pmapSize @local = 0;
-usz physTotal @local = 0;
+
+usz physTotal @private = 0;
 usz frameTotal @local = 0;
 usz frameFree @local = 0;
 

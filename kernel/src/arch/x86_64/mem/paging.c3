@@ -1,6 +1,6 @@
 module arch::mem::paging;
 
-import mem::pmm;
+import mem::pmm @public;
 import mem::vmm;
 import muon::logging;
 
