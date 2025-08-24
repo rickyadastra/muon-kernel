@@ -50,7 +50,7 @@
 [C3](https://c3-lang.org/) is a C evolution aiming to be safer and more powerful while being familiar to the old C. It provides several additions useful to kernel programming like more granular bitstructs, methods, semantic macros and zero-overhead error checks, being fully compatible with the C ABI.
 
 A quick overview of the main differences from C development:
-- **no `include/` dir and header `.h` files** – files are logically grouped in modules; to keep source code tidy, definitions and functions/methods are split in `*.types.c3` and `*.c3` files respectively
+- **no `include/` dir and header `.h` files** – files are logically grouped in modules; to keep source code tidy, module interface and implementation are split in `*.c3i` and `*.c3` files respectively
 - **clearer functions** – thanks to the module system, each function can be called via its module name using `module::function` thus having a code that is simpler to read. New and existing types can have methods when they represent a mutable object
 - **semantic macros** – enable powerful meta-programming stuff like [defining a list of lambdas for IRQs](/kernel/src/arch/x86_64/interrupts/routines.c3#L98:L109) at compile time
 - **runtime types and reflection** – possibility to access types, enum and qualified method names, and much more
