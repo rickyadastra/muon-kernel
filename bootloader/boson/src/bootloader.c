@@ -98,9 +98,10 @@ BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size siz
     return self->kernelStack;
 }
 
-void add_memory_region(Bootloader* self, UPtr base, Size length, MemoryRegionType type) {
+void add_memory_region(Bootloader* self, UPtr base, UPtr baseVirt, Size length, MemoryRegionType type) {
     *(self->regions + self->regionEntries) = (MemoryRegion){
         .base = base,
+        .baseVirt = baseVirt,
         .size = length,
         .type = type
     };
@@ -127,7 +128,7 @@ void Bootloader_prepare_kernel_programs(Bootloader *self) {
             IByteArray.set(((char*)paddr + programHeader->file_size), fillZero, 0);
         }
 
-        add_memory_region(self, paddr, EFI_SIZE_TO_PAGES(programHeader->mem_size)*EFI_PAGE_SIZE, MEMORY_REGION_KERNEL);
+        add_memory_region(self, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size)*EFI_PAGE_SIZE, MEMORY_REGION_KERNEL);
         
         IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size));
         programHeader = (Elf64ProgramHeader*)((UPtr)programHeader + elfHeader->programs_size);

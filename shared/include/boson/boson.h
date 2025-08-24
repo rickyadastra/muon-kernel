@@ -21,6 +21,7 @@ typedef struct _Bootloader_Kernel_Stack_struct {
 typedef struct _Memory_Region_struct {
     MemoryRegionType type;
     UPtr base;
+    UPtr baseVirt;
     BigSize size;
 } MemoryRegion;
 

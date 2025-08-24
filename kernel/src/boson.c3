@@ -19,6 +19,7 @@ struct BootloaderKernelStack {
 struct MemoryRegion {
     MemoryRegionType type;
     uptr base;
+    uptr baseVirt;
     ulong size;
 }
 

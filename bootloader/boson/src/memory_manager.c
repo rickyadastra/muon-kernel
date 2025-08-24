@@ -243,6 +243,7 @@ void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descr
     if (lastBase != base) {
         (*regionPtr) = (MemoryRegion){
             .base = base,
+            .baseVirt = 0,
             .size = length,
             .type = lastType
         };
