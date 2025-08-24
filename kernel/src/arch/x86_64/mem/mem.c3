@@ -18,11 +18,12 @@ fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
 }
 
 fn void? mark_memory_regions(MemoryRegion[] regions, usz totalMemoryBytes) @local {
+    // mark legacy bios region, should never be used
     pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
 
     foreach (usz i, MemoryRegion reg : regions) {
         if (reg.type != AVAILABLE) {
-            logging::printn("%d:\t[%x-%x] %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.size, reg.type.nameof);
+            logging::printn("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.nameof);
 
             // sanitize size: some uefi memory regions are MMIO outside of physical RAM
             usz size = reg.size;
@@ -31,6 +32,7 @@ fn void? mark_memory_regions(MemoryRegion[] regions, usz totalMemoryBytes) @loca
             }
 
             pmm::mark_region_used(reg.base, size)!;
+            // if (reg.baseVirt != null) vmm::map(reg.base, reg.baseVirt);
         }
     }
 }
@@ -42,4 +44,6 @@ fn void? init(BootloaderPayload* payload) {
     
     pmm::init(bitmap, payload.totalMemoryBytes)!;
     mark_memory_regions(regions, payload.totalMemoryBytes)!;
+
+    vmm::init()!;
 }
