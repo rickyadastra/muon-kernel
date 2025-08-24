@@ -62,6 +62,7 @@ muon_sources = [
 
     f'src/mem/pmm.c3',
     f'src/mem/vmm.c3',
+    f'src/mem/vmm.c3i',
 
     f'src/dev/mmio.c3',
     f'src/dev/port.c3',

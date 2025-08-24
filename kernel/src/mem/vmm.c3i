@@ -1,0 +1,7 @@
+module mem::vmm;
+
+import arch::mem::paging;
+
+struct AddressSpace {
+    inline AddressSpaceImpl _addrSpaceImpl;
+}

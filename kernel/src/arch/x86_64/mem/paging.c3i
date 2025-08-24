@@ -6,9 +6,20 @@ const usz TABLE_ENTRIES = pmm::FRAME_SIZE / TableEntry.sizeof;
 const usz ENTRY_ADDRESS_LSB = 12;
 const ulong ENTRY_ADDRESS_MASK = 0xffff_ffff_ffff_f000;
 
-enum PagingMode : uint (usz virtAddrLen) {
-    PAGING_MAP_LEVEL4 = 48,
-    PAGING_MAP_LEVEL5 = 52,
+enum PagingMode : uint (usz virtAddrLen, usz pml4Shift, usz pdptShift, usz pdShift, usz ptShift) {
+    PAGING_MAP_LEVEL4 = {48, 39, 30, 21, 12},
+    PAGING_MAP_LEVEL5 = {52, 39, 30, 21, 12}, // unsupported at the moment
+}
+
+const usz BREAK_PATH @private = -1;
+
+enum PagingPath : uint (usz pml4e, usz pdpte, usz pde, usz pte) {
+    EDIT_SELF_PML4      = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx},
+    EDIT_SELF_PDPT      = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, BREAK_PATH},
+    EDIT_SELF_PD        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, BREAK_PATH, BREAK_PATH},
+    EDIT_SELF_PT        = {KnownTableEntry.SELF.idx, BREAK_PATH, BREAK_PATH, BREAK_PATH},
+
+    PMM_BITMAP          = {KnownTableEntry.KERNEL.idx, 508, 0, 0},
 }
 
 bitstruct TableEntry : ulong {
@@ -29,3 +40,13 @@ bitstruct TableEntry : ulong {
 }
 
 typedef PageTable = inline TableEntry[];
+
+enum KnownTableEntry : uint (usz idx) {
+    KERNEL = 511,
+    SELF = 510,
+    OTHER = 509,
+}
+
+struct AddressSpaceImpl {
+    PageTable pageTable;
+}
