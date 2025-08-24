@@ -2,7 +2,8 @@ module arch::mem::paging;
 
 import mem::pmm;
 
-const usz TABLE_ENTRIES = pmm::FRAME_SIZE / TableEntry.sizeof;
+const usz PAGE_SIZE = pmm::FRAME_SIZE;
+const usz TABLE_ENTRIES = PAGE_SIZE / TableEntry.sizeof;
 const usz ENTRY_ADDRESS_LSB = 12;
 const ulong ENTRY_ADDRESS_MASK = 0xffff_ffff_ffff_f000;
 
@@ -13,13 +14,22 @@ enum PagingMode : uint (usz virtAddrLen, usz pml4Shift, usz pdptShift, usz pdShi
 
 const usz BREAK_PATH @private = -1;
 
-enum PagingPath : uint (usz pml4e, usz pdpte, usz pde, usz pte) {
+struct PagingPath {
+    usz pml4e;
+    usz pdpte;
+    usz pde;
+    usz pte;
+}
+
+enum KnownPagingPath : uint (PagingPath path) {
     EDIT_SELF_PML4      = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx},
     EDIT_SELF_PDPT      = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, BREAK_PATH},
     EDIT_SELF_PD        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, BREAK_PATH, BREAK_PATH},
     EDIT_SELF_PT        = {KnownTableEntry.SELF.idx, BREAK_PATH, BREAK_PATH, BREAK_PATH},
 
+    KERNEL              = {KnownTableEntry.KERNEL.idx, 0, 0, 0},
     PMM_BITMAP          = {KnownTableEntry.KERNEL.idx, 508, 0, 0},
+    PHYSMAP             = {KnownTableEntry.KERNEL.idx, 510, 0, 0},
 }
 
 bitstruct TableEntry : ulong {

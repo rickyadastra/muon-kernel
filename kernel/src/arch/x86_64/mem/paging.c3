@@ -11,10 +11,32 @@ PagingMode pagingMode @private = PAGING_MAP_LEVEL4;
     @require i < TABLE_ENTRIES
 *>
 fn void PageTable.set(PageTable* self, usz i, TableEntry entry) => (*self)[i] = entry;
+<*
+    @require i < TABLE_ENTRIES
+*>
+fn TableEntry PageTable.get(PageTable* self, usz i) => (*self)[i];
 
+macro PageTable @as_table(uptr #ptr) => (PageTable)((TableEntry*)#ptr)[:TABLE_ENTRIES];
 macro @table_ptr(PageTable #table) @private => (uptr)&(TableEntry)#table[0];
-macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.sizeof*8)-vmm::virtual_address_length())) >> ((ulong.sizeof*8)-vmm::virtual_address_length()));
-macro uptr @path_addr(PagingPath #path) @private => 0ul | (#path.pml4e << pagingMode.pml4Shift) | (#path.pdpte << pagingMode.pdptShift) | (#path.pde << pagingMode.pdShift) | (#path.pte << pagingMode.ptShift);
+macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.sizeof * 8) - vmm::virtual_address_length())) >> ((ulong.sizeof * 8) - vmm::virtual_address_length()));
+macro bool @has_recursion(PagingPath #path) @private => (#path.pml4e == KnownTableEntry.SELF.idx) || (#path.pml4e == KnownTableEntry.OTHER.idx);
+
+macro uptr @path_addr(PagingPath #path) @private {
+    return @canonical(0ul | 
+           (#path.pml4e << pagingMode.pml4Shift) |
+           (#path.pdpte << pagingMode.pdptShift) |
+           (#path.pde << pagingMode.pdShift) |
+           (#path.pte << pagingMode.ptShift));
+}
+
+macro PagingPath @addr_path(uptr #addr) @private {
+    return (PagingPath) {
+        .pml4e = (#addr >> pagingMode.pml4Shift) & 0x1ff,
+        .pdpte = (#addr >> pagingMode.pdptShift) & 0x1ff,
+        .pde = (#addr >> pagingMode.pdShift) & 0x1ff,
+        .pte = (#addr >> pagingMode.ptShift) & 0x1ff,
+    };
+}
 
 fn TableEntry construct_entry(bool present = false, bool readWrite = false, bool userPage = false,
                               bool writeThrough = false, bool cacheDisable = false, bool huge = false,
@@ -34,7 +56,8 @@ fn TableEntry construct_entry(bool present = false, bool readWrite = false, bool
 
 fn PageTable? create_table() @private {
     uptr ptr = pmm::alloc()!;
-    return (PageTable)((TableEntry*)ptr)[:TABLE_ENTRIES];
+    logging::printn("new table @ %x", ptr);
+    return @as_table(ptr);
 }
 
 fn PageTable? create_root() @private {
@@ -44,4 +67,33 @@ fn PageTable? create_root() @private {
     table.set(KnownTableEntry.SELF.idx, construct_entry(present: true, readWrite: true, addr: @table_ptr(table)));
 
     return table;
+}
+
+fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true) @local {
+    uptr tablePtr;
+    if (parent.get(entry).present) {
+        // get table
+        tablePtr = (parent.get(entry).addr << ENTRY_ADDRESS_LSB);
+    } else {
+        // create table, set in parent, get table
+        PageTable table = create_table()!;
+        parent.set(entry, construct_entry(present: true, readWrite: true, addr: @table_ptr(table)));
+        tablePtr = (uptr)@table_ptr(table);
+    }
+
+    return @as_table(useVirtAddr ? 0 + tablePtr : tablePtr);
+}
+
+fn void? map(PageTable root, uptr paddr, uptr vaddr) @private {
+    PagingPath path = @addr_path(vaddr);
+    logging::printn("%d %d %d %d", path.pml4e, path.pdpte, path.pde, path.pte);
+
+    if (@has_recursion(path)) {
+        logging::printn("recursion not yet supported!");
+    } else {
+        PageTable pdpt = ensure_table(root, path.pml4e, useVirtAddr: false)!;
+        PageTable pd = ensure_table(pdpt, path.pdpte, useVirtAddr: false)!;
+        PageTable pt = ensure_table(pd, path.pde, useVirtAddr: false)!;
+        pt.set(path.pte, construct_entry(present: true, readWrite: true, addr: paddr));
+    }
 }
