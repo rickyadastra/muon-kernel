@@ -17,14 +17,18 @@ fn void init(BootloaderPayload* payload) {
     interrupts::install();
     logging::printn("IDT install complete");
 
-    logging::@catch_or_log(cpu::cpuid::enable(), "CPUID enabled");
+    cpu::cpuid::enable()!!;
+    logging::printn("CPUID enabled");
 
-    logging::@catch_or_log(acpi::init(payload.rsdpAddr), "ACPI init complete");
+    acpi::init(payload.rsdpAddr)!!;
+    logging::printn("ACPI init complete");
 
-    logging::@catch_or_log(apic::init(), "APIC init complete");
+    apic::init()!!;
+    logging::printn("APIC init complete");
 
     logging::printn("Total installed memory is %d bytes", payload.totalMemoryBytes);
-    logging::@catch_or_log(mem::init(payload), "Memory manager init complete");
+    mem::init(payload)!!;
+    logging::printn("Memory manager init complete");
 
     // logging::@catch_or_log(hpet::init(), "HPET init complete");
 }
