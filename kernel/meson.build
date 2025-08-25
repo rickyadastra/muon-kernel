@@ -93,6 +93,7 @@ c3_objs += custom_target(
         '--use-stdlib=no',
         '--build-dir', 'kernel/',
         '--single-module=yes',
+        '--panicfn', 'arch::panicfn'
     ],
     build_by_default: true
 )

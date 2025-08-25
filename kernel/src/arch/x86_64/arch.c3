@@ -34,8 +34,11 @@ macro void panic() {
     cpu::idle();
 }
 
-fn void log_and_panic(String message) {
-    logging::panic(message);
+alias PanicFn = fn void(String message, String file, String function, uint line);
+PanicFn panicfn = &log_and_panic;
+
+fn void log_and_panic(String message, String file = "", String function = "", uint line = 0) {
+    logging::panic(message, file: file, function: function, line: line);
     arch::panic();
 }
 

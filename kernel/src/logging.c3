@@ -30,10 +30,26 @@ fn void print(String format, args..., char terminator = '\0') {
 macro void printn(String format, args...) => print(format, ...args, terminator: '\n');
 macro void newline() => print("", terminator: '\n');
 
-fn void panic(String reason) {
-    serial.write("MUON PANIC: ");
+fn void panic(String reason, String file = "", String function = "", uint line = 0) {
+    serial.write("\nMUON PANIC! ");
     serial.write(reason);
-    serial.put('\n');
+
+    if (function.len > 0) {
+        serial.write(" @ ");
+        serial.write(function);
+
+        if (file.len > 0) {
+            serial.write(" (");
+            serial.write(file);
+
+            char[16] tempBuf;
+            if (try fmtLen = formatting::format_any_to_decimal(&line, &tempBuf)) {
+                serial.put(':');
+                serial.write(tempBuf[:fmtLen]);
+            }
+            serial.write(")\n");
+        }
+    }
 }
 
 fn void init() {
