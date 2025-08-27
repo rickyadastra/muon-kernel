@@ -85,7 +85,7 @@ fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true)
     return @as_table(useVirtAddr ? 0 + tablePtr : tablePtr);
 }
 
-fn void? map(PageTable root, uptr paddr, uptr vaddr, HugePage hugePage = NONE) @private {
+fn void? map(PageTable root, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL) @private {
     PagingPath path = @addr_path(vaddr);
     logging::printn("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 

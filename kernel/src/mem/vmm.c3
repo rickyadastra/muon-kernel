@@ -18,7 +18,7 @@ fn void? map_physmap(usz len) @local {
     logging::printn("%d -> mapping %dx 1GB pages", len, @physmap_pages(len));
     
     for (usz i = 0; i < math::min(@physmap_pages(len), PHYSMAP_MAX); i++) {
-        uptr paddr = (uptr)(HugePage.HUGE_1G.size * i);
+        uptr paddr = (uptr)(PageSize.HUGE_1G.size * i);
         uptr vaddr = paging::@path_addr(KnownPagingPath.PHYSMAP.path, pdpteModifier: i);
 
         paging::map(kernelAddrSpace.pageTable, paddr, vaddr, hugePage: HUGE_1G)!;

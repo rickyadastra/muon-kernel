@@ -4,8 +4,8 @@ import mem::pmm;
 
 const usz PAGE_SIZE = pmm::FRAME_SIZE;
 
-enum HugePage : usz (usz size) {
-    NONE = 1 << 12,
+enum PageSize : usz (usz size) {
+    NORMAL = 1 << 12,
     HUGE_2M = 1 << 21,
     HUGE_1G = 1 << 30,
 }
