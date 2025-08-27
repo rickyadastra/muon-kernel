@@ -15,7 +15,7 @@ faultdef OUT_OF_MEMORY, INVALID_FRAME_INDEX;
 const usz FRAME_SIZE = 0x1000;
 const usz BITMAP_FRAMES_PER_ROW = (BitmapRow.sizeof * 8);
 
-BitmapRow[] pmap @local;
+BitmapRow[] pmap @private;
 usz pmapSize @local = 0;
 
 usz physTotal @private = 0;
@@ -123,7 +123,7 @@ fn void? init(uptr bitmap, usz totalMemoryBytes) {
     pmap = ((BitmapRow*)bitmap)[:rowCount];
 
     pmap[..] = 0;   // initialize bitmap
-    mark_used(0)!;   // mark frame 0 as used, address 0x0 should never be used
+    mark_used(0)!;   // mark frame 0 as used, address 0x0 should never be available
 
     // self mark pmap
     mark_region_used(bitmap, pmapSize)!;  

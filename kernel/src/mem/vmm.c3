@@ -2,6 +2,7 @@ module mem::vmm;
 
 import arch::cpu;
 import arch::mem::paging @public;
+import mem::pmm @public;
 import muon::logging;
 import std::math;
 
@@ -12,7 +13,10 @@ AddressSpace kernelAddrSpace @local;
 
 macro usz physical_address_length() => addrLen.physicalLength;
 macro usz virtual_address_length() => addrLen.virtualLength;
-macro usz @physmap_pages(usz #bytes) => (#bytes + (paging::HugePage.HUGE_1G.size - 1ul)) / paging::HugePage.HUGE_1G.size;
+
+macro uptr @align_addr(uptr #addr, usz #pageSize = paging::PageSize.NORMAL.size) => #addr & ~(#pageSize - 1);
+macro usz @pages(usz #bytes, usz #pageSize = paging::PageSize.NORMAL.size) => (#bytes + (#pageSize - 1ul)) / #pageSize;
+macro usz @physmap_pages(usz #bytes) => @pages(#bytes, paging::PageSize.HUGE_1G.size);
 
 fn void? map_physmap(usz len) @local {
     logging::printn("%d -> mapping %dx 1GB pages", len, @physmap_pages(len));
@@ -25,9 +29,17 @@ fn void? map_physmap(usz len) @local {
     }
 }
 
+fn void? map_pmap() @local {
+    map((uptr)&(pmm::pmap[0]), paging::@path_addr(KnownPagingPath.PMM_BITMAP.path), pmm::pmap.len * BitmapRow.sizeof)!;
+}
+
 fn void? map(uptr paddr, uptr vaddr, usz len) {
-    // for ... map all required pages
-    paging::map(kernelAddrSpace.pageTable, paddr, vaddr)!;
+    for (usz i = 0; i < @pages(len); i++) {
+        uptr memPaddr = @align_addr(paddr) + (paging::PageSize.NORMAL.size * i);
+        uptr memVaddr = @align_addr(vaddr) + (paging::PageSize.NORMAL.size * i);
+
+        paging::map(kernelAddrSpace.pageTable, memPaddr, memVaddr)!;
+    }
 }
 
 fn void unmap(uptr vaddr, usz len) {
@@ -48,12 +60,10 @@ fn void? init(usz totalMemoryBytes) {
 
     //create root table
     kernelAddrSpace.pageTable = paging::create_root()!;
-
     // create physmap region
     map_physmap(totalMemoryBytes)!;
-
     // create pmap region
-
+    map_pmap()!;
 
 }
 
