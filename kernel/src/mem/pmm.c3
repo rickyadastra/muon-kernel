@@ -128,3 +128,8 @@ fn void? init(uptr bitmap, usz totalMemoryBytes) {
     // self mark pmap
     mark_region_used(bitmap, pmapSize)!;  
 }
+
+fn void set_bitmap(uptr bitmapNewPtr) @private {
+    usz rowCount = pmap.len;
+    pmap = ((BitmapRow*)bitmapNewPtr)[:rowCount];
+}

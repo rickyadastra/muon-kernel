@@ -27,9 +27,9 @@ struct PagingPath {
 }
 
 enum KnownPagingPath : uint (PagingPath path) {
-    KERNEL              = {KnownTableEntry.KERNEL.idx, 0, 0, 0},
+    PHYSMAP             = {KnownTableEntry.KERNEL.idx, 0, 0, 0},
     PMM_BITMAP          = {KnownTableEntry.KERNEL.idx, 508, 0, 0},
-    PHYSMAP             = {KnownTableEntry.KERNEL.idx, 510, 0, 0},
+    KERNEL              = {KnownTableEntry.KERNEL.idx, 510, 0, 0},
 }
 
 bitstruct TableEntry : ulong {

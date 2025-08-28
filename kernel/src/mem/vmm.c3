@@ -11,6 +11,8 @@ faultdef PAGING_INIT_FAIL;
 AddressLength addrLen @local;
 AddressSpace kernelAddrSpace @local;
 
+macro uptr physmap_base() => paging::@path_addr(KnownPagingPath.PMM_BITMAP.path);
+
 macro usz physical_address_length() => addrLen.physicalLength;
 macro usz virtual_address_length() => addrLen.virtualLength;
 
