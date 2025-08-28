@@ -17,7 +17,7 @@ fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
     return MEMORY_UNAVAILABLE?;
 }
 
-fn void? mark_memory_regions(MemoryRegion[] regions) @local {
+fn void? mark_and_map_memory_regions(MemoryRegion[] regions) @local {
     // mark legacy bios region, should never be used
     pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
 
@@ -32,7 +32,7 @@ fn void? mark_memory_regions(MemoryRegion[] regions) @local {
             }
 
             pmm::mark_region_used(reg.base, size)!;
-            // if (reg.baseVirt != null) vmm::map(reg.base, reg.baseVirt);
+            if (reg.baseVirt != 0) vmm::map(reg.base, reg.baseVirt, reg.size)!;
         }
     }
 }
@@ -42,8 +42,17 @@ fn void? init(BootloaderPayload* payload) {
     usz bitmapAllocSize = pmm::bitmap_alloc_size_of(payload.totalMemoryBytes);
     uptr bitmap = find_bitmap_region(regions, bitmapAllocSize)!;
     
+    // create physmem bitmap, mark default regions
     pmm::init(bitmap, payload.totalMemoryBytes)!;
-    vmm::init()!;
+    // create kernel address space with self map, pmm and physmap region
+    vmm::init(payload.totalMemoryBytes)!;
+    
+    // map memory regions
+    mark_and_map_memory_regions(regions)!;
 
-    mark_memory_regions(regions)!;
+    // set new bitmap address
+    // pmm::set_bitmap(...);
+
+    // activate kernel address space
+    // vmm::activate(...);
 }

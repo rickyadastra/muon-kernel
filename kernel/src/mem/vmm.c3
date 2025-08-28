@@ -46,10 +46,6 @@ fn void unmap(uptr vaddr, usz len) {
 
 }
 
-fn uptr translate(uptr vaddr) {
-    return 0;
-}
-
 fn void? init(usz totalMemoryBytes) {
     if (try len = cpuid::query_address_length()) {
         addrLen = len;
@@ -64,7 +60,6 @@ fn void? init(usz totalMemoryBytes) {
     map_physmap(totalMemoryBytes)!;
     // create pmap region
     map_pmap()!;
-
 }
 
 fn void activate(AddressSpace* space) {
