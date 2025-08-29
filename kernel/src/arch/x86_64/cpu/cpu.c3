@@ -84,3 +84,20 @@ fn void write_rflags(RFLAGSRegister reg) {
     }
     asm("popf");
 }
+
+fn void write_cr3(uptr pageTablePtr) {
+    asm {
+        movq $rax, ((ulong) pageTablePtr);
+    }
+    asm("mov %rax, %cr3");
+}
+
+fn uptr read_cr3() {
+    ulong reg;
+    asm("mov %cr3, %rax");
+    asm {
+        movq reg, $rax;
+    }
+
+    return (uptr)reg;
+}
