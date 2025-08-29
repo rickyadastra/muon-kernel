@@ -9,6 +9,21 @@ configure_file(
   copy: true
 )
 
+if arch == 'x86_64'
+    elf_target = 'elf-x64'
+else
+    error('Unknown arch target for muon')
+endif
+
+c3_compile_args = [
+    '--link-libc=no',
+    '--use-stdlib=no',
+    '--build-dir', 'kernel/',
+    '--single-module=yes',
+    '--target', elf_target,
+    '--panicfn', 'arch::panicfn'
+]
+
 compile_args = [
     '-g',
     '-Wall',
@@ -90,12 +105,7 @@ c3_objs += custom_target(
         muon_c3c, 'compile-only',
         '@INPUT@',
         '-o', '@OUTPUT@',
-        '--link-libc=no',
-        '--use-stdlib=no',
-        '--build-dir', 'kernel/',
-        '--single-module=yes',
-        '--panicfn', 'arch::panicfn'
-    ],
+    ] + c3_compile_args,
     build_by_default: true
 )
 
