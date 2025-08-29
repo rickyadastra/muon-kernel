@@ -5,7 +5,7 @@ import mem @public;
 import muon::logging;
 
 const uptr LEGACY_BIOS_BASE = 0x0;
-const uptr LEGACY_BIOS_LIMIT = 0x9ffff;
+const uptr LEGACY_BIOS_LIMIT = 0xfffff;
 
 faultdef MEMORY_UNAVAILABLE;
 
@@ -17,13 +17,13 @@ fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
     return MEMORY_UNAVAILABLE?;
 }
 
-fn void? mark_and_map_memory_regions(MemoryRegion[] regions) @local {
+fn void? mark_memory_regions(MemoryRegion[] regions) @local {
     // mark legacy bios region, should never be used
     pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
 
     foreach (usz i, MemoryRegion reg : regions) {
-        if (reg.type != AVAILABLE) {
             logging::printn("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.nameof);
+        if (reg.type != AVAILABLE) {
 
             // sanitize size: some uefi memory regions are MMIO outside of physical RAM
             usz size = reg.size;
@@ -32,8 +32,13 @@ fn void? mark_and_map_memory_regions(MemoryRegion[] regions) @local {
             }
 
             pmm::mark_region_used(reg.base, size)!;
-            if (reg.baseVirt != 0) vmm::map(reg.base, reg.baseVirt, reg.size)!;
         }
+    }
+}
+
+fn void? map_memory_regions(MemoryRegion[] regions) @local {
+    foreach (usz i, MemoryRegion reg : regions) {
+        if (reg.type != AVAILABLE && reg.baseVirt != 0) vmm::map(reg.base, reg.baseVirt, reg.size)!;
     }
 }
 
@@ -44,15 +49,17 @@ fn void? init(BootloaderPayload* payload) {
     
     // create physmem bitmap, mark default regions
     pmm::init(bitmap, payload.totalMemoryBytes)!;
+    // mark memory regions
+    mark_memory_regions(regions)!;
+
     // create kernel address space with self map, pmm and physmap region
     vmm::init(payload.totalMemoryBytes)!;
-    
     // map memory regions
-    mark_and_map_memory_regions(regions)!;
+    map_memory_regions(regions)!;
 
     // set new bitmap address
     pmm::set_bitmap(vmm::physmap_base());
 
     // activate kernel address space
-    // vmm::activate(...);
+    vmm::activate(&vmm::kernelAddrSpace);
 }

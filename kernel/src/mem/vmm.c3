@@ -9,7 +9,7 @@ import std::math;
 faultdef PAGING_INIT_FAIL;
 
 AddressLength addrLen @local;
-AddressSpace kernelAddrSpace @local;
+AddressSpace kernelAddrSpace @private;
 
 macro uptr physmap_base() => paging::@path_addr(KnownPagingPath.PMM_BITMAP.path);
 
@@ -65,5 +65,5 @@ fn void? init(usz totalMemoryBytes) {
 }
 
 fn void activate(AddressSpace* space) {
-    // install page table in CR3 etc.
+    cpu::write_cr3((uptr)space.pageTable.ptr);
 }
