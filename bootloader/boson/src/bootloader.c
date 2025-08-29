@@ -84,20 +84,6 @@ void vmap_in_kernel(Bootloader* self, UPtr paddr, UPtr vaddr, Size size) {
     IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, vaddr, EFI_SIZE_TO_PAGES(size));
 }
 
-BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size size) {
-    UPtr base = IMemoryManager.alloc_pages(self->memoryManager, size, true);
-
-    vmap_in_kernel(self, base, base, size);
-
-    self->kernelStack = (BootloaderKernelStack){
-        .base = base,
-        .size = size,
-        .end = base + size
-    };
-
-    return self->kernelStack;
-}
-
 void add_memory_region(Bootloader* self, UPtr base, UPtr baseVirt, Size length, MemoryRegionType type) {
     *(self->regions + self->regionEntries) = (MemoryRegion){
         .base = base,
@@ -106,6 +92,22 @@ void add_memory_region(Bootloader* self, UPtr base, UPtr baseVirt, Size length, 
         .type = type
     };
     self->regionEntries++;
+}
+
+BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size size) {
+    UPtr base = IMemoryManager.alloc_pages(self->memoryManager, size, true);
+
+    UPtr vaddr = 0xffffffff40000000;
+    vmap_in_kernel(self, base, vaddr, size);
+    add_memory_region(self, base, vaddr, EFI_SIZE_TO_PAGES(size)*EFI_PAGE_SIZE, MEMORY_REGION_KERNEL);
+
+    self->kernelStack = (BootloaderKernelStack){
+        .base = vaddr,
+        .size = size,
+        .end = vaddr + size
+    };
+
+    return self->kernelStack;
 }
 
 void Bootloader_prepare_kernel_programs(Bootloader *self) {
