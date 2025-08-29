@@ -16,7 +16,6 @@ fn void PageTable.set(PageTable* self, usz i, TableEntry entry) => (*self)[i] = 
 *>
 fn TableEntry PageTable.get(PageTable* self, usz i) => (*self)[i];
 
-fn uptr PageTable.get_ptr(PageTable* self) => (uptr)&(TableEntry)(*self)[0];
 
 macro PageTable @as_table(uptr #ptr) => (PageTable)((TableEntry*)#ptr)[:TABLE_ENTRIES];
 macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.sizeof * 8) - vmm::virtual_address_length())) >> ((ulong.sizeof * 8) - vmm::virtual_address_length()));
@@ -66,7 +65,7 @@ fn PageTable? create_root() @private {
     PageTable table = create_table()!;
 
     // map self
-    table.set(KnownTableEntry.SELF.idx, construct_entry(present: true, readWrite: true, addr: table.get_ptr()));
+    table.set(KnownTableEntry.SELF.idx, construct_entry(present: true, readWrite: true, addr: (uptr)table.ptr));
 
     return table;
 }
@@ -79,8 +78,8 @@ fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true)
     } else {
         // create table, set in parent, get table
         PageTable table = create_table()!;
-        parent.set(entry, construct_entry(present: true, readWrite: true, addr: table.get_ptr()));
-        tablePtr = table.get_ptr();
+        parent.set(entry, construct_entry(present: true, readWrite: true, addr: (uptr)table.ptr));
+        tablePtr = (uptr)table.ptr;
     }
 
     return @as_table(useVirtAddr ? 0 + tablePtr : tablePtr);
