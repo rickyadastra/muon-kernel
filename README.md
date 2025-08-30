@@ -33,7 +33,7 @@
    - [x] Physical frame allocator (bitmap allocator)
    - [ ] Virtual memory mapping (paging interface)
    - [ ] Kernel heap allocator (buddy allocator)
-   - [ ] Better Page Fault handler
+   - [x] Page Fault verbose handler
 - [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing
    - [x] Interrupt Routing (PIC disable, local APIC configuration)
    - [ ] UART serial interrupt-based driver (input)

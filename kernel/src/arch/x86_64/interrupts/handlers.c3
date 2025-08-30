@@ -1,8 +1,9 @@
 module arch::interrupts;
 
 import muon::logging;
+import arch::mem @public;
 
-macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @local {
+macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
     logging::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
     logging::printn(" rax: %x  rbx: %x  rcx: %x  rdx: %x", #stack.rax, #stack.rbx, #stack.rcx, #stack.rdx);
     logging::printn(" rsi: %x  rdi: %x  rbp: %x  rsp: %x", #stack.rsi, #stack.rdi, #stack.rbp, #stack.rsp);
@@ -20,8 +21,13 @@ fn InterruptStack* exception_handler(InterruptStack* stack) @private {
     KnownInterrupt intr = KnownInterrupt.from_ordinal(stack.irq);
     
     logging::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.nameof, intr.mnmem, intr.name);
-    @print_stack(stack, intr);
-    arch::panic();
+    
+    if (intr == KnownInterrupt.PAGE_FAULT) {
+        stack = mem::pagefault_handler(stack, intr);
+    } else {
+        @print_stack(stack, intr);
+        arch::panic();
+    }
 
     return stack;
 }

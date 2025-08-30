@@ -101,3 +101,13 @@ fn uptr read_cr3() {
 
     return (uptr)reg;
 }
+
+fn uptr read_cr2() {
+    ulong reg;
+    asm("mov %cr2, %rax");
+    asm {
+        movq reg, $rax;
+    }
+
+    return (uptr)reg;
+}

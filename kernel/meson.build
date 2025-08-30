@@ -63,6 +63,7 @@ muon_sources = [
     f'src/arch/@arch@/dev/timing/hpet.c3i',
 
     f'src/arch/@arch@/mem/mem.c3',
+    f'src/arch/@arch@/mem/pagefault.c3',
     f'src/arch/@arch@/mem/paging.c3',
     f'src/arch/@arch@/mem/paging.c3i',
 
