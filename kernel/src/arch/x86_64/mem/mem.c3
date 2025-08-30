@@ -58,7 +58,7 @@ fn void? init(BootloaderPayload* payload) {
     map_memory_regions(regions)!;
 
     // set new bitmap address
-    pmm::set_bitmap(vmm::physmap_base());
+    pmm::set_bitmap(vmm::bitmap_virt_base());
 
     // activate kernel address space
     vmm::activate(&vmm::kernelAddrSpace);
