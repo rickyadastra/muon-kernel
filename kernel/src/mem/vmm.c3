@@ -14,6 +14,7 @@ AddressSpace kernelAddrSpace @private;
 macro uptr bitmap_virt_base() => paging::@path_addr(KnownPagingPath.PMM_BITMAP.path);
 macro uptr @phys(#addr) => paging::@path_addr(KnownPagingPath.PHYSMAP.path) + #addr;
 macro uptr @acpi(#addr) => paging::@path_addr(KnownPagingPath.ACPI.path) + #addr;
+macro uptr @mmio(#addr) => paging::@path_addr(KnownPagingPath.MMIO.path) + #addr;
 
 macro usz physical_address_length() => addrLen.physicalLength;
 macro usz virtual_address_length() => addrLen.virtualLength;
@@ -37,7 +38,7 @@ fn void? map_pmap() @local {
     map((uptr)&(pmm::pmap[0]), paging::@path_addr(KnownPagingPath.PMM_BITMAP.path), pmm::pmap.len * BitmapRow.sizeof)!;
 }
 
-fn void? map(uptr paddr, uptr vaddr, usz len) {
+fn void? map(uptr paddr, uptr vaddr, usz len = paging::PageSize.NORMAL.size) {
     for (usz i = 0; i < @pages(len); i++) {
         uptr memPaddr = @align_addr(paddr) + (paging::PageSize.NORMAL.size * i);
         uptr memVaddr = @align_addr(vaddr) + (paging::PageSize.NORMAL.size * i);
@@ -46,8 +47,21 @@ fn void? map(uptr paddr, uptr vaddr, usz len) {
     }
 }
 
-fn void unmap(uptr vaddr, usz len) {
+fn void unmap(uptr vaddr, usz len = paging::PageSize.NORMAL.size) {
     muon::NOT_YET_IMPLEMENTED?!!;
+}
+
+fn uptr? map_mmio(uptr addr, usz len = paging::PageSize.NORMAL.size) {
+    uptr vaddr = @mmio(addr);
+
+    for (usz i = 0; i < @pages(len); i++) {
+        uptr memPaddr = @align_addr(addr) + (paging::PageSize.NORMAL.size * i);
+        uptr memVaddr = @align_addr(vaddr) + (paging::PageSize.NORMAL.size * i);
+
+        paging::map(kernelAddrSpace.pageTable, memPaddr, memVaddr, props: paging::PageProperties.MMIO)!;
+    }
+
+    return vaddr;
 }
 
 fn void? init(usz totalMemoryBytes) {
@@ -67,5 +81,5 @@ fn void? init(usz totalMemoryBytes) {
 }
 
 fn void activate(AddressSpace* space) {
-    cpu::write_cr3((uptr)space.pageTable.ptr);
+    paging::set_table(space.pageTable);
 }

@@ -4,6 +4,7 @@ import arch;
 import dev::acpi;
 import dev::mmio;
 import dev::interrupts;
+import mem::vmm;
 
 const uint SPURIOUS_INTERR_VECTOR_VALUE = 0x100 | KnownInterrupt.SPURIOUS_INTERRUPT.num; // 0x100: enable APIC
 const usz MAX_IOAPIC_COUNT = 16;
@@ -29,7 +30,7 @@ fn void? init() {
     arch::cpu::disable_interrupts();
 
     madt = (MADTable*)acpi::get_acpi_table(SIGNATURE)!;
-    lapic = madt.localApicAddr;
+    lapic = vmm::map_mmio(madt.localApicAddr)!;
     
     setup_lapic()!;
 

@@ -10,6 +10,11 @@ enum PageSize : usz (usz size) {
     HUGE_1G = 1 << 30,
 }
 
+enum PageProperties : usz (bool present, bool readWrite, bool user, bool writeThrough, bool cacheDisable) {
+    DEFAULT             = { true, true, false, false, false },
+    MMIO                = { true, true, false, true, true },
+}
+
 const usz TABLE_ENTRIES = PAGE_SIZE / TableEntry.sizeof;
 const usz ENTRY_ADDRESS_LSB = 12;
 const ulong ENTRY_ADDRESS_MASK = 0xffff_ffff_ffff_f000;
@@ -28,10 +33,16 @@ struct PagingPath {
 
 enum KnownPagingPath : uint (PagingPath path) {
     PHYSMAP             = {KnownTableEntry.KERNEL.idx, 0, 0, 0},
+    MMIO                = {KnownTableEntry.MMIO.idx, 0, 0, 0},
     ACPI                = {KnownTableEntry.KERNEL.idx, 504, 0, 0},
     PMM_BITMAP          = {KnownTableEntry.KERNEL.idx, 508, 0, 0},
     KERNEL_STACKS       = {KnownTableEntry.KERNEL.idx, 509, 0, 0},
     KERNEL              = {KnownTableEntry.KERNEL.idx, 510, 0, 0},
+
+    RECURSE_PT          = {KnownTableEntry.SELF.idx, 0, 0, 0},
+    RECURSE_PD          = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0, 0},
+    RECURSE_PDPT        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0},
+    RECURSE_PML4        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx},
 }
 
 bitstruct TableEntry : ulong {
@@ -57,6 +68,7 @@ enum KnownTableEntry : uint (usz idx) {
     KERNEL = 511,
     SELF = 510,
     OTHER = 509,
+    MMIO = 508,
 }
 
 struct AddressSpaceImpl {

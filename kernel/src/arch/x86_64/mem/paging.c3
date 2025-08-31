@@ -1,5 +1,6 @@
 module arch::mem::paging;
 
+import arch::cpu;
 import mem::pmm @public;
 import mem::vmm;
 import muon::logging;
@@ -19,7 +20,6 @@ fn TableEntry PageTable.get(PageTable* self, usz i) => (*self)[i];
 
 macro PageTable @as_table(uptr #ptr) => (PageTable)((TableEntry*)#ptr)[:TABLE_ENTRIES];
 macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.sizeof * 8) - vmm::virtual_address_length())) >> ((ulong.sizeof * 8) - vmm::virtual_address_length()));
-macro bool @has_recursion(PagingPath #path) @private => (#path.pml4e == KnownTableEntry.SELF.idx) || (#path.pml4e == KnownTableEntry.OTHER.idx);
 macro uptr @mask_addr(#addr, #bits) @private => #addr & ~((1ul << (#bits)) - 1);
 
 macro uptr @path_addr(PagingPath #path, usz pdpteModifier = 0, usz pdeModifier = 0, usz pteModifier = 0) @private {
@@ -70,7 +70,7 @@ fn PageTable? create_root() @private {
     return table;
 }
 
-fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true) @local {
+fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true, PageProperties props = DEFAULT) @local {
     uptr tablePtr;
     if (parent.get(entry).present) {
         // get table
@@ -78,31 +78,82 @@ fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true)
     } else {
         // create table, set in parent, get table
         PageTable table = create_table()!;
-        parent.set(entry, construct_entry(present: true, readWrite: true, addr: (uptr)table.ptr));
+        parent.set(entry, construct_entry(
+                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                cacheDisable: props.cacheDisable, addr: (uptr)table.ptr
+        ));
         tablePtr = (uptr)table.ptr;
     }
 
-    return @as_table(useVirtAddr ? 0 + tablePtr : tablePtr);
+    return @as_table(useVirtAddr ? vmm::@phys(tablePtr) : tablePtr);
 }
 
-fn void? map(PageTable root, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL) @private {
+fn void? map(PageTable table, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @private {
     PagingPath path = @addr_path(vaddr);
     logging::printn("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
-    if (@has_recursion(path)) {
-        muon::NOT_YET_IMPLEMENTED?!!;
-    } else {
-        PageTable pdpt = ensure_table(root, path.pml4e, useVirtAddr: false)!;
+    // should we use table recursion?
+    if (cpu::read_cr3() == (uptr)table.ptr) {
+        PageTable pml4Recurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PML4.path));
+        PageTable pdpt = ensure_table(pml4Recurse, path.pml4e)!;
+
         if (hugePage == HUGE_1G) {
-            pdpt.set(path.pdpte, construct_entry(present: true, readWrite: true, huge: true, addr: @mask_addr(paddr, pagingMode.pdptShift)));
+            pdpt.set(path.pdpte, construct_entry(
+                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdptShift)
+            ));
+
+        } else {
+            PageTable pdptRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PDPT.path, pteModifier: path.pml4e));
+            PageTable pd = ensure_table(pdptRecurse, path.pdpte)!;
+
+            if (hugePage == HUGE_2M) {
+                pd.set(path.pde, construct_entry(
+                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                    cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdShift)
+                ));
+                
+            } else {
+                PageTable pdRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PD.path, pdeModifier: path.pml4e, pteModifier: path.pdpte));
+                PageTable pt = ensure_table(pdRecurse, path.pde)!;
+
+                pt.set(path.pte, construct_entry(
+                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                    cacheDisable: props.cacheDisable, addr: paddr
+                ));
+            }
+        }
+
+    } else {
+        PageTable pdpt = ensure_table(table, path.pml4e, useVirtAddr: false)!;
+
+        if (hugePage == HUGE_1G) {
+            pdpt.set(path.pdpte, construct_entry(
+                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdptShift)
+            ));
+
         } else {
             PageTable pd = ensure_table(pdpt, path.pdpte, useVirtAddr: false)!;
+
             if (hugePage == HUGE_2M) {
-                pd.set(path.pde, construct_entry(present: true, readWrite: true, huge: true, addr: @mask_addr(paddr, pagingMode.pdShift)));
+                pd.set(path.pde, construct_entry(
+                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                    cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdShift)
+                ));
+
             } else {
                 PageTable pt = ensure_table(pd, path.pde, useVirtAddr: false)!;
-                pt.set(path.pte, construct_entry(present: true, readWrite: true, addr: paddr));
+
+                pt.set(path.pte, construct_entry(
+                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                    cacheDisable: props.cacheDisable, addr: paddr
+                ));
             }
         }
     }
+}
+
+fn void set_table(PageTable table) {
+    cpu::write_cr3((uptr)table.ptr);
 }
