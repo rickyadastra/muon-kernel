@@ -2,6 +2,7 @@ module arch::interrupts;
 
 import muon::logging;
 import arch::mem @public;
+import arch::cpu::gdt;
 
 macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
     logging::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
@@ -12,7 +13,8 @@ macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
     logging::newline();
     logging::print(" IRQ %d (%x)", #stack.irq, (uint)#stack.irq, terminator: intr.has_error_code ? ' ' : '\n');
     if (intr.has_error_code) logging::printn("with error code: %x", #stack.error_code);
-    logging::printn(" rip: %x  cs:  %x  ss:  %x", #stack.rip, (ushort)#stack.cs, (ushort)#stack.ss);
+    logging::print(" rip: %x  cs:  %x (%s) ", #stack.rip, (ushort)#stack.cs, gdt::@descriptor_of(#stack.cs).nameof);
+    logging::printn(" ss:  %x (%s)", (ushort)#stack.ss, gdt::@descriptor_of(#stack.ss).nameof);
     logging::printn(" rflags: %x", #stack.rflags);
     logging::printn("—————————————————————————————————— END OF INTERRUPT STACK DUMP —————————————————————————————————————");
 }
