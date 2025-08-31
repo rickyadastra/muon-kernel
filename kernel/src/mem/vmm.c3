@@ -12,6 +12,8 @@ AddressLength addrLen @local;
 AddressSpace kernelAddrSpace @private;
 
 macro uptr bitmap_virt_base() => paging::@path_addr(KnownPagingPath.PMM_BITMAP.path);
+macro uptr @phys(#addr) => paging::@path_addr(KnownPagingPath.PHYSMAP.path) + #addr;
+macro uptr @acpi(#addr) => paging::@path_addr(KnownPagingPath.ACPI.path) + #addr;
 
 macro usz physical_address_length() => addrLen.physicalLength;
 macro usz virtual_address_length() => addrLen.virtualLength;

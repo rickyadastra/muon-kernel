@@ -2,9 +2,12 @@ module arch;
 
 import boson;
 import muon::logging;
+import mem;
 import dev;
 
 fn void init(BootloaderPayload* payload) {
+    uptr rsdpAddr = payload.rsdpAddr;
+
     gdt::setup(payload.stack.base);
     logging::printn("GDT setup complete");
 
@@ -20,15 +23,14 @@ fn void init(BootloaderPayload* payload) {
     cpu::cpuid::enable()!!;
     logging::printn("CPUID enabled");
 
-    acpi::init(payload.rsdpAddr)!!;
+    mem::init(payload)!!;
+    logging::printn("Memory manager init complete");
+
+    acpi::init(rsdpAddr)!!;
     logging::printn("ACPI init complete");
 
     apic::init()!!;
     logging::printn("APIC init complete");
-
-    logging::printn("Total installed memory is %d bytes", payload.totalMemoryBytes);
-    mem::init(payload)!!;
-    logging::printn("Memory manager init complete");
 
     // logging::@catch_or_log(hpet::init(), "HPET init complete");
 }

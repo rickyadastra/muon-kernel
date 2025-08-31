@@ -38,7 +38,12 @@ fn void? mark_memory_regions(MemoryRegion[] regions) @local {
 
 fn void? map_memory_regions(MemoryRegion[] regions) @local {
     foreach (usz i, MemoryRegion reg : regions) {
-        if (reg.type != AVAILABLE && reg.baseVirt != 0) vmm::map(reg.base, reg.baseVirt, reg.size)!;
+        if (reg.type != AVAILABLE && reg.baseVirt != 0) {
+            vmm::map(reg.base, reg.baseVirt, reg.size)!;
+            
+        } else if (reg.type == ACPI) {
+            vmm::map(reg.base, vmm::@acpi(reg.base), reg.size)!;
+        }
     }
 }
 
