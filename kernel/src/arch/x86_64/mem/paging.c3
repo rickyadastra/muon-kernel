@@ -90,7 +90,7 @@ fn void? map(PageTable root, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL)
     logging::printn("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
     if (@has_recursion(path)) {
-        logging::printn("recursion not yet supported!");
+        muon::NOT_YET_IMPLEMENTED?!!;
     } else {
         PageTable pdpt = ensure_table(root, path.pml4e, useVirtAddr: false)!;
         if (hugePage == HUGE_1G) {

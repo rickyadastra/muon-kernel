@@ -91,6 +91,7 @@ muon_sources = [
     f'src/lang.c3',
     f'src/logging.c3',
     f'src/math.c3',
+    f'src/muon.c3i',
 ]
 
 muon_sources_asm = files(

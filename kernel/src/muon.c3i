@@ -1,0 +1,3 @@
+module muon;
+
+faultdef NOT_YET_IMPLEMENTED;
