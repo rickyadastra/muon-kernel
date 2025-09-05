@@ -88,69 +88,76 @@ fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true,
     return @as_table(useVirtAddr ? vmm::@phys(tablePtr) : tablePtr);
 }
 
+fn void? map_impl_with_recurse(PagingPath path, uptr paddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @local {
+    PageTable pml4Recurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PML4.path));
+    PageTable pdpt = ensure_table(pml4Recurse, path.pml4e)!;
+
+    if (hugePage == HUGE_1G) {
+        pdpt.set(path.pdpte, construct_entry(
+            present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+            cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdptShift)
+        ));
+
+    } else {
+        PageTable pdptRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PDPT.path, pteModifier: path.pml4e));
+        PageTable pd = ensure_table(pdptRecurse, path.pdpte)!;
+
+        if (hugePage == HUGE_2M) {
+            pd.set(path.pde, construct_entry(
+                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdShift)
+            ));
+            
+        } else {
+            PageTable pdRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PD.path, pdeModifier: path.pml4e, pteModifier: path.pdpte));
+            PageTable pt = ensure_table(pdRecurse, path.pde)!;
+
+            pt.set(path.pte, construct_entry(
+                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                cacheDisable: props.cacheDisable, addr: paddr
+            ));
+        }
+    }
+}
+
+fn void? map_impl_direct(PagingPath path, PageTable table, uptr paddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @local {
+    PageTable pdpt = ensure_table(table, path.pml4e, useVirtAddr: false)!;
+
+    if (hugePage == HUGE_1G) {
+        pdpt.set(path.pdpte, construct_entry(
+            present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+            cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdptShift)
+        ));
+
+    } else {
+        PageTable pd = ensure_table(pdpt, path.pdpte, useVirtAddr: false)!;
+
+        if (hugePage == HUGE_2M) {
+            pd.set(path.pde, construct_entry(
+                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdShift)
+            ));
+
+        } else {
+            PageTable pt = ensure_table(pd, path.pde, useVirtAddr: false)!;
+
+            pt.set(path.pte, construct_entry(
+                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
+                cacheDisable: props.cacheDisable, addr: paddr
+            ));
+        }
+    }
+}
+
 fn void? map(PageTable table, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @private {
     PagingPath path = @addr_path(vaddr);
     logging::printn("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
     // should we use table recursion?
     if (cpu::read_cr3() == (uptr)table.ptr) {
-        PageTable pml4Recurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PML4.path));
-        PageTable pdpt = ensure_table(pml4Recurse, path.pml4e)!;
-
-        if (hugePage == HUGE_1G) {
-            pdpt.set(path.pdpte, construct_entry(
-                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
-                cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdptShift)
-            ));
-
-        } else {
-            PageTable pdptRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PDPT.path, pteModifier: path.pml4e));
-            PageTable pd = ensure_table(pdptRecurse, path.pdpte)!;
-
-            if (hugePage == HUGE_2M) {
-                pd.set(path.pde, construct_entry(
-                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
-                    cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdShift)
-                ));
-                
-            } else {
-                PageTable pdRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PD.path, pdeModifier: path.pml4e, pteModifier: path.pdpte));
-                PageTable pt = ensure_table(pdRecurse, path.pde)!;
-
-                pt.set(path.pte, construct_entry(
-                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
-                    cacheDisable: props.cacheDisable, addr: paddr
-                ));
-            }
-        }
-
+        map_impl_with_recurse(path, paddr, hugePage, props)!;
     } else {
-        PageTable pdpt = ensure_table(table, path.pml4e, useVirtAddr: false)!;
-
-        if (hugePage == HUGE_1G) {
-            pdpt.set(path.pdpte, construct_entry(
-                present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
-                cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdptShift)
-            ));
-
-        } else {
-            PageTable pd = ensure_table(pdpt, path.pdpte, useVirtAddr: false)!;
-
-            if (hugePage == HUGE_2M) {
-                pd.set(path.pde, construct_entry(
-                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
-                    cacheDisable: props.cacheDisable, huge: true, addr: @mask_addr(paddr, pagingMode.pdShift)
-                ));
-
-            } else {
-                PageTable pt = ensure_table(pd, path.pde, useVirtAddr: false)!;
-
-                pt.set(path.pte, construct_entry(
-                    present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
-                    cacheDisable: props.cacheDisable, addr: paddr
-                ));
-            }
-        }
+        map_impl_direct(path, table, paddr, hugePage, props)!;
     }
 }
 
