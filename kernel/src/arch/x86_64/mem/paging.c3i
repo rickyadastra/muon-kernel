@@ -2,6 +2,8 @@ module arch::mem::paging;
 
 import mem::pmm;
 
+faultdef NOT_MAPPED;
+
 const usz PAGE_SIZE = pmm::FRAME_SIZE;
 
 enum PageSize : usz (usz size) {

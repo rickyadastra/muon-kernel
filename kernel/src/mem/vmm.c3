@@ -38,27 +38,31 @@ fn void? map_pmap() @local {
     map((uptr)&(pmm::pmap[0]), paging::@path_addr(KnownPagingPath.PMM_BITMAP.path), pmm::pmap.len * BitmapRow.sizeof)!;
 }
 
-fn void? map(uptr paddr, uptr vaddr, usz len = paging::PageSize.NORMAL.size) {
+fn void? map(uptr paddr, uptr vaddr, usz len = paging::PageSize.NORMAL.size, PageTable table = kernelAddrSpace.pageTable) {
     for (usz i = 0; i < @pages(len); i++) {
         uptr memPaddr = @align_addr(paddr) + (paging::PageSize.NORMAL.size * i);
         uptr memVaddr = @align_addr(vaddr) + (paging::PageSize.NORMAL.size * i);
 
-        paging::map(kernelAddrSpace.pageTable, memPaddr, memVaddr)!;
+        paging::map(table, memPaddr, memVaddr)!;
     }
 }
 
-fn void unmap(uptr vaddr, usz len = paging::PageSize.NORMAL.size) {
-    muon::NOT_YET_IMPLEMENTED?!!;
+fn void? unmap(uptr vaddr, usz len = paging::PageSize.NORMAL.size, PageTable table = kernelAddrSpace.pageTable) {
+    usz unmappedBytes = 0;
+
+    while (unmappedBytes < len) {
+        unmappedBytes += paging::unmap(table, vaddr)!;
+    }
 }
 
-fn uptr? map_mmio(uptr addr, usz len = paging::PageSize.NORMAL.size) {
+fn uptr? map_mmio(uptr addr, usz len = paging::PageSize.NORMAL.size, PageTable table = kernelAddrSpace.pageTable) {
     uptr vaddr = @mmio(addr);
 
     for (usz i = 0; i < @pages(len); i++) {
         uptr memPaddr = @align_addr(addr) + (paging::PageSize.NORMAL.size * i);
         uptr memVaddr = @align_addr(vaddr) + (paging::PageSize.NORMAL.size * i);
 
-        paging::map(kernelAddrSpace.pageTable, memPaddr, memVaddr, props: paging::PageProperties.MMIO)!;
+        paging::map(table, memPaddr, memVaddr, props: paging::PageProperties.MMIO)!;
     }
 
     return vaddr;

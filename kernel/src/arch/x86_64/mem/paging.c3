@@ -16,11 +16,18 @@ fn void PageTable.set(PageTable* self, usz i, TableEntry entry) => (*self)[i] = 
     @require i < TABLE_ENTRIES
 *>
 fn TableEntry PageTable.get(PageTable* self, usz i) => (*self)[i];
+<*
 
+*>
+fn void PageTable.clear(PageTable* self, usz i) => (*self)[i] = (TableEntry){};
 
 macro PageTable @as_table(uptr #ptr) => (PageTable)((TableEntry*)#ptr)[:TABLE_ENTRIES];
 macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.sizeof * 8) - vmm::virtual_address_length())) >> ((ulong.sizeof * 8) - vmm::virtual_address_length()));
 macro uptr @mask_addr(#addr, #bits) @private => #addr & ~((1ul << (#bits)) - 1);
+
+macro @assert_entry(TableEntry #entry) @local {
+    if (!#entry.present) return NOT_MAPPED?;
+}
 
 macro uptr @path_addr(PagingPath #path, usz pdpteModifier = 0, usz pdeModifier = 0, usz pteModifier = 0) @private {
     return @canonical(0ul | 
@@ -61,6 +68,16 @@ fn PageTable? create_table() @private {
     return @as_table(ptr);
 }
 
+fn bool? free_table(PageTable table, uptr tablePhysPtr = (uptr)table.ptr) @local {
+    for (usz i = 0; i < TABLE_ENTRIES; i++) {
+        if (table.get(i) != (TableEntry){}) return false;
+    }
+
+    logging::printn("delete table @ %x", tablePhysPtr);
+    pmm::free((PhysAddr)tablePhysPtr)!;
+    return true;
+}
+
 fn PageTable? create_root() @private {
     PageTable table = create_table()!;
 
@@ -86,6 +103,15 @@ fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true,
     }
 
     return @as_table(useVirtAddr ? vmm::@phys(tablePtr) : tablePtr);
+}
+
+fn PageTable? check_table(PageTable parent, usz entry, bool useVirtAddr = true) @local {
+    if (parent.get(entry).present) {
+        uptr tablePtr = (parent.get(entry).addr << ENTRY_ADDRESS_LSB);
+        return @as_table(useVirtAddr ? vmm::@phys(tablePtr) : tablePtr);
+    }
+
+    return NOT_MAPPED?;
 }
 
 fn void? map_impl_with_recurse(PagingPath path, uptr paddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @local {
@@ -159,6 +185,122 @@ fn void? map(PageTable table, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL
     } else {
         map_impl_direct(path, table, paddr, hugePage, props)!;
     }
+}
+
+fn usz? unmap_impl_with_recurse(PagingPath path, PhysAddr* physFrame) @local {
+    uptr physFrameAddr = 0;
+    usz bytes = 0;
+
+    PageTable pml4Recurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PML4.path));
+    PageTable pdpt = check_table(pml4Recurse, path.pml4e)!;
+    TableEntry pdpte = pdpt.get(path.pdpte);
+    @assert_entry(pdpte)!;
+
+    if (pdpte.huge) {
+        physFrameAddr = pdpte.addr;
+        bytes = PageSize.HUGE_1G.size;
+        pdpt.clear(path.pdpte);
+
+    } else {
+        PageTable pdptRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PDPT.path, pteModifier: path.pml4e));
+        PageTable pd = check_table(pdptRecurse, path.pdpte)!;
+        TableEntry pde = pd.get(path.pde);
+        @assert_entry(pde)!;
+
+        if (pde.huge) {
+            physFrameAddr = pde.addr;
+            bytes = PageSize.HUGE_2M.size;
+            pd.clear(path.pde);
+
+        } else {
+            PageTable pdRecurse = @as_table(@path_addr(KnownPagingPath.RECURSE_PD.path, pdeModifier: path.pml4e, pteModifier: path.pdpte));
+            PageTable pt = check_table(pdRecurse, path.pde)!;
+            TableEntry pte = pt.get(path.pte);
+            @assert_entry(pte)!;
+
+            physFrameAddr = pte.addr;
+            bytes = PageSize.NORMAL.size;
+            pt.clear(path.pte);
+
+            if (free_table(pt, tablePhysPtr: pde.addr << ENTRY_ADDRESS_LSB)!) {
+                pd.clear(path.pde);
+                if (free_table(pd, tablePhysPtr: pdpte.addr << ENTRY_ADDRESS_LSB)!) {
+                    pdpt.clear(path.pdpte);
+                    if (free_table(pdpt, tablePhysPtr: pml4Recurse.get(path.pml4e).addr << ENTRY_ADDRESS_LSB)!) {
+                        pml4Recurse.clear(path.pml4e);
+                    }
+                }
+            }
+        }
+    }
+
+    *physFrame = (PhysAddr)(physFrameAddr << ENTRY_ADDRESS_LSB);
+    return bytes;
+}
+
+fn usz? unmap_impl_direct(PagingPath path, PageTable table, PhysAddr* physFrame) @local {
+    uptr physFrameAddr = 0;
+    usz bytes = 0;
+    
+    PageTable pdpt = check_table(table, path.pml4e, useVirtAddr: false)!;
+    TableEntry pdpte = pdpt.get(path.pdpte);
+    @assert_entry(pdpte)!;
+
+    if (pdpte.huge) {
+        physFrameAddr = pdpte.addr;
+        bytes = PageSize.HUGE_1G.size;
+        pdpt.clear(path.pdpte);
+
+    } else {
+        PageTable pd = check_table(pdpt, path.pdpte, useVirtAddr: false)!;
+        TableEntry pde = pd.get(path.pde);
+        @assert_entry(pde)!;
+
+        if (pde.huge) {
+            physFrameAddr = pde.addr;
+            bytes = PageSize.HUGE_2M.size;
+            pd.clear(path.pde);
+
+        } else {
+            PageTable pt = check_table(pd, path.pde, useVirtAddr: false)!;
+            TableEntry pte = pt.get(path.pte);
+            @assert_entry(pte)!;
+
+            physFrameAddr = pte.addr;
+            bytes = PageSize.NORMAL.size;
+            pt.clear(path.pte);
+
+            if (free_table(pt)!) {
+                pd.clear(path.pde);
+                if (free_table(pd)!) {
+                    pdpt.clear(path.pdpte);
+                    if (free_table(pdpt)!) {
+                        table.clear(path.pml4e);
+                    }
+                }
+            }
+        }
+    }
+
+    *physFrame = (PhysAddr)(physFrameAddr << ENTRY_ADDRESS_LSB);
+    return bytes;
+}
+
+fn usz? unmap(PageTable table, uptr vaddr) @private {
+    PagingPath path = @addr_path(vaddr);
+    logging::printn("unmapping vaddr: %x (%d %d %d %d)", vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
+
+    PhysAddr physFrameAddr = 0;
+    usz bytes = 0;
+
+    if (cpu::read_cr3() == (uptr)table.ptr) {
+        bytes = unmap_impl_with_recurse(path, &physFrameAddr)!;
+    } else {
+        bytes = unmap_impl_direct(path, table, &physFrameAddr)!;
+    }
+
+    pmm::free(physFrameAddr)!;
+    return bytes;
 }
 
 fn void set_table(PageTable table) {
