@@ -230,6 +230,7 @@ fn usz? unmap_impl_with_recurse(PagingPath path, PhysAddr* physFrame) @local {
                         pml4Recurse.clear(path.pml4e);
                     }
                 }
+                flush();
             }
         }
     }
@@ -278,6 +279,7 @@ fn usz? unmap_impl_direct(PagingPath path, PageTable table, PhysAddr* physFrame)
                         table.clear(path.pml4e);
                     }
                 }
+                flush();
             }
         }
     }
@@ -299,10 +301,24 @@ fn usz? unmap(PageTable table, uptr vaddr) @private {
         bytes = unmap_impl_direct(path, table, &physFrameAddr)!;
     }
 
+    invalidate(vaddr);
+
     pmm::free(physFrameAddr)!;
     return bytes;
 }
 
 fn void set_table(PageTable table) {
     cpu::write_cr3((uptr)table.ptr);
+}
+
+fn void invalidate(uptr addr) @local {
+    asm {
+        movq $rax, ((ulong) addr);
+    }
+    asm("invlpg %rax");   
+}
+
+fn void flush() @local {
+    asm("mov %cr3, %rax");
+    asm("mov %rax, %cr3");
 }
