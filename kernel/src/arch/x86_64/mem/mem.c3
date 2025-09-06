@@ -67,4 +67,5 @@ fn void? init(BootloaderPayload* payload) {
 
     // activate kernel address space
     vmm::activate(&vmm::kernelAddrSpace);
+    vmm::initialized = true;
 }

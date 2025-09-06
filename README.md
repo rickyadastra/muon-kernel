@@ -31,7 +31,7 @@
    - [x] Exception handlers (page fault, GPF, etc.)
 - [ ] 📗 **Milestone 0.2** – Memory Management
    - [x] Physical frame allocator (bitmap allocator)
-   - [ ] Virtual memory mapping (paging interface)
+   - [x] Virtual memory mapping (paging interface)
    - [ ] Kernel heap allocator (buddy allocator)
    - [x] Page Fault verbose handler
 - [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing

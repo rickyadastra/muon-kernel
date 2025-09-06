@@ -10,6 +10,7 @@ faultdef PAGING_INIT_FAIL;
 
 AddressLength addrLen @local;
 AddressSpace kernelAddrSpace @private;
+bool initialized @private = false;
 
 macro uptr bitmap_virt_base() => paging::@path_addr(KnownPagingPath.PMM_BITMAP.path);
 macro uptr @phys(#addr) => paging::@path_addr(KnownPagingPath.PHYSMAP.path) + #addr;

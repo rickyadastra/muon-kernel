@@ -2,7 +2,7 @@ module arch::mem::paging;
 
 import arch::cpu;
 import mem::pmm @public;
-import mem::vmm;
+import mem::vmm @public;
 import muon::logging;
 
 ulong addressMask @private = ENTRY_ADDRESS_MASK;
@@ -87,7 +87,7 @@ fn PageTable? create_root() @private {
     return table;
 }
 
-fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true, PageProperties props = DEFAULT) @local {
+fn PageTable? ensure_table(PageTable parent, usz entry, PageProperties props = DEFAULT) @local {
     uptr tablePtr;
     if (parent.get(entry).present) {
         // get table
@@ -102,13 +102,13 @@ fn PageTable? ensure_table(PageTable parent, usz entry, bool useVirtAddr = true,
         tablePtr = (uptr)table.ptr;
     }
 
-    return @as_table(useVirtAddr ? vmm::@phys(tablePtr) : tablePtr);
+    return @as_table(vmm::initialized ? vmm::@phys(tablePtr) : tablePtr);
 }
 
-fn PageTable? check_table(PageTable parent, usz entry, bool useVirtAddr = true) @local {
+fn PageTable? check_table(PageTable parent, usz entry) @local {
     if (parent.get(entry).present) {
         uptr tablePtr = (parent.get(entry).addr << ENTRY_ADDRESS_LSB);
-        return @as_table(useVirtAddr ? vmm::@phys(tablePtr) : tablePtr);
+        return @as_table(vmm::initialized ? vmm::@phys(tablePtr) : tablePtr);
     }
 
     return NOT_MAPPED?;
@@ -147,7 +147,7 @@ fn void? map_impl_with_recurse(PagingPath path, uptr paddr, PageSize hugePage = 
 }
 
 fn void? map_impl_direct(PagingPath path, PageTable table, uptr paddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @local {
-    PageTable pdpt = ensure_table(table, path.pml4e, useVirtAddr: false)!;
+    PageTable pdpt = ensure_table(table, path.pml4e)!;
 
     if (hugePage == HUGE_1G) {
         pdpt.set(path.pdpte, construct_entry(
@@ -156,7 +156,7 @@ fn void? map_impl_direct(PagingPath path, PageTable table, uptr paddr, PageSize 
         ));
 
     } else {
-        PageTable pd = ensure_table(pdpt, path.pdpte, useVirtAddr: false)!;
+        PageTable pd = ensure_table(pdpt, path.pdpte)!;
 
         if (hugePage == HUGE_2M) {
             pd.set(path.pde, construct_entry(
@@ -165,7 +165,7 @@ fn void? map_impl_direct(PagingPath path, PageTable table, uptr paddr, PageSize 
             ));
 
         } else {
-            PageTable pt = ensure_table(pd, path.pde, useVirtAddr: false)!;
+            PageTable pt = ensure_table(pd, path.pde)!;
 
             pt.set(path.pte, construct_entry(
                 present: props.present, readWrite: props.readWrite, userPage: props.user, writeThrough: props.writeThrough,
@@ -242,7 +242,7 @@ fn usz? unmap_impl_direct(PagingPath path, PageTable table, PhysAddr* physFrame)
     uptr physFrameAddr = 0;
     usz bytes = 0;
     
-    PageTable pdpt = check_table(table, path.pml4e, useVirtAddr: false)!;
+    PageTable pdpt = check_table(table, path.pml4e)!;
     TableEntry pdpte = pdpt.get(path.pdpte);
     @assert_entry(pdpte)!;
 
@@ -252,7 +252,7 @@ fn usz? unmap_impl_direct(PagingPath path, PageTable table, PhysAddr* physFrame)
         pdpt.clear(path.pdpte);
 
     } else {
-        PageTable pd = check_table(pdpt, path.pdpte, useVirtAddr: false)!;
+        PageTable pd = check_table(pdpt, path.pdpte)!;
         TableEntry pde = pd.get(path.pde);
         @assert_entry(pde)!;
 
@@ -262,7 +262,7 @@ fn usz? unmap_impl_direct(PagingPath path, PageTable table, PhysAddr* physFrame)
             pd.clear(path.pde);
 
         } else {
-            PageTable pt = check_table(pd, path.pde, useVirtAddr: false)!;
+            PageTable pt = check_table(pd, path.pde)!;
             TableEntry pte = pt.get(path.pte);
             @assert_entry(pte)!;
 
