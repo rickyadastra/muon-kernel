@@ -303,7 +303,6 @@ fn usz? unmap(PageTable table, uptr vaddr) @private {
 
     invalidate(vaddr);
 
-    pmm::free(physFrameAddr)!;
     return bytes;
 }
 
