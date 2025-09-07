@@ -85,12 +85,8 @@ muon_sources = [
     f'src/dev/serial.c3',
     f'src/dev/serial.c3i',
 
-    f'src/boson.c3',
     f'src/entry.c3',
-    f'src/formatting.c3',
-    f'src/lang.c3',
     f'src/logging.c3',
-    f'src/math.c3',
     f'src/muon.c3i',
 ]
 
@@ -101,7 +97,7 @@ muon_sources_asm = files(
 
 c3_objs = []
 c3_objs += custom_target(
-    input: muon_sources,
+    input: files(muon_sources) + libsharedc3_sources,
     output: 'muon_c3.o',
     command: [
         muon_c3c, 'compile-only',
