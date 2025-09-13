@@ -15,7 +15,7 @@ faultdef OUT_OF_MEMORY, INVALID_FRAME_INDEX;
 const usz FRAME_SIZE = 0x1000;
 const usz BITMAP_FRAMES_PER_ROW = (BitmapRow.sizeof * 8);
 
-BitmapRow[] pmap @private;
+BitmapRow[] pmap @private; // TODO: replace with std::collections::bitmap
 usz pmapSize @local = 0;
 
 usz physTotal @private = 0;
