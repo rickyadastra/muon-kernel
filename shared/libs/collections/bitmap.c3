@@ -71,7 +71,6 @@ fn usz? BitMap.find_free(BitMap* self) {
             usz bitIdx = rowIdx*BITS + pos;
 
             self.hint = i;
-            self.set(bitIdx);
             return bitIdx;
         }
     }
