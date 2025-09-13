@@ -77,3 +77,11 @@ fn usz? BitMap.find_free(BitMap* self) {
 
     return collections::BITMAP_FULL?;
 }
+
+fn usz BitMap.cardinality(BitMap* self) {
+    usz n = 0;
+    foreach (ulong row : self.data) {
+        n += $$popcount(row);
+    }
+    return n;
+}
