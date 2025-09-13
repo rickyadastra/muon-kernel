@@ -20,14 +20,16 @@ macro @bit(#i) @local => #i % BITS;
 macro @first_free(#row) @local => $$ctz(~#row);
 
 <*
-    @require map.len == SZ 
+    @require ptr != null 
 *>
-fn BitMap init(ulong[] map) {
+fn BitMap init(void* ptr) {
     return (BitMap{SIZE}) {
-        .data = map[:SZ],
+        .data = ((ulong*)ptr)[:SZ],
         .hint = 0
     };
 }
+
+macro usz alloc_size() => SIZE / char.sizeof;
 
 <*
     @require i < SIZE
