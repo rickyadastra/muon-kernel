@@ -1,0 +1,20 @@
+module mem::allocator;
+
+interface Allocator {
+    <*
+        @require size > 0 : "Size must be at least 1 byte"
+    *>
+    fn void*? acquire(usz size);
+
+    <*
+        @require ptr != null : "Attempted to release empty pointer" 
+    *>
+    fn void release(void* ptr);
+}
+
+macro @align_floor(#ptr, #size) => #ptr / #size;
+macro @align_ceil(#ptr, #size) => (#ptr + #size - 1) / #size;
+
+fn BlockAllocator block(void[] raw, usz blockSize) {
+    return block_allocator::init{poolPtr, blockSize}();
+}
