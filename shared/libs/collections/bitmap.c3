@@ -23,7 +23,7 @@ macro @first_free(#row) @local => $$ctz(~#row);
     @require ptr != null 
 *>
 fn BitMap init(void* ptr) {
-    return (BitMap{SIZE}) {
+    return {
         .data = ((ulong*)ptr)[:SZ],
         .hint = 0
     };
@@ -56,7 +56,7 @@ fn void BitMap.clear(BitMap* self, usz i) {
 <*
     @require i < SIZE
 *>
-fn bool BitMap.get(BitMap* self, usz i) {
+fn bool BitMap.get(BitMap* self, usz i) @operator([]) {
     return self.data[@row(i)] & (1ul << @bit(i)) != 0; 
 }
 
