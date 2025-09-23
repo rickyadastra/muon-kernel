@@ -58,9 +58,9 @@ fn void? mark(usz frameId, FrameState state) @private {
 
     FrameState old = get(frameId)!; 
     if (state == USED) {
-        pmap[@frame_row(frameId)] |= (BitmapRow)(state.ordinal << @frame_bit(frameId));
+        pmap[@frame_row(frameId)] |= (BitmapRow)(1ul << @frame_bit(frameId));
     } else {
-        pmap[@frame_row(frameId)] &= ~(BitmapRow)(state.ordinal << @frame_bit(frameId));
+        pmap[@frame_row(frameId)] &= ~(BitmapRow)(1ul << @frame_bit(frameId));
     }
     
     if (@frame_changed(old, state)) update_stats(state, 1);
@@ -81,7 +81,7 @@ fn void? mark_region(uptr base, usz size, FrameState state) {
 fn void? mark_region_used(uptr base, usz size) @inline => mark_region(base, size, USED);
 fn void? mark_region_free(uptr base, usz size) @inline => mark_region(base, size, FREE);
 
-fn PhysAddr? alloc() {
+fn PhysAddr? alloc_single() @local {
     for (usz i=allocHint; i<allocHint+pmap.len; i++) {
         usz rowIdx = i % pmap.len;
 
@@ -103,14 +103,56 @@ fn PhysAddr? alloc() {
     return OUT_OF_MEMORY?;
 }
 
-fn void? free(PhysAddr addr) {
+fn PhysAddr? alloc_series(usz size) {
+    for (usz rowIdx=0; rowIdx<pmap.len; rowIdx++) {
+        BitmapRow row = pmap[rowIdx];
+
+        if (row == ulong.max) continue;
+
+        ulong inv = ~row;
+        if ($$popcount(inv) < size) continue;
+
+        for (usz j=0; j < BITMAP_FRAMES_PER_ROW - size; j++) {
+            ulong mask = ((1ul << size) - 1) << j;
+
+            if ((inv & mask) == mask) {
+                for (usz i=0; i<size; i++) {
+                    mark_used(rowIdx*BITMAP_FRAMES_PER_ROW + j + i)!;
+                }
+
+                return (PhysAddr)((rowIdx*BITMAP_FRAMES_PER_ROW + j) * FRAME_SIZE);
+            }
+        }
+    }
+
+    return OUT_OF_MEMORY?;
+}
+
+<*
+    @require frames >= 1
+*>
+fn PhysAddr? alloc(usz frames = 1) {
+    if (frames == 1) {
+        return alloc_single()!;
+    } else {
+        return alloc_series(frames)!;
+    }
+}
+
+<*
+    @require frames >= 1
+*>
+fn void? free(PhysAddr addr, usz frames = 1) {
+    logging::printn("freeing %x %d", (uptr)addr, frames);
     usz frame = @frame_of(addr);
 
-    if (get(frame)! == USED) {
-        mark_free(frame)!;
+    for (usz i=0; i<frames; i++) {
+        if (get(frame+i)! == USED) {
+            mark_free(frame+i)!;
 
-    } else {
-        logging::printn("Double pmm::free of %x", addr);
+        } else {
+            logging::printn("Double pmm::free of %x", (uptr)addr + (i*FRAME_SIZE));
+        }
     }
 }
  
