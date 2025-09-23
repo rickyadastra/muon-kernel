@@ -1,63 +1,71 @@
-<*
-    @require SIZE > 0
-*>
 module std::collections;
 
 faultdef BITMAP_FULL;
 
-module std::collections::bitmap {SIZE};
+module std::collections::bitmap;
 
 const BITS = ulong.sizeof * 8;
-const SZ = (SIZE + BITS - 1) / BITS;
 
 struct BitMap {
-    ulong[SZ] data;
+    ulong[] data;
+    usz size;
     usz hint;
 }
 
 macro @row(#i) @local => #i / BITS;
 macro @bit(#i) @local => #i % BITS;
 macro @first_free(#row) @local => $$ctz(~#row);
+macro @sz(#size) @local => (#size + BITS - 1) / BITS;
 
 <*
-    @require ptr != null 
+    @require ptr != null
+    @require size >= BITS : "Size is too small (< 64)"
 *>
-fn BitMap init(void* ptr) {
+fn BitMap init(void* ptr, usz size) {
     return {
-        .data = ((ulong*)ptr)[:SZ],
+        .data = ((ulong*)ptr)[:@sz(size)],
+        .size = size,
         .hint = 0
     };
 }
 
-macro usz alloc_size() => SIZE / char.sizeof;
+macro usz BitMap.data_size(&self) => self.data.len * ulong.sizeof;
+fn usz BitMap.len(&self) @operator(len) => self.size;
 
 <*
-    @require i < SIZE
+    @require i < self.size
 *>
 fn void BitMap.set(BitMap* self, usz i) {
     self.data[@row(i)] |= 1ul << @bit(i);
 }
 
 <*
-    @require i < SIZE
+    @require i < self.size
 *>
-fn void BitMap.set_bool(BitMap* self, usz i, bool val) {
+fn void BitMap.set_bool(BitMap* self, usz i, bool val) @operator([]=) {
     if (val) self.set(i);
     self.clear(i);
 }
 
 <*
-    @require i < SIZE
+    @require i < self.size
 *>
 fn void BitMap.clear(BitMap* self, usz i) {
     self.data[@row(i)] &= ~(1ul << @bit(i));
 }
 
 <*
-    @require i < SIZE
+    @require i < self.size
 *>
-fn bool BitMap.get(BitMap* self, usz i) @operator([]) {
+fn bool BitMap.get_bool(BitMap* self, usz i) @operator([]) {
     return self.data[@row(i)] & (1ul << @bit(i)) != 0; 
+}
+
+<*
+    @require i < self.size
+*>
+fn bool* BitMap.get_ptr(BitMap* self, usz i) @operator(&[]) {
+    return (bool*)&(self.data[@row(i)]); 
 }
 
 fn usz? BitMap.find_free(BitMap* self) {
