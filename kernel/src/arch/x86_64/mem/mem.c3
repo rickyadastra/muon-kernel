@@ -68,21 +68,12 @@ fn void? init(BootloaderPayload* payload) {
     // activate kernel address space
     vmm::activate(&vmm::kernelAddrSpace);
     vmm::initialized = true;
-
-    // TODO: initialize block allocator for alloc_pages
 }
 
-fn uptr alloc_pages(usz pages) {
-    // define allocator interface
-    // TODO: implement blk allocator
-    // TODO: implement generic linked list
-
-    // TODO: find a "pages" long extent and get its vaddr
-    // TODO: alloc "pages" frames via pmm and map to vaddr via vmm
-    // return vaddr
-    return (uptr)null;
+fn uptr? alloc_pages(usz pages) {
+    return vmm::@phys((uptr)pmm::alloc(pages)!);
 }
 
-fn void free_pages(uptr addr) {
-
+fn void? free_pages(uptr addr, usz pages) {
+    pmm::free((PhysAddr)(addr - vmm::@phys(0)), pages)!;
 }
