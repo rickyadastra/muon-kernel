@@ -27,6 +27,12 @@ fn void print(String format, args..., char terminator = '\0') {
     serial.put(terminator);
 }
 
+macro void debug(String format, args..., char terminator = '\n') {
+    $if muon::DEBUG:
+        print(format, ...args, terminator: terminator);
+    $endif
+}
+
 macro void printn(String format, args...) => print(format, ...args, terminator: '\n');
 macro void newline() => print("", terminator: '\n');
 

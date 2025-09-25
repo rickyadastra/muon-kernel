@@ -26,7 +26,7 @@ fn void? mark_memory_regions(MemoryRegion[] regions) @local {
     pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
 
     foreach (usz i, MemoryRegion reg : regions) {
-            logging::printn("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.nameof);
+            logging::debug("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.nameof);
         if (reg.type != AVAILABLE) {
 
             // sanitize size: some uefi memory regions are MMIO outside of physical RAM

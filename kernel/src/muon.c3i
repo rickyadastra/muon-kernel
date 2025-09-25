@@ -1,3 +1,6 @@
 module muon;
 
 faultdef NOT_YET_IMPLEMENTED;
+
+const bool DEBUG = true;
+// const bool DEBUG = false;

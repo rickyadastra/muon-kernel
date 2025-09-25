@@ -64,7 +64,7 @@ fn TableEntry construct_entry(bool present = false, bool readWrite = false, bool
 
 fn PageTable? create_table() @private {
     uptr ptr = pmm::alloc()!;
-    logging::printn("new table @ %x", ptr);
+    logging::debug("new table @ %x", ptr);
     return @as_table(ptr);
 }
 
@@ -73,7 +73,7 @@ fn bool? free_table(PageTable table, uptr tablePhysPtr = (uptr)table.ptr) @local
         if (table.get(i) != (TableEntry){}) return false;
     }
 
-    logging::printn("delete table @ %x", tablePhysPtr);
+    logging::debug("delete table @ %x", tablePhysPtr);
     pmm::free((PhysAddr)tablePhysPtr)!;
     return true;
 }
@@ -177,7 +177,7 @@ fn void? map_impl_direct(PagingPath path, PageTable table, uptr paddr, PageSize 
 
 fn void? map(PageTable table, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @private {
     PagingPath path = @addr_path(vaddr);
-    logging::printn("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
+    logging::debug("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
     // should we use table recursion?
     if (cpu::read_cr3() == (uptr)table.ptr) {
@@ -290,7 +290,7 @@ fn usz? unmap_impl_direct(PagingPath path, PageTable table, PhysAddr* physFrame)
 
 fn usz? unmap(PageTable table, uptr vaddr) @private {
     PagingPath path = @addr_path(vaddr);
-    logging::printn("unmapping vaddr: %x (%d %d %d %d)", vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
+    logging::debug("unmapping vaddr: %x (%d %d %d %d)", vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
     PhysAddr physFrameAddr = 0;
     usz bytes = 0;

@@ -25,7 +25,7 @@ macro usz @pages(usz #bytes, usz #pageSize = paging::PageSize.NORMAL.size) => (#
 macro usz @physmap_pages(usz #bytes) => @pages(#bytes, paging::PageSize.HUGE_1G.size);
 
 fn void? map_physmap(usz len) @local {
-    logging::printn("%d -> mapping %dx 1GB pages", len, @physmap_pages(len));
+    logging::debug("%d -> mapping %dx 1GB pages", len, @physmap_pages(len));
     
     for (usz i = 0; i < math::min(@physmap_pages(len), PHYSMAP_MAX); i++) {
         uptr paddr = (uptr)(PageSize.HUGE_1G.size * i);
