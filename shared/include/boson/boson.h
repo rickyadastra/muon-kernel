@@ -8,7 +8,8 @@ typedef enum : UInt32 {
     MEMORY_REGION_FIRMWARE,
     MEMORY_REGION_ACPI,
     MEMORY_REGION_MMIO,
-    MEMORY_REGION_RESERVED
+    MEMORY_REGION_RESERVED,
+    MEMORY_REGION_KERNEL,
 } MemoryRegionType;
 
 typedef struct _Bootloader_Kernel_Stack_struct {
@@ -20,6 +21,7 @@ typedef struct _Bootloader_Kernel_Stack_struct {
 typedef struct _Memory_Region_struct {
     MemoryRegionType type;
     UPtr base;
+    UPtr baseVirt;
     BigSize size;
 } MemoryRegion;
 
@@ -28,6 +30,7 @@ typedef struct _Bootloader_Payload_struct {
     BootloaderKernelStack stack;
     MemoryRegion* memoryRegionMap;
     Size memoryRegionEntries;
+    BigSize totalMemoryBytes;
     // vendor tables
     UPtr rsdpAddr;
 } BootloaderPayload;

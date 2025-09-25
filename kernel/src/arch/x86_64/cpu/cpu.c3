@@ -47,3 +47,67 @@ fn ulong read_msr(ModelSpecificRegister reg) @export {
 
     return (((ulong)dataHigh) << 32) | dataLow;
 }
+
+bitstruct RFLAGSRegister : ulong {
+    bool carry : 0;
+    bool parity : 2;
+    bool auxCarry : 4;
+    bool zero : 6;
+    bool sign : 7;
+    bool trap : 8;
+    bool interruptEnable : 9;
+    bool direction : 10;
+    bool overflow : 11;
+    PrivilegeLevel ioPrivilege : 12..13;
+    bool nestedTask : 14;
+    bool resume : 16;
+    bool virtual8086 : 17;
+    bool alignmentCheck : 18;
+    bool virtualInterrupt : 19;
+    bool virtualInterruptPending : 20;
+    bool id : 21;
+}
+
+fn RFLAGSRegister read_rflags() {
+    ulong data;
+    asm("pushf");
+    asm {
+        popq data;
+    }
+
+    return (RFLAGSRegister)data;
+}
+
+fn void write_rflags(RFLAGSRegister reg) {
+    asm {
+        pushq ((ulong)reg);
+    }
+    asm("popf");
+}
+
+fn void write_cr3(uptr pageTablePtr) {
+    asm {
+        movq $rax, ((ulong) pageTablePtr);
+    }
+    asm("mov %rax, %cr3");
+}
+
+fn uptr read_cr3() {
+    ulong reg;
+    asm("mov %cr3, %rax");
+    asm {
+        movq reg, $rax;
+    }
+
+    return (uptr)reg;
+}
+
+fn uptr read_cr2() {
+    ulong reg;
+    asm("mov %cr2, %rax");
+    asm {
+        movq reg, $rax;
+    }
+
+    return (uptr)reg;
+}

@@ -7,9 +7,8 @@ extern fn void gdt_load(GDTRegister*);
 const usz GDT_ENTRIES = 5;
 GlobalDescriptorTable gdt @private;
 
-macro @segment_selector_of(#segment) {
-    return #segment * SegmentDescriptor.sizeof;
-}
+macro KnownDescriptor @descriptor_of(#segment) => KnownDescriptor.from_ordinal(#segment / SegmentDescriptor.sizeof);
+macro @segment_selector_of(#i) => #i * SegmentDescriptor.sizeof;
 
 /*
     Default segment access is: 0 00 1 0 0 0 0

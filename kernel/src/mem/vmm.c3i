@@ -1,0 +1,9 @@
+module mem::vmm;
+
+import arch::mem::paging;
+
+const usz PHYSMAP_MAX = 64;
+
+struct AddressSpace {
+    inline AddressSpaceImpl _addrSpaceImpl;
+}

@@ -137,7 +137,7 @@ EfiMemoryDescriptor* MemoryManager_get_memory_map(MemoryManager *self, Size* _si
         
         EfiStatus status = self->bootServices->GetMemoryMap(&size, null, &mapKey, &descriptorSize, &ver);
         if (status == EFIERR(EFI_BUFFER_TOO_SMALL)) {
-            IMemoryManager.alloc(self, size, (UPtr*)&map);
+            IMemoryManager.alloc(self, size + 2*descriptorSize, (UPtr*)&map);
 
         } else {
             THROW_EXCEPTION(MemoryManagerException, "Could not get memory map buffer")
@@ -162,13 +162,14 @@ UINTN MemoryManager_get_memory_map_key(MemoryManager *self) {
     return self->_memoryMapKey;
 }
 
-void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descriptorSize, Size mapSize, MemoryRegion* regionsBuffer, BigSize* usable, Size* entriesCount) {
+void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descriptorSize, Size mapSize, MemoryRegion* regionsBuffer, BigSize* usable, BigSize* total, Size* entriesCount) {
     ASSERT_NONNULL(memoryMap)
     ASSERT_NONNULL(regionsBuffer)
     ASSERT_NONNULL(usable)
+    ASSERT_NONNULL(total)
     ASSERT_NONNULL(entriesCount)
 
-    MemoryRegion* regionPtr = regionsBuffer;
+    MemoryRegion* regionPtr = regionsBuffer + *entriesCount;
     EfiMemoryDescriptor* d = memoryMap;
 
     BigSize uunusable = 0;
@@ -242,12 +243,14 @@ void MemoryManager_process_memory_map(EfiMemoryDescriptor* memoryMap, Size descr
     if (lastBase != base) {
         (*regionPtr) = (MemoryRegion){
             .base = base,
+            .baseVirt = 0,
             .size = length,
             .type = lastType
         };
         regionPtr++;
     }
-
+    
+    *total = *usable + uunusable;
     *entriesCount = regionPtr - regionsBuffer;
 }
 

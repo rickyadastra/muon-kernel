@@ -1,8 +1,10 @@
 module arch::interrupts;
 
 import muon::logging;
+import arch::mem @public;
+import arch::cpu::gdt;
 
-macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @local {
+macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
     logging::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
     logging::printn(" rax: %x  rbx: %x  rcx: %x  rdx: %x", #stack.rax, #stack.rbx, #stack.rcx, #stack.rdx);
     logging::printn(" rsi: %x  rdi: %x  rbp: %x  rsp: %x", #stack.rsi, #stack.rdi, #stack.rbp, #stack.rsp);
@@ -11,7 +13,8 @@ macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @local {
     logging::newline();
     logging::print(" IRQ %d (%x)", #stack.irq, (uint)#stack.irq, terminator: intr.has_error_code ? ' ' : '\n');
     if (intr.has_error_code) logging::printn("with error code: %x", #stack.error_code);
-    logging::printn(" rip: %x  cs:  %x  ss:  %x", #stack.rip, (ushort)#stack.cs, (ushort)#stack.ss);
+    logging::print(" rip: %x  cs:  %x (%s) ", #stack.rip, (ushort)#stack.cs, gdt::@descriptor_of(#stack.cs).nameof);
+    logging::printn(" ss:  %x (%s)", (ushort)#stack.ss, gdt::@descriptor_of(#stack.ss).nameof);
     logging::printn(" rflags: %x", #stack.rflags);
     logging::printn("—————————————————————————————————— END OF INTERRUPT STACK DUMP —————————————————————————————————————");
 }
@@ -20,8 +23,13 @@ fn InterruptStack* exception_handler(InterruptStack* stack) @private {
     KnownInterrupt intr = KnownInterrupt.from_ordinal(stack.irq);
     
     logging::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.nameof, intr.mnmem, intr.name);
-    @print_stack(stack, intr);
-    arch::panic();
+    
+    if (intr == KnownInterrupt.PAGE_FAULT) {
+        stack = mem::pagefault_handler(stack, intr);
+    } else {
+        @print_stack(stack, intr);
+        arch::panic();
+    }
 
     return stack;
 }

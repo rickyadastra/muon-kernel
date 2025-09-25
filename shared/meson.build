@@ -23,3 +23,14 @@ liblepton_sources = files(
     'src/lepton/exception/invalid_parameter_exception.c',
     'src/lepton/exception/exception_runtime_@0@_@1@.s'.format(arch, abi)
 )
+
+libsharedc3_sources = files(
+    f'libs/boson.c3i',
+    f'libs/formatting.c3',
+    f'libs/lang.c3',
+    f'libs/math.c3',
+
+    f'libs/mem/allocator.c3i',
+    f'libs/mem/buddy_allocator.c3',
+    f'libs/collections/bitmap.c3',
+)

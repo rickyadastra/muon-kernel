@@ -1,0 +1,78 @@
+module arch::mem::paging;
+
+import mem::pmm;
+
+faultdef NOT_MAPPED;
+
+const usz PAGE_SIZE = pmm::FRAME_SIZE;
+
+enum PageSize : usz (usz size) {
+    NORMAL = 1 << 12,
+    HUGE_2M = 1 << 21,
+    HUGE_1G = 1 << 30,
+}
+
+enum PageProperties : usz (bool present, bool readWrite, bool user, bool writeThrough, bool cacheDisable) {
+    DEFAULT             = { true, true, false, false, false },
+    MMIO                = { true, true, false, true, true },
+}
+
+const usz TABLE_ENTRIES = PAGE_SIZE / TableEntry.sizeof;
+const usz ENTRY_ADDRESS_LSB = 12;
+const ulong ENTRY_ADDRESS_MASK = 0xffff_ffff_ffff_f000;
+
+enum PagingMode : uint (usz virtAddrLen, usz pml4Shift, usz pdptShift, usz pdShift, usz ptShift) {
+    PAGING_MAP_LEVEL4 = {48, 39, 30, 21, 12},
+    PAGING_MAP_LEVEL5 = {52, 39, 30, 21, 12}, // unsupported at the moment
+}
+
+struct PagingPath {
+    usz pml4e;
+    usz pdpte;
+    usz pde;
+    usz pte;
+}
+
+enum KnownPagingPath : uint (PagingPath path) {
+    PHYSMAP             = {KnownTableEntry.KERNEL.idx, 0, 0, 0},
+    MMIO                = {KnownTableEntry.MMIO.idx, 0, 0, 0},
+    ACPI                = {KnownTableEntry.KERNEL.idx, 504, 0, 0},
+    PMM_BITMAP          = {KnownTableEntry.KERNEL.idx, 508, 0, 0},
+    KERNEL_STACKS       = {KnownTableEntry.KERNEL.idx, 509, 0, 0},
+    KERNEL              = {KnownTableEntry.KERNEL.idx, 510, 0, 0},
+
+    RECURSE_PT          = {KnownTableEntry.SELF.idx, 0, 0, 0},
+    RECURSE_PD          = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0, 0},
+    RECURSE_PDPT        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0},
+    RECURSE_PML4        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx},
+}
+
+bitstruct TableEntry : ulong {
+    bool present : 0;
+    bool readWrite : 1;
+    bool userPage : 2;
+    bool writeThrough : 3;
+    bool cacheDisable : 4;
+    bool accessed : 5;
+    bool dirty : 6;
+    bool huge : 7;                  // reserved on PML4 and PML5
+    bool global : 8;
+    char availLow : 9..11;
+    ulong addr : 12..51;
+    char availHigh : 52..58;
+    char protectionKey : 59..62;
+    bool executionDisable : 63;
+}
+
+typedef PageTable = inline TableEntry[];
+
+enum KnownTableEntry : uint (usz idx) {
+    KERNEL = 511,
+    SELF = 510,
+    OTHER = 509,
+    MMIO = 508,
+}
+
+struct AddressSpaceImpl {
+    PageTable pageTable;
+}

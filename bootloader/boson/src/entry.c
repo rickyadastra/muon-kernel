@@ -38,6 +38,7 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         IBootloader.set_handle(&bootloader, handle);
         IBootloader.set_efi_table(&bootloader, systemTable);
         IBootloader.set_memory_manager(&bootloader, &memManager);
+        IBootloader.init_memory_map(&bootloader);
         IConsole.logf(&console, "Bootloader information loaded, trampoline @ %x", &trampolineStart);
 
         IBootloader.open_volume(&bootloader);
@@ -93,14 +94,15 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         }
 
         memoryMap = (IMemoryManager.get_memory_map(&memManager, &size, &descriptorSize, null));
-        MemoryRegion* regions = (MemoryRegion*) IMemoryManager.alloc_pages(&memManager, EFI_PAGE_SIZE, true);
-        BigSize usable = 0;
-        Size entries = 0;
+        BigSize usable = 0, total = 0;
     
-        IMemoryManager.process_memory_map(memoryMap, descriptorSize, size, regions, &usable, &entries);
-        IConsole.logf(&console, "%d memory entries. Total usable memory: %d KB ", entries, usable*EFI_PAGE_SIZE/1024);
-        payload->memoryRegionEntries = entries;
-        payload->memoryRegionMap = regions;
+        IMemoryManager.process_memory_map(memoryMap, descriptorSize, size,  bootloader.regions, &usable, &total, &bootloader.regionEntries);
+        IMemoryManager.virtual_map(&memManager, bootloader.kernelPageTable, (UPtr) bootloader.regions, (UPtr) bootloader.regions, 1);
+
+        IConsole.logf(&console, "%d memory entries. Usable memory: %d KB. Total memory: %d KB", bootloader.regionEntries, usable*EFI_PAGE_SIZE/1024, total*EFI_PAGE_SIZE/1024);
+        payload->memoryRegionEntries = bootloader.regionEntries;
+        payload->memoryRegionMap = bootloader.regions;
+        payload->totalMemoryBytes = total*EFI_PAGE_SIZE;
         
         IConsole.log(&console, L"Launching kernel...");
         IBootloader.exit_bootloader(&bootloader);

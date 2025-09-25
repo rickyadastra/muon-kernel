@@ -1,4 +1,6 @@
 #include "bootloader.h"
+#include "base/int.h"
+#include "boson/boson.h"
 #include "core/bytearray.h"
 #include "efi/file_protocol.h"
 #include "efi/memory.h"
@@ -42,6 +44,11 @@ void Bootloader_set_efi_table(Bootloader *self, EfiSystemTable *efiTable) {
     EFI_THROW(s, BootloaderException, "Cannot load file system information")
 }
 
+void Bootloader_init_memory_map(Bootloader *self) {
+    self->regions = (MemoryRegion*) IMemoryManager.alloc_pages(self->memoryManager, EFI_PAGE_SIZE, true);
+    self->regionEntries = 0;
+}
+
 Bool Bootloader_open_volume(Bootloader *self) {
     EfiStatus s;
     
@@ -77,15 +84,27 @@ void vmap_in_kernel(Bootloader* self, UPtr paddr, UPtr vaddr, Size size) {
     IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, vaddr, EFI_SIZE_TO_PAGES(size));
 }
 
+void add_memory_region(Bootloader* self, UPtr base, UPtr baseVirt, Size length, MemoryRegionType type) {
+    *(self->regions + self->regionEntries) = (MemoryRegion){
+        .base = base,
+        .baseVirt = baseVirt,
+        .size = length,
+        .type = type
+    };
+    self->regionEntries++;
+}
+
 BootloaderKernelStack Bootloader_prepare_kernel_stack(Bootloader *self, Size size) {
     UPtr base = IMemoryManager.alloc_pages(self->memoryManager, size, true);
 
-    vmap_in_kernel(self, base, base, size);
+    UPtr vaddr = 0xffffffff40000000;
+    vmap_in_kernel(self, base, vaddr, size);
+    add_memory_region(self, base, vaddr, EFI_SIZE_TO_PAGES(size)*EFI_PAGE_SIZE, MEMORY_REGION_KERNEL);
 
     self->kernelStack = (BootloaderKernelStack){
-        .base = base,
+        .base = vaddr,
         .size = size,
-        .end = base + size
+        .end = vaddr + size
     };
 
     return self->kernelStack;
@@ -110,6 +129,8 @@ void Bootloader_prepare_kernel_programs(Bootloader *self) {
         if (fillZero > 0) {
             IByteArray.set(((char*)paddr + programHeader->file_size), fillZero, 0);
         }
+
+        add_memory_region(self, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size)*EFI_PAGE_SIZE, MEMORY_REGION_KERNEL);
         
         IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size));
         programHeader = (Elf64ProgramHeader*)((UPtr)programHeader + elfHeader->programs_size);

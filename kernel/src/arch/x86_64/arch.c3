@@ -2,9 +2,12 @@ module arch;
 
 import boson;
 import muon::logging;
+import mem;
 import dev;
 
 fn void init(BootloaderPayload* payload) {
+    uptr rsdpAddr = payload.rsdpAddr;
+
     gdt::setup(payload.stack.base);
     logging::printn("GDT setup complete");
 
@@ -17,9 +20,17 @@ fn void init(BootloaderPayload* payload) {
     interrupts::install();
     logging::printn("IDT install complete");
 
-    logging::@catch_or_log(acpi::init(payload.rsdpAddr), "ACPI init complete");
+    cpu::cpuid::enable()!!;
+    logging::printn("CPUID enabled");
 
-    logging::@catch_or_log(apic::init(), "APIC init complete");
+    mem::init(payload)!!;
+    logging::printn("Memory manager init complete");
+
+    acpi::init(rsdpAddr)!!;
+    logging::printn("ACPI init complete");
+
+    apic::init()!!;
+    logging::printn("APIC init complete");
 
     // logging::@catch_or_log(hpet::init(), "HPET init complete");
 }
@@ -29,8 +40,11 @@ macro void panic() {
     cpu::idle();
 }
 
-fn void log_and_panic(String message) {
-    logging::panic(message);
+alias PanicFn = fn void(String message, String file, String function, uint line);
+PanicFn panicfn = &log_and_panic;
+
+fn void log_and_panic(String message, String file = "", String function = "", uint line = 0) {
+    logging::panic(message, file: file, function: function, line: line);
     arch::panic();
 }
 
