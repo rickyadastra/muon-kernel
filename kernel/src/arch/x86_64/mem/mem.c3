@@ -4,8 +4,12 @@ import boson;
 import mem @public;
 import muon::logging;
 
+import mem::allocator::buddy;
+
 const uptr LEGACY_BIOS_BASE = 0x0;
 const uptr LEGACY_BIOS_LIMIT = 0xfffff;
+
+BuddyAllocator kAllocator @local;
 
 faultdef MEMORY_UNAVAILABLE;
 
@@ -68,6 +72,9 @@ fn void? init(BootloaderPayload* payload) {
     // activate kernel address space
     vmm::activate(&vmm::kernelAddrSpace);
     vmm::initialized = true;
+
+    // initialize kernel buddy allocator
+    kAllocator = buddy::init(&alloc_pages, &free_pages)!;
 }
 
 fn uptr? alloc_pages(usz pages) {
@@ -76,4 +83,18 @@ fn uptr? alloc_pages(usz pages) {
 
 fn void? free_pages(uptr addr, usz pages) {
     pmm::free((PhysAddr)(addr - vmm::@phys(0)), pages)!;
+}
+
+fn void* alloc(usz bytes) {
+    void* ptr = (void*)kAllocator.acquire(bytes)!!;
+    logging::printn("KERNEL ALLOCATOR - NEW ALLOCATION of %d bytes at %x (usage %d%)", bytes, ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
+    return ptr;
+}
+
+fn void free(void* ptr) {
+    if (catch kAllocator.release(ptr)) {
+        logging::printn("Attempted free on null pointer.");
+    } else {
+        logging::printn("KERNEL ALLOCATOR - FREED %x (usage %d%)", ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
+    }
 }
