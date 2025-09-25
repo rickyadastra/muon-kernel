@@ -18,10 +18,11 @@ endif
 c3_compile_args = [
     '--link-libc=no',
     '--use-stdlib=no',
+    '--x86cpu=baseline',        # TODO: add AVX support
     '--build-dir', 'kernel/',
     '--single-module=yes',
     '--target', elf_target,
-    '--panicfn', 'arch::panicfn'
+    '--panicfn', 'arch::panicfn',
 ]
 
 compile_args = [
