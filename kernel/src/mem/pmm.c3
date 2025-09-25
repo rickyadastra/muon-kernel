@@ -45,7 +45,9 @@ macro update_stats(FrameState newState, usz amount) {
 
 fn FrameState? get(usz frameId) @inline {
     if (frameId >= frameTotal) return INVALID_FRAME_INDEX?;
-    return FrameState.from_ordinal((char)((pmap[@frame_row(frameId)] & (1ul << @frame_bit(frameId))) >> @frame_bit(frameId)));
+
+    bool set = pmap[@frame_row(frameId)] & (1ul << @frame_bit(frameId)) != 0;
+    return set ? FrameState.USED : FrameState.FREE;
 }
 
 <*
@@ -57,10 +59,12 @@ fn void? mark(usz frameId, FrameState state) @private {
     if (state == USED && frameFree == 0) return OUT_OF_MEMORY?;
 
     FrameState old = get(frameId)!; 
+    BitmapRow mask = (BitmapRow)(1ul << @frame_bit(frameId));
+
     if (state == USED) {
-        pmap[@frame_row(frameId)] |= (BitmapRow)(1ul << @frame_bit(frameId));
+        pmap[@frame_row(frameId)] |= mask;
     } else {
-        pmap[@frame_row(frameId)] &= ~(BitmapRow)(1ul << @frame_bit(frameId));
+        pmap[@frame_row(frameId)] &= ~mask;
     }
     
     if (@frame_changed(old, state)) update_stats(state, 1);
