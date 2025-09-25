@@ -29,10 +29,10 @@
    - [x] Global Descriptor Table
    - [x] Interrupt Descriptor Table
    - [x] Exception handlers (page fault, GPF, etc.)
-- [ ] 📗 **Milestone 0.2** – Memory Management
+- [x] 📗 **Milestone 0.2** – Memory Management
    - [x] Physical frame allocator (bitmap allocator)
    - [x] Virtual memory mapping (paging interface)
-   - [ ] Kernel heap allocator (buddy allocator)
+   - [x] Kernel heap allocator (buddy allocator)
    - [x] Page Fault verbose handler
 - [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing
    - [x] Interrupt Routing (PIC disable, local APIC configuration)
