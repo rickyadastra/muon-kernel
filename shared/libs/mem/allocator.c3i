@@ -1,5 +1,7 @@
 module mem::allocator;
 
+faultdef INVALID_ALLOC_SIZE, INVALID_FREE, OUT_OF_MEMORY, INIT_FAILED;
+
 interface Allocator {
     <*
         @require size > 0 : "Size must be at least 1 byte"
@@ -9,12 +11,21 @@ interface Allocator {
     <*
         @require ptr != null : "Attempted to release empty pointer" 
     *>
-    fn void release(void* ptr);
+    fn void? release(void* ptr);
 }
 
 macro @align_floor(#ptr, #size) => #ptr / #size;
 macro @align_ceil(#ptr, #size) => (#ptr + #size - 1) / #size;
 
-fn BlockAllocator block(void[] raw, usz blockSize) {
-    return block_allocator::init{poolPtr, blockSize}();
+macro usz @order_size(#order) => (1ul << #order);
+macro usz @order_of(usz #size) {
+    usz order = 0;
+    usz temp = #size;
+
+    while (temp > 1) {
+        order++;
+        temp = temp >> 1;
+    }
+
+    return order+1;
 }
