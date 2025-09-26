@@ -29,7 +29,7 @@ enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has
     VIRTUALIZATION_EXC      = {0x14, "#VE", FAULT, false, "Virtualization Exception"},
     CONTROL_PROTECTION_EXC  = {0x15, "#CP", FAULT, true, "Control Protection Exception"},
     // 22..31 reserved
-    APIC_TIMER              = {0x20, "N/A", INTERRUPT, false, "APIC Timer Interrupt"},
+    APIC_TIMER              = {0x30, "N/A", INTERRUPT, false, "APIC Timer Interrupt"},
     SPURIOUS_INTERRUPT      = {0xff, "N/A", INTERRUPT, false, "Spurious Interrupt"},
 }
 
