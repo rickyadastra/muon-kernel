@@ -29,6 +29,7 @@ fn void print(String format, args..., char terminator = '\0') {
 
 macro void debug(String format, args..., char terminator = '\n') {
     $if muon::DEBUG:
+        print("[%s] ", $$MODULE);
         print(format, ...args, terminator: terminator);
     $endif
 }
