@@ -5,14 +5,16 @@ import dev::acpi;
 import dev::mmio;
 import dev::interrupts;
 import mem::vmm;
+import muon::logging;
 
 const uint SPURIOUS_INTERR_VECTOR_VALUE = 0x100 | KnownInterrupt.SPURIOUS_INTERRUPT.num; // 0x100: enable APIC
-const usz MAX_IOAPIC_COUNT = 16;
+const usz MAX_IOAPIC_COUNT = 8;
 
 MADTable* madt @local;
 MemIO lapic @local;
-usz ioapic_count @local = 0;
-IOAPICRecord[MAX_IOAPIC_COUNT] ioapics @local; 
+char lapicId @local = char.max;
+usz ioapicCount @local = 0;
+IOApic[MAX_IOAPIC_COUNT] ioapics @local; 
 
 macro @lapic_write(#reg, #data) => lapic.write32((ulong)#reg, #data);
 macro uint @lapic_read(#reg) => lapic.read32((ulong)#reg);
@@ -26,6 +28,45 @@ fn void? setup_lapic() @private {
     @lapic_write(LAPICRegister.SPURIOUS_INTERR_VECTOR, SPURIOUS_INTERR_VECTOR_VALUE);
 }
 
+macro lapic_eoi() => @lapic_write(LAPICRegister.EOI, 0);
+
+fn void lapic_set_lvt(char lint, InterruptFlags flags, KnownInterrupt interrupt, bool nonMaskable = false) @local {
+    LAPICRegister lintReg = lint == 0 ? LAPICRegister.LVT_LINT0 : LAPICRegister.LVT_LINT1;
+    LocalVectorEntry nmiLvt = {
+        .vector = interrupt.num,
+        .nonMaskable = nonMaskable,
+        .activeOnLow = flags.activeOnLow,
+        .triggerOnLevel = flags.triggerOnLevel,
+        .masked = false,
+    };
+
+    @lapic_write(lintReg, (uint)nmiLvt);
+}
+
+
+fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char destinationLapicId = lapicId) @local {    
+    foreach (IOApic ioapic : ioapics[:ioapicCount]) {
+        if (gsi >= ioapic.record.globalSystemInterruptBase && gsi < ioapic.record.globalSystemInterruptBase + ioapic.managedIntLines) {
+            IOAPICRedirectionEntry redEntry = {
+                .vector = 0x20 + irq,
+                .deliveryMode = DeliveryMode.FIXED,
+                .useLogicalDestination = false,
+                .activeOnLow = flags.activeOnLow,
+                .triggerOnLevel = flags.triggerOnLevel,
+                .masked = false,
+                .destination = destinationLapicId,
+            };
+
+            // register iso to redtbl
+            ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2));
+            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)((ulong)redEntry & uint.max));
+
+            ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2) + 1);
+            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)(((ulong)redEntry >> 32) & uint.max));
+        }
+    }
+}
+
 fn void? init() {
     arch::cpu::disable_interrupts();
 
@@ -36,18 +77,61 @@ fn void? init() {
 
     pic::remap();
     pic::disable();
-
-    // IOAPIC needs VMM to access MMIO registers!
     
-    /* RecordHeader* recordPtr = &madt.firstRecord;
+    RecordHeader* recordPtr = &madt.firstRecord;
     while ((uptr)recordPtr < ((uptr)madt + madt.length)) {
-        if (recordPtr.type == RecordType.IO_APIC) {
-            ioapics[ioapic_count++] = *(IOAPICRecord*)recordPtr;
+        // logging::debug("record @ %x of type: %d, length: %d bytes", recordPtr, recordPtr.type, recordPtr.length);
 
-            MemIO ioapic = ((IOAPICRecord*)recordPtr).ioApicAddr;
+        if (recordPtr.type == RecordType.LOCAL_APIC) {
+            LocalAPICRecord* lapicRecord = (LocalAPICRecord*)recordPtr;
+
+            // set the Local APIC ID for the CPU that will handle all interrupts
+            if (lapicId == char.max) lapicId = lapicRecord.apicId;
+
+            logging::debug("Found Local APIC #%d (ACPI Processor ID: %d)", lapicRecord.apicId, lapicRecord.acpiProcessorId);
+
+        } else if (recordPtr.type == RecordType.IO_APIC) {
+            IOAPICRecord* ioApicRecord = (IOAPICRecord*)recordPtr;
+            MemIO ioapic = vmm::map_mmio(ioApicRecord.ioApicAddr)!;
+
             ioapic.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_VER);
-            logging::printn("max redirections: %d", ((IOAPICVerReg)ioapic.read32(IOAPIC_DATA)).maxRedirectIndex);
+            usz lines = ((IOAPICVerReg)ioapic.read32(IOAPIC_REGWIN)).maxRedirectEntry + 1l;
+            
+            ioapics[ioapicCount] = {
+                .record = ioApicRecord,
+                .managedIntLines = lines - ioApicRecord.globalSystemInterruptBase,
+                .mmAddr = ioapic,
+            };
+
+            logging::debug("Found IOAPIC #%d @ %x (%x) managing interrupts %d-%d (%d lines)", ioapics[ioapicCount].record.ioApicId, ioapics[ioapicCount].record.ioApicAddr, 
+                            ioapic, ioapics[ioapicCount].record.globalSystemInterruptBase, lines - 1, lines);
+
+            ioapicCount++;
+        
+        } else if (recordPtr.type == RecordType.IO_APIC_ISO) {
+            IOAPICSourceOverrideRecord* isoRecord = (IOAPICSourceOverrideRecord*)recordPtr;
+
+            char irq = isoRecord.irqSource;
+            uint gsi = isoRecord.globalSystemInterrupt;
+            String trigger = isoRecord.flags.triggerOnLevel ? "LEVEL" : "EDGE";
+            String active = isoRecord.flags.activeOnLow ? "LOW" : "HIGH";
+            logging::debug("Found IOAPIC Override for IRQ #%d to GSI #%d (%s %s)", irq, gsi, trigger, active);
+
+            ioapic_set_redirect(gsi, irq, isoRecord.flags);
+
+        } else if (recordPtr.type == RecordType.LOCAL_APIC_NMI) {
+            LocalAPICNonMaskableIntsRecord* nmiRecord = (LocalAPICNonMaskableIntsRecord*)recordPtr;
+
+            char lint = nmiRecord.lintNumber;
+            char procId = nmiRecord.acpiProcessorId;
+            String trigger = nmiRecord.flags.triggerOnLevel ? "LEVEL" : "EDGE";
+            String active = nmiRecord.flags.activeOnLow ? "LOW" : "HIGH";
+            logging::debug("Found Local APIC NMI for LINT #%d on CPU #%d (%s %s)", lint, procId, trigger, active);
+
+            // TODO: support multiple CPUs and register NMI on each one
+            lapic_set_lvt(lint, nmiRecord.flags, KnownInterrupt.NONMASKABLE_INTERRUPT, nonMaskable: true);
         }
+
         recordPtr = (RecordHeader*)((uptr)recordPtr + recordPtr.length);
-    } */ 
+    } 
 }
