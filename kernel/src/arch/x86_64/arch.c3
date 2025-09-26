@@ -8,6 +8,7 @@ import dev;
 fn void init(BootloaderPayload* payload) {
     uptr rsdpAddr = payload.rsdpAddr;
 
+    // Foundations
     gdt::setup(payload.stack.base);
     logging::printn("GDT setup complete");
 
@@ -23,9 +24,11 @@ fn void init(BootloaderPayload* payload) {
     cpu::cpuid::enable()!!;
     logging::printn("CPUID enabled");
 
+    // Memory Management
     mem::init(payload)!!;
     logging::printn("Memory manager init complete");
 
+    // Interrupts and Timing
     acpi::init(rsdpAddr)!!;
     logging::printn("ACPI init complete");
 
