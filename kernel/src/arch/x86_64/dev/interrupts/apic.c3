@@ -43,6 +43,23 @@ fn void lapic_set_lvt(char lint, InterruptFlags flags, KnownInterrupt interrupt,
     @lapic_write(lintReg, (uint)nmiLvt);
 }
 
+fn IOApic? ioapic_register(IOAPICRecord* ioApicRecord) @local {
+    MemIO ioapic = vmm::map_mmio(ioApicRecord.ioApicAddr)!;
+
+    ioapic.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_VER);
+    usz lines = ((IOAPICVerReg)ioapic.read32(IOAPIC_REGWIN)).maxRedirectEntry + 1l;
+    
+    ioapics[ioapicCount] = {
+        .record = ioApicRecord,
+        .managedIntLines = lines - ioApicRecord.globalSystemInterruptBase,
+        .mmAddr = ioapic,
+    };
+
+    IOApic ioa = ioapics[ioapicCount];
+    ioapicCount++;
+
+    return ioa;
+}
 
 fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char destinationLapicId = lapicId) @local {    
     foreach (IOApic ioapic : ioapics[:ioapicCount]) {
@@ -67,17 +84,7 @@ fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char desti
     }
 }
 
-fn void? init() {
-    arch::cpu::disable_interrupts();
-
-    madt = (MADTable*)acpi::get_acpi_table(SIGNATURE)!;
-    lapic = vmm::map_mmio(madt.localApicAddr)!;
-    
-    setup_lapic()!;
-
-    pic::remap();
-    pic::disable();
-    
+fn void? parse_madt(MADTable* madt) @local {
     RecordHeader* recordPtr = &madt.firstRecord;
     while ((uptr)recordPtr < ((uptr)madt + madt.length)) {
         // logging::debug("record @ %x of type: %d, length: %d bytes", recordPtr, recordPtr.type, recordPtr.length);
@@ -91,22 +98,10 @@ fn void? init() {
             logging::debug("Found Local APIC #%d (ACPI Processor ID: %d)", lapicRecord.apicId, lapicRecord.acpiProcessorId);
 
         } else if (recordPtr.type == RecordType.IO_APIC) {
-            IOAPICRecord* ioApicRecord = (IOAPICRecord*)recordPtr;
-            MemIO ioapic = vmm::map_mmio(ioApicRecord.ioApicAddr)!;
-
-            ioapic.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_VER);
-            usz lines = ((IOAPICVerReg)ioapic.read32(IOAPIC_REGWIN)).maxRedirectEntry + 1l;
+            IOApic ioApic = ioapic_register((IOAPICRecord*)recordPtr)!;
             
-            ioapics[ioapicCount] = {
-                .record = ioApicRecord,
-                .managedIntLines = lines - ioApicRecord.globalSystemInterruptBase,
-                .mmAddr = ioapic,
-            };
-
-            logging::debug("Found IOAPIC #%d @ %x (%x) managing interrupts %d-%d (%d lines)", ioapics[ioapicCount].record.ioApicId, ioapics[ioapicCount].record.ioApicAddr, 
-                            ioapic, ioapics[ioapicCount].record.globalSystemInterruptBase, lines - 1, lines);
-
-            ioapicCount++;
+            logging::debug("Found IOAPIC #%d @ %x (%x) managing interrupts %d-%d (%d lines)", ioApic.record.ioApicId, ioApic.record.ioApicAddr, 
+                            ioApic.record, ioApic.record.globalSystemInterruptBase, ioApic.managedIntLines - 1, ioApic.managedIntLines);
         
         } else if (recordPtr.type == RecordType.IO_APIC_ISO) {
             IOAPICSourceOverrideRecord* isoRecord = (IOAPICSourceOverrideRecord*)recordPtr;
@@ -115,6 +110,7 @@ fn void? init() {
             uint gsi = isoRecord.globalSystemInterrupt;
             String trigger = isoRecord.flags.triggerOnLevel ? "LEVEL" : "EDGE";
             String active = isoRecord.flags.activeOnLow ? "LOW" : "HIGH";
+
             logging::debug("Found IOAPIC Override for IRQ #%d to GSI #%d (%s %s)", irq, gsi, trigger, active);
 
             ioapic_set_redirect(gsi, irq, isoRecord.flags);
@@ -125,7 +121,8 @@ fn void? init() {
             char lint = nmiRecord.lintNumber;
             char procId = nmiRecord.acpiProcessorId;
             String trigger = nmiRecord.flags.triggerOnLevel ? "LEVEL" : "EDGE";
-            String active = nmiRecord.flags.activeOnLow ? "LOW" : "HIGH";
+            String active = nmiRecord.flags.activeOnLow ? "LOW" : "HIGH";            
+
             logging::debug("Found Local APIC NMI for LINT #%d on CPU #%d (%s %s)", lint, procId, trigger, active);
 
             // TODO: support multiple CPUs and register NMI on each one
@@ -133,5 +130,19 @@ fn void? init() {
         }
 
         recordPtr = (RecordHeader*)((uptr)recordPtr + recordPtr.length);
-    } 
+    }
+}
+
+fn void? init() {
+    arch::cpu::disable_interrupts();
+
+    madt = (MADTable*)acpi::get_acpi_table(SIGNATURE)!;
+    lapic = vmm::map_mmio(madt.localApicAddr)!;
+    
+    setup_lapic()!;
+
+    pic::remap();
+    pic::disable();
+    
+    parse_madt(madt)!;
 }
