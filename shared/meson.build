@@ -32,5 +32,9 @@ libsharedc3_sources = files(
 
     f'libs/mem/allocator.c3i',
     f'libs/mem/buddy_allocator.c3',
+    
+    f'libs/io/ringbuffer.c3',
+    f'libs/io/stream.c3i',
+
     f'libs/collections/bitmap.c3',
 )

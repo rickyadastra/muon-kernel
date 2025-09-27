@@ -1,0 +1,38 @@
+module std::io::stream;
+
+faultdef FULL, EMPTY;
+
+interface InStream {
+    <*
+        Reads one byte from the stream and returns it
+    *>
+    fn char? get();
+
+    <*
+        Reads up to len bytes from the stream and returns them
+    *>
+    fn char[]? read(usz len);
+
+    <*
+        Returns the number of bytes available to read
+    *>
+    fn usz available();
+}
+
+interface OutStream {
+    <*
+        Writes one byte to the stream
+    *>
+    fn void? put(char c);
+
+    <*
+        Writes data (up to its length) to the stream and returns the number of bytes wrote
+        @require data.len >= 0
+    *>
+    fn usz? write(char[] data);
+
+    <*
+        Forces the write of eventually buffered data to the stream
+    *>
+    fn usz flush();
+}
