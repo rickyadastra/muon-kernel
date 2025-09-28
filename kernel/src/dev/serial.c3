@@ -1,7 +1,5 @@
 module dev::serial;
 
-import arch::mem;
-
 Serial[SerialPort.values.len] serials @local;
 
 fn Serial* of(SerialPort port) {
@@ -42,7 +40,10 @@ fn void Serial.enable_rx(Serial* this) {
     reg.dataAvail = true;
 
     this.port.out8(SerialPortRegister.INTERRUPT_ENABLE.offset, (char)reg);
-    this.rxBuffer = (SerialBuffer*)mem::alloc(SerialBuffer.sizeof);
+}
+
+fn void Serial.set_rx_buffer(Serial* this, SerialBuffer* buf) {
+    this.rxBuffer = buf;
 }
 
 import std::io::stream;

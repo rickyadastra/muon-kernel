@@ -3,6 +3,7 @@ module arch::interrupts;
 import dev;
 import muon::logging;
 import dev::interrupts::apic @public;
+import arch::mem;
 
 enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has_error_code, String name) {
     DIVISION_ERROR          = {0x0, "#DE", FAULT, false, "Divide error"},
@@ -51,6 +52,9 @@ fn void add_interrupt_handler(KnownInterrupt inter, InterruptFlags flags, Interr
 }
 
 fn void init() {
+    // SERIAL COM1: enable rx interrupts, set rx buffer and add interrupt
+    serial::of(SerialPort.COM1).set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
     serial::of(SerialPort.COM1).enable_rx();
+
     add_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, apic::LEVEL_HIGH, @handler_wrapper(&serial::interrupt_handler));
 }
