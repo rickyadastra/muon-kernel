@@ -58,6 +58,7 @@ fn void Serial.get_char_to_buf(&self) @local {
     SerialBuffer* buf = self.rxBuffer;
     char c = self.get();
 
+    // TODO: remove logging
     if (catch e = buf.put(c)) {
         if (e == stream::FULL) {
             logging::printn("flushing... %s", buf.buffer[..]);

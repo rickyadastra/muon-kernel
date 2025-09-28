@@ -37,7 +37,7 @@
 - [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing
    - [x] Interrupt Routing (PIC disable, local APIC configuration)
    - [x] IOAPIC configuration (VMM mapping and MMIO setup)
-   - [ ] UART serial interrupt-based driver (input)
+   - [x] UART serial interrupt-based driver (input)
    - [ ] Local APIC timer for scheduler preemption 
    - [ ] HPET timer for `sleep()` and LAPIC timer calibration
 - [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
