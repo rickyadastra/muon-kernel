@@ -62,7 +62,7 @@ fn IOApic? ioapic_register(IOAPICRecord* ioApicRecord) @local {
     return ioa;
 }
 
-fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char destinationLapicId = lapicId) @private {    
+fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char destinationLapicId = lapicId, bool masked = false) @private {    
     foreach (IOApic ioapic : ioapics[:ioapicCount]) {
         if (gsi >= ioapic.record.globalSystemInterruptBase && gsi < ioapic.record.globalSystemInterruptBase + ioapic.managedIntLines) {
             IOAPICRedirectionEntry redEntry = {
@@ -71,7 +71,7 @@ fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char desti
                 .useLogicalDestination = false,
                 .activeOnLow = flags.activeOnLow,
                 .triggerOnLevel = flags.triggerOnLevel,
-                .masked = false,
+                .masked = masked,
                 .destination = destinationLapicId,
             };
 
@@ -81,6 +81,24 @@ fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char desti
 
             ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2) + 1);
             ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)(((ulong)redEntry >> 32) & uint.max));
+        }
+    }
+}
+
+fn void ioapic_set_mask(uint gsi, bool masked, bool cancelPending) @private {    
+    foreach (IOApic ioapic : ioapics[:ioapicCount]) {
+        if (gsi >= ioapic.record.globalSystemInterruptBase && gsi < ioapic.record.globalSystemInterruptBase + ioapic.managedIntLines) {
+            IOAPICRedirectionEntry entryLow;
+
+            ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2));
+            entryLow = (IOAPICRedirectionEntry)(ulong)ioapic.mmAddr.read32(IOAPIC_REGWIN);
+
+            entryLow.masked = masked;
+            if (cancelPending) entryLow.deliveryStatus = false;
+
+            // register iso to redtbl
+            ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2));
+            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)((ulong)entryLow & uint.max));
         }
     }
 }
@@ -132,6 +150,21 @@ fn void? parse_madt(MADTable* madt) @local {
 
         recordPtr = (RecordHeader*)((uptr)recordPtr + recordPtr.length);
     }
+}
+
+fn uint get_gsi_override(char irq) @private {
+    RecordHeader* recordPtr = &madt.firstRecord;
+    while ((uptr)recordPtr < ((uptr)madt + madt.length)) {
+        if (recordPtr.type == RecordType.IO_APIC_ISO) {
+            IOAPICSourceOverrideRecord* isoRecord = (IOAPICSourceOverrideRecord*)recordPtr;
+
+            if (isoRecord.irqSource == irq) return isoRecord.globalSystemInterrupt;
+        }
+
+        recordPtr = (RecordHeader*)((uptr)recordPtr + recordPtr.length);
+    }
+
+    return irq;
 }
 
 fn void? init() {
