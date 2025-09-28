@@ -15,10 +15,10 @@ fn void init(BootloaderPayload* payload) {
     gdt::install();
     logging::printn("GDT install complete");
 
-    interrupts::setup();
+    idt::setup();
     logging::printn("IDT setup complete");
 
-    interrupts::install();
+    idt::install();
     logging::printn("IDT install complete");
 
     cpu::cpuid::enable()!!;

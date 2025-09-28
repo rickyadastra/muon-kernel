@@ -1,5 +1,7 @@
 module arch::interrupts;
 
+import arch::cpu::idt;
+
 attrdef @IntRoutine = @noreturn, @naked;
 
 macro pushall() @local {
@@ -74,10 +76,6 @@ fn void interrupt_routine() @IntRoutine @private @export @extern("interrupt_rout
     }
 }
 
-fn void idt_load(IDTRegister* reg) {
-    asm("lidt (%rdi)");
-}
-
 macro @irq_body(char #num, $exc) @local {
     $if (#num >= KnownInterrupt.len) ||| !(KnownInterrupt.from_ordinal(#num).has_error_code):
         asm { push 0xff; } // push dummy error code if interrupt has none
@@ -105,5 +103,5 @@ macro InterruptHandler[*] construct_irqs($n) {
     return $irqs;
 }
 
-const usz IRQS = IDT_ENTRIES;
+const usz IRQS = idt::IDT_ENTRIES;
 InterruptHandler[*] irqs = construct_irqs(IRQS);
