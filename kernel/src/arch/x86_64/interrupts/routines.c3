@@ -103,5 +103,4 @@ macro InterruptHandler[*] construct_irqs($n) {
     return $irqs;
 }
 
-const usz IRQS = idt::IDT_ENTRIES;
 InterruptHandler[*] irqs = construct_irqs(IRQS);

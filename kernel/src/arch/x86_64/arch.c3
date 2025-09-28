@@ -35,6 +35,8 @@ fn void init(BootloaderPayload* payload) {
     apic::init()!!;
     logging::printn("APIC init complete");
 
+    interrupts::init();
+
     // logging::@catch_or_log(hpet::init(), "HPET init complete");
 }
 

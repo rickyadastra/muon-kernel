@@ -2,6 +2,10 @@ module arch::interrupts;
 
 import arch::cpu;
 
+alias InterruptHandlerFn = fn InterruptStack*(InterruptStack*);
+
+const usz IRQS = idt::IDT_ENTRIES;
+
 enum InterruptType : char {
     FAULT,
     TRAP,

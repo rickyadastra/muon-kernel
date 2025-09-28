@@ -5,6 +5,13 @@ import arch::mem @public;
 import arch::cpu::gdt;
 import dev::interrupts::apic;
 
+InterruptHandlerFn[IRQS] handlers @private;
+
+macro InterruptHandlerFn @handler_wrapper($fn) => fn (InterruptStack* stack) {
+    $fn();
+    return stack;
+};
+
 macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
     logging::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
     logging::printn(" rax: %x  rbx: %x  rcx: %x  rdx: %x", #stack.rax, #stack.rbx, #stack.rcx, #stack.rdx);
@@ -36,7 +43,13 @@ fn InterruptStack* exception_handler(InterruptStack* stack) @private {
 }
 
 fn InterruptStack* interrupt_handler(InterruptStack* stack) @private {
-    logging::printn("interrupt %d", stack.irq);
+    InterruptHandlerFn func = handlers[stack.irq];
+    
+    if (func != null) {
+        stack = func(stack);
+    } else {
+        logging::debug("interrupt %d", stack.irq);
+    }
 
     apic::lapic_eoi();
     return stack;

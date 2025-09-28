@@ -1,6 +1,8 @@
 module arch::interrupts;
 
-import arch::cpu::gdt;
+import dev;
+import muon::logging;
+import dev::interrupts::apic @public;
 
 enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has_error_code, String name) {
     DIVISION_ERROR          = {0x0, "#DE", FAULT, false, "Divide error"},
@@ -26,8 +28,10 @@ enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has
     VIRTUALIZATION_EXC      = {0x14, "#VE", FAULT, false, "Virtualization Exception"},
     CONTROL_PROTECTION_EXC  = {0x15, "#CP", FAULT, true, "Control Protection Exception"},
     // 22..31 reserved
-    APIC_TIMER              = {0x30, "N/A", INTERRUPT, false, "APIC Timer Interrupt"},
-    SPURIOUS_INTERRUPT      = {0xff, "N/A", INTERRUPT, false, "Spurious Interrupt"},
+    SERIAL_COM2_COM4        = {0x23, "", INTERRUPT, false, "COM2/4 Interrupt"},
+    SERIAL_COM1_COM3        = {0x24, "", INTERRUPT, false, "COM1/3 Interrupt"},
+    APIC_TIMER              = {0x30, "", INTERRUPT, false, "APIC Timer Interrupt"},
+    SPURIOUS_INTERRUPT      = {0xff, "", INTERRUPT, false, "Spurious Interrupt"},
 }
 
 const uint EXCEPTIONS = KnownInterrupt.CONTROL_PROTECTION_EXC.ordinal+1;
@@ -35,3 +39,18 @@ const uint EXCEPTIONS = KnownInterrupt.CONTROL_PROTECTION_EXC.ordinal+1;
 const KnownInterrupt[*] KERNEL_HANDLED_INTS = { 
     DOUBLE_FAULT, PAGE_FAULT, GENERAL_PROTECTION, APIC_TIMER,
 };
+
+<*
+    @require handler != null
+*>
+fn void add_interrupt_handler(KnownInterrupt inter, InterruptFlags flags, InterruptHandlerFn handler) {
+    apic::ioapic_set_redirect(inter.num - apic::LEGACY_IRQ_BASE, inter.num - apic::LEGACY_IRQ_BASE, flags);
+    handlers[inter.num] = handler;
+
+    logging::debug("Registering new interrupt handler for vector %d @ %x", inter.num, handler);
+}
+
+fn void init() {
+    serial::of(SerialPort.COM1).enable_rx();
+    add_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, apic::LEVEL_HIGH, @handler_wrapper(&serial::interrupt_handler));
+}
