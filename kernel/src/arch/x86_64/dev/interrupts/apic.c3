@@ -9,6 +9,7 @@ import muon::logging;
 
 const uint SPURIOUS_INTERR_VECTOR_VALUE = 0x100 | KnownInterrupt.SPURIOUS_INTERRUPT.num; // 0x100: enable APIC
 const usz MAX_IOAPIC_COUNT = 8;
+const uint LEGACY_IRQ_REMAP_BASE = 0x20;
 
 MADTable* madt @local;
 MemIO lapic @local;
@@ -65,7 +66,7 @@ fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char desti
     foreach (IOApic ioapic : ioapics[:ioapicCount]) {
         if (gsi >= ioapic.record.globalSystemInterruptBase && gsi < ioapic.record.globalSystemInterruptBase + ioapic.managedIntLines) {
             IOAPICRedirectionEntry redEntry = {
-                .vector = 0x20 + irq,
+                .vector = LEGACY_IRQ_REMAP_BASE + irq,
                 .deliveryMode = DeliveryMode.FIXED,
                 .useLogicalDestination = false,
                 .activeOnLow = flags.activeOnLow,
