@@ -29,6 +29,7 @@ enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has
     VIRTUALIZATION_EXC      = {0x14, "#VE", FAULT, false, "Virtualization Exception"},
     CONTROL_PROTECTION_EXC  = {0x15, "#CP", FAULT, true, "Control Protection Exception"},
     // 22..31 reserved
+    LEGACY_PIT              = {0x20, "", INTERRUPT, false, "Legacy PIT Interrupt"},
     SERIAL_COM2_COM4        = {0x23, "", INTERRUPT, false, "COM2/4 Interrupt"},
     SERIAL_COM1_COM3        = {0x24, "", INTERRUPT, false, "COM1/3 Interrupt"},
     APIC_TIMER              = {0x30, "", INTERRUPT, false, "APIC Timer Interrupt"},
@@ -45,13 +46,27 @@ const KnownInterrupt[*] KERNEL_HANDLED_INTS = {
     @require handler != null
 *>
 fn void add_interrupt_handler(KnownInterrupt inter, InterruptFlags flags, InterruptHandlerFn handler) {
-    apic::ioapic_set_redirect(inter.num - apic::LEGACY_IRQ_BASE, inter.num - apic::LEGACY_IRQ_BASE, flags);
+    char irq = inter.num - apic::LEGACY_IRQ_BASE;
+    uint gsi = apic::get_gsi_override(irq);
+
+    apic::ioapic_set_redirect(gsi, irq, flags);
     handlers[inter.num] = handler;
 
-    logging::debug("Registering new interrupt handler for vector %d @ %x", inter.num, handler);
+    logging::debug("Registering new interrupt handler for %s, vector %d @ %x", inter.nameof, inter.num, handler);
+}
+
+fn void set_interrupt_mask(KnownInterrupt inter, bool val, bool cancelPending = false) {
+    uint gsi = apic::get_gsi_override(inter.num - apic::LEGACY_IRQ_BASE);
+
+    apic::ioapic_set_mask(gsi, val, cancelPending);
+
+    logging::debug("%sasking interrupt line for %s, vector %d", val ? "M" : "Unm", inter.nameof, inter.num);
 }
 
 fn void init() {
+    // LEGACY PIT: mask interrupts
+    set_interrupt_mask(KnownInterrupt.LEGACY_PIT, true, cancelPending: true);
+
     // SERIAL COM1: enable rx interrupts, set rx buffer and add interrupt
     serial::of(SerialPort.COM1).set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
     serial::of(SerialPort.COM1).enable_rx();
