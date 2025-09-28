@@ -22,6 +22,10 @@ fn bool Serial.can_write(Serial* this) {
     return ((LineStatusRegister) this.port.in8(SerialPortRegister.LINE_STATUS.offset)).can_send_data;
 }
 
+fn bool Serial.can_read(Serial* this) {
+    return ((LineStatusRegister) this.port.in8(SerialPortRegister.LINE_STATUS.offset)).data_ready; 
+}
+
 fn void Serial.put(Serial* this, char c) {
     while (!this.can_write());
     this.port.out8(SerialPortRegister.TRANSMIT_BUFFER.offset, c);
@@ -48,11 +52,11 @@ fn void Serial.set_rx_buffer(Serial* this, SerialBuffer* buf) {
 
 import std::io::stream;
 import muon::logging;
+import arch::interrupts;
 
-fn void interrupt_handler() {
-    Serial* com1 = serial::of(SerialPort.COM1);
-    SerialBuffer* buf = com1.rxBuffer;
-    char c = com1.get();
+fn void Serial.get_char_to_buf(&self) @local {
+    SerialBuffer* buf = self.rxBuffer;
+    char c = self.get();
 
     if (catch e = buf.put(c)) {
         if (e == stream::FULL) {
@@ -63,4 +67,15 @@ fn void interrupt_handler() {
     }
 
     logging::printn("got %c, buffer is: '%s' (%d)", c, buf.buffer[..], buf.available());
+}
+ 
+fn void interrupt_handler(ulong irq) {
+    Serial* serial;
+    if (irq == KnownInterrupt.SERIAL_COM1_COM3.num) {
+        if ((serial = serial::of(SerialPort.COM1)).can_read()) serial.get_char_to_buf();
+        if ((serial = serial::of(SerialPort.COM3)).can_read()) serial.get_char_to_buf();
+    } else if (irq == KnownInterrupt.SERIAL_COM2_COM4.num) {
+        if ((serial = serial::of(SerialPort.COM2)).can_read()) serial.get_char_to_buf();
+        if ((serial = serial::of(SerialPort.COM4)).can_read()) serial.get_char_to_buf();
+    }
 }
