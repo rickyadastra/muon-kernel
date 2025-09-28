@@ -3,7 +3,7 @@ module muon::logging;
 import dev::serial;
 import string::formatting;
 
-Serial serial @private;
+Serial* serial @private;
 const SerialPort LOG_PORT = SerialPort.COM1;
 
 macro void @throw_excuse(#excuse, #msg) @private {
@@ -60,6 +60,7 @@ fn void panic(String reason, String file = "", String function = "", uint line =
 }
 
 fn void init() {
+    serial = serial::of(SerialPort.COM1);
     serial.setup(SerialPort.COM1);
     printn("Serial port setup complete");
 }

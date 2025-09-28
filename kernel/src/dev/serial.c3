@@ -1,5 +1,13 @@
 module dev::serial;
 
+import arch::mem;
+
+Serial[SerialPort.values.len] serials @local;
+
+fn Serial* of(SerialPort port) {
+    return &(serials[port.ordinal]);
+}
+
 fn void Serial.setup(Serial* this, SerialPort port) {
     this.port = port.value;
 
@@ -23,4 +31,35 @@ fn void Serial.put(Serial* this, char c) {
 
 fn void Serial.write(Serial* this, char[] s) {
     for (usz i = 0; i < s.len; i++) this.put(s[i]);
+}
+
+fn char Serial.get(Serial* this) {
+    return this.port.in8(SerialPortRegister.RECEIVE_BUFFER.offset);
+}
+
+fn void Serial.enable_rx(Serial* this) {
+    InterruptEnableRegister reg = (InterruptEnableRegister)this.port.in8(SerialPortRegister.INTERRUPT_ENABLE.offset);
+    reg.dataAvail = true;
+
+    this.port.out8(SerialPortRegister.INTERRUPT_ENABLE.offset, (char)reg);
+    this.rxBuffer = (SerialBuffer*)mem::alloc(SerialBuffer.sizeof);
+}
+
+import std::io::stream;
+import muon::logging;
+
+fn void interrupt_handler() {
+    Serial* com1 = serial::of(SerialPort.COM1);
+    SerialBuffer* buf = com1.rxBuffer;
+    char c = com1.get();
+
+    if (catch e = buf.put(c)) {
+        if (e == stream::FULL) {
+            logging::printn("flushing... %s", buf.buffer[..]);
+            buf.flush();
+        }
+        buf.put(c)!!;
+    }
+
+    logging::printn("got %c, buffer is: '%s' (%d)", c, buf.buffer[..], buf.available());
 }
