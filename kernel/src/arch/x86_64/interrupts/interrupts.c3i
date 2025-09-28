@@ -3,6 +3,7 @@ module arch::interrupts;
 import arch::cpu;
 
 alias InterruptHandlerFn = fn InterruptStack*(InterruptStack*);
+alias SimpleInterruptHandlerFn = fn void(ulong irq);
 
 const usz IRQS = idt::IDT_ENTRIES;
 

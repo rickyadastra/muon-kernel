@@ -7,8 +7,8 @@ import dev::interrupts::apic;
 
 InterruptHandlerFn[IRQS] handlers @private;
 
-macro InterruptHandlerFn @handler_wrapper($fn) => fn (InterruptStack* stack) {
-    $fn();
+macro InterruptHandlerFn @handler_wrapper(SimpleInterruptHandlerFn $fn) => fn (InterruptStack* stack) {
+    $fn(stack.irq);
     return stack;
 };
 
