@@ -24,7 +24,7 @@ fn void print(String format, args..., char terminator = '\0') {
     }
 
     serial.write(f);
-    serial.put(terminator);
+    if (terminator != '\0') serial.put(terminator);
 }
 
 macro void debug(String format, args..., char terminator = '\n') {
