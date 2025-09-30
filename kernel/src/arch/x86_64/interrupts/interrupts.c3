@@ -1,8 +1,9 @@
 module arch::interrupts;
 
 import dev;
-import muon::logging;
+import dev::timing;
 import dev::interrupts::apic @public;
+import muon::logging;
 import arch::mem;
 
 enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has_error_code, String name) {
@@ -32,6 +33,7 @@ enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has
     LEGACY_PIT              = {0x20, "", INTERRUPT, false, "Legacy PIT Interrupt"},
     SERIAL_COM2_COM4        = {0x23, "", INTERRUPT, false, "COM2/4 Interrupt"},
     SERIAL_COM1_COM3        = {0x24, "", INTERRUPT, false, "COM1/3 Interrupt"},
+    CMOS_RTC                = {0x28, "", INTERRUPT, false, "CMOS RTC Interrupt"},
     APIC_TIMER              = {0x30, "", INTERRUPT, false, "APIC Timer Interrupt"},
     SPURIOUS_INTERRUPT      = {0xff, "", INTERRUPT, false, "Spurious Interrupt"},
 }
@@ -70,6 +72,9 @@ fn void init() {
     // SERIAL COM1: enable rx interrupts, set rx buffer and add interrupt
     serial::of(SerialPort.COM1).set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
     serial::of(SerialPort.COM1).enable_rx();
-
     add_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, apic::LEVEL_HIGH, @handler_wrapper(&serial::interrupt_handler));
+
+    // RTC: enable update interrupt and set wallclock callback
+    rtc::enable_update_interrupt();
+    add_interrupt_handler(KnownInterrupt.CMOS_RTC, apic::EDGE_HIGH, @handler_wrapper(&timing::get_wallclock_callback));
 }

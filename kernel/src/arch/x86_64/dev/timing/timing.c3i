@@ -1,0 +1,3 @@
+module dev::timing;
+
+faultdef WALLCLOCK_NOT_SET;
