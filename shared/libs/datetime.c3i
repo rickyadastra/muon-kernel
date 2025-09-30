@@ -1,0 +1,19 @@
+module datetime;
+
+faultdef INVALID_YEAR;
+
+const uint NORMAL_YEAR_DAYS = 365;
+const uint LEAP_YEAR_DAYS = NORMAL_YEAR_DAYS+1;
+const uint[13] DAYS_IN_MONTH = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+const ulong SECONDS_IN_DAY = 86400;
+const ulong SECONDS_IN_HOUR = 3600;
+const ulong SECONDS_IN_MINUTE = 60;
+
+struct Datetime {
+    uint year;
+    uint month;
+    uint day;
+    uint hour;
+    uint minute;
+    uint second;
+}
