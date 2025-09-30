@@ -1,0 +1,44 @@
+module dev::timing::rtc;
+
+faultdef UPDATE_IN_PROGRESS;
+
+const uint RTC_PORT = 0x70;
+const uint RTC_REGSEL_OFFSET = 0x00;
+const uint RTC_REGDATA_OFFSET = 0x01;
+const uint RTC_DISABLE_NMI = 0x80;
+
+const ulong BASE_YEAR = 2000;
+
+enum RTCRegister : const uint {
+    SECONDS         = 0x00,
+    SECONDS_ALARM   = 0x01,
+    MINUTES         = 0x02,
+    MINUTES_ALARM   = 0x03,
+    HOURS           = 0x04,
+    HOURS_ALARM     = 0x05,
+    WEEKDAY         = 0x06,
+    DAY             = 0x07,
+    MONTH           = 0x08,
+    YEAR            = 0x09,
+    STATUS_A        = 0x0a,
+    STATUS_B        = 0x0b,
+    STATUS_C        = 0x0c,
+    STATUS_D        = 0x0d,
+}
+
+bitstruct RTCStatusRegA : char {
+    char rateDivider : 0..3;
+    char timeBaseDivider : 4..6;
+    bool updateInProgress : 7;
+}
+
+bitstruct RTCStatusRegB : char {
+    bool enableDaylightSavings : 0;
+    bool enableHourMode24 : 1;
+    bool enableBinaryFormat : 2;
+    bool enableSquareWave : 3;
+    bool enableUpdateEndInterrupt : 4;
+    bool enableAlarmInterrupt : 5;
+    bool enablePeriodicInterrupt : 6;
+    bool disableClockUpdate : 7;
+}
