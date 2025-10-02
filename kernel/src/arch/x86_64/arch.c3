@@ -8,6 +8,8 @@ import dev;
 fn void init(BootloaderPayload* payload) {
     uptr rsdpAddr = payload.rsdpAddr;
 
+    arch::cpu::disable_interrupts();
+
     // Foundations
     gdt::setup(payload.stack.base);
     logging::printn("GDT setup complete");
@@ -40,8 +42,6 @@ fn void init(BootloaderPayload* payload) {
     timing::hpet::init()!!;
 
     interrupts::init();
-
-    // logging::@catch_or_log(hpet::init(), "HPET init complete");
 }
 
 macro void panic() {
