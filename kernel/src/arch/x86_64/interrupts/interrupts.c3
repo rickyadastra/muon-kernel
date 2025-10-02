@@ -5,6 +5,7 @@ import dev::timing;
 import dev::interrupts::apic @public;
 import muon::logging;
 import arch::mem;
+import arch::cpu;
 
 enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has_error_code, String name) {
     DIVISION_ERROR          = {0x0, "#DE", FAULT, false, "Divide error"},
@@ -35,6 +36,7 @@ enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has
     SERIAL_COM1_COM3        = {0x24, "", INTERRUPT, false, "COM1/3 Interrupt"},
     CMOS_RTC                = {0x28, "", INTERRUPT, false, "CMOS RTC Interrupt"},
     APIC_TIMER              = {0x30, "", INTERRUPT, false, "APIC Timer Interrupt"},
+    HPET_TIMER0             = {0x31, "", INTERRUPT, false, "HPET Timer #0 Interrupt"},
     SPURIOUS_INTERRUPT      = {0xff, "", INTERRUPT, false, "Spurious Interrupt"},
 }
 
@@ -77,4 +79,10 @@ fn void init() {
     // RTC: enable update interrupt and set wallclock callback
     rtc::enable_update_interrupt();
     add_interrupt_handler(KnownInterrupt.CMOS_RTC, apic::EDGE_HIGH, @handler_wrapper(&timing::get_wallclock_callback));
+
+    // HPET: set default handler for timer #0
+    add_interrupt_handler(KnownInterrupt.HPET_TIMER0, apic::LEVEL_HIGH, @handler_wrapper(&timing::hpet::timer_fired));
+
+    // enable interrupts
+    arch::cpu::enable_interrupts();
 }
