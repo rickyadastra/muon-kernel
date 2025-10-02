@@ -68,6 +68,7 @@ fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char desti
             IOAPICRedirectionEntry redEntry = {
                 .vector = LEGACY_IRQ_BASE + irq,
                 .deliveryMode = DeliveryMode.FIXED,
+                .deliveryStatus = false,
                 .useLogicalDestination = false,
                 .activeOnLow = flags.activeOnLow,
                 .triggerOnLevel = flags.triggerOnLevel,
@@ -101,6 +102,24 @@ fn void ioapic_set_mask(uint gsi, bool masked, bool cancelPending) @private {
             ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)((ulong)entryLow & uint.max));
         }
     }
+}
+
+fn IOAPICRedirectionEntry ioapic_get_redirect(uint gsi) {
+    foreach (IOApic ioapic : ioapics[:ioapicCount]) {
+        if (gsi >= ioapic.record.globalSystemInterruptBase && gsi < ioapic.record.globalSystemInterruptBase + ioapic.managedIntLines) {
+            uint low, high;
+
+            ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2));
+            low = ioapic.mmAddr.read32(IOAPIC_REGWIN);
+
+            ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2) + 1);
+            high = ioapic.mmAddr.read32(IOAPIC_REGWIN);
+
+            return (IOAPICRedirectionEntry)((ulong)high << 32 | low);
+        }
+    }
+
+    return {};
 }
 
 fn void? parse_madt(MADTable* madt) @local {
