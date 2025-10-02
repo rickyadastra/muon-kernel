@@ -48,7 +48,7 @@ fn InterruptStack* interrupt_handler(InterruptStack* stack) @private {
     if (func != null) {
         stack = func(stack);
     } else {
-        logging::debug("interrupt %d", stack.irq);
+        logging::debug("unhandled interrupt %d", stack.irq);
     }
 
     apic::lapic_eoi();

@@ -46,15 +46,12 @@ const KnownInterrupt[*] KERNEL_HANDLED_INTS = {
     DOUBLE_FAULT, PAGE_FAULT, GENERAL_PROTECTION, APIC_TIMER,
 };
 
-<*
-    @require handler != null
-*>
-fn void add_interrupt_handler(KnownInterrupt inter, InterruptFlags flags, InterruptHandlerFn handler) {
+fn void add_interrupt_handler(KnownInterrupt inter, InterruptFlags flags, InterruptHandlerFn handler = null) {
     char irq = inter.num - apic::LEGACY_IRQ_BASE;
     uint gsi = apic::get_gsi_override(irq);
 
     apic::ioapic_set_redirect(gsi, irq, flags);
-    handlers[inter.num] = handler;
+    if (handler != null) handlers[inter.num] = handler;
 
     logging::debug("Registering new interrupt handler for %s, vector %d @ %x", inter.nameof, inter.num, handler);
 }
