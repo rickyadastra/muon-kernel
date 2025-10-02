@@ -44,14 +44,14 @@ macro popall() @local {
     };
 }
 
-alias InterruptHandler = fn void();
+alias InterruptVoidFn = fn void();
 
 fn void exception_routine() @IntRoutine @private @export @extern("exception_routine") {
     asm { cld; }
     pushall();
 
     asm { movq $rdi, $rsp; }
-    ((InterruptHandler)&exception_handler)();
+    ((InterruptVoidFn)&exception_handler)();
     asm { movq $rsp, $rax; }
 
     popall();
@@ -66,7 +66,7 @@ fn void interrupt_routine() @IntRoutine @private @export @extern("interrupt_rout
     pushall();
 
     asm { movq $rdi, $rsp; }
-    ((InterruptHandler)&interrupt_handler)();
+    ((InterruptVoidFn)&interrupt_handler)();
     asm { movq $rsp, $rax; }
 
     popall();
@@ -89,12 +89,12 @@ macro @irq_body(char #num, $exc) @local {
     $endif
 }
 
-macro InterruptHandler @irq($i, $exc) {
+macro InterruptVoidFn @irq($i, $exc) {
     return fn () @IntRoutine { @irq_body($i, $exc); };
 }
 
-macro InterruptHandler[*] construct_irqs($n) {
-    InterruptHandler[$n] $irqs;
+macro InterruptVoidFn[*] construct_irqs($n) {
+    InterruptVoidFn[$n] $irqs;
 
     $for var $i = 0; $i < $n; $i++:
         $irqs[$i] = @irq($i, $i < 32);
@@ -103,4 +103,4 @@ macro InterruptHandler[*] construct_irqs($n) {
     return $irqs;
 }
 
-InterruptHandler[*] irqs = construct_irqs(IRQS);
+InterruptVoidFn[*] irqs = construct_irqs(IRQS);

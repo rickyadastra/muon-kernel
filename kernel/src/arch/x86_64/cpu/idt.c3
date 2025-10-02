@@ -6,7 +6,7 @@ import arch::interrupts;
 const usz IDT_ENTRIES = 256;
 GateDescriptor[IDT_ENTRIES] idt @private;
 
-fn GateDescriptor construct_descriptor(uint irq, InterruptHandler handler, char ist = 0, GateType type,
+fn GateDescriptor construct_descriptor(uint irq, InterruptVoidFn handler, char ist = 0, GateType type,
                                        PrivilegeLevel privilege_level = KERNEL, bool present = true) @private {
     return {
         .offset_low = (ushort)((uptr)handler & 0xffff),
