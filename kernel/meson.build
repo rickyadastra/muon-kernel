@@ -64,6 +64,7 @@ muon_sources = [
 
     f'src/arch/@arch@/dev/timing/hpet.c3',
     f'src/arch/@arch@/dev/timing/hpet.c3i',
+    f'src/arch/@arch@/dev/timing/pit.c3',
     f'src/arch/@arch@/dev/timing/rtc.c3',
     f'src/arch/@arch@/dev/timing/rtc.c3i',
     f'src/arch/@arch@/dev/timing/timing.c3',

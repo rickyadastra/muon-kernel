@@ -29,6 +29,8 @@ fn void init(BootloaderPayload* payload) {
     logging::printn("Memory manager init complete");
 
     // Interrupts and Timing
+    timing::pit::disable();
+
     acpi::init(rsdpAddr)!!;
     logging::printn("ACPI init complete");
 
