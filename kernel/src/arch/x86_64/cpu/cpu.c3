@@ -16,6 +16,7 @@ macro void pause() { asm("pause"); }
 
 enum ModelSpecificRegister : const uint {
     APIC =              0x1b,
+    TSC_DEADLINE =      0x6e0,
     EFER =              0xC0000080,
     STAR =              0xC0000081,
     LSTAR =             0xC0000082,

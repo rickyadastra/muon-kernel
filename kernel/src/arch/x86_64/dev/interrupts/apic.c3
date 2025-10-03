@@ -4,6 +4,7 @@ import arch;
 import dev::acpi;
 import dev::mmio;
 import dev::interrupts;
+import dev::timing;
 import mem::vmm;
 import muon::logging;
 
@@ -184,6 +185,28 @@ fn uint get_gsi_override(char irq) @private {
     }
 
     return irq;
+}
+
+fn void timer_enable(APICTimerMode mode) @private {
+    LocalVectorEntry lvt = {
+        .vector = KnownInterrupt.APIC_TIMER.num,
+        .masked = false,
+        .timerMode = mode,
+    };
+
+    @lapic_write(LAPICRegister.LVT_TIMER, (uint)lvt);
+}
+
+fn void APICTscTimer.set(&self, ulong delta, TimerCallbackFn callback = null) @dynamic {
+    cpu::write_msr(ModelSpecificRegister.TSC_DEADLINE, cpu::read_tsc()+delta);
+}
+
+fn void APICTscTimer.cancel(&self) @dynamic {
+    cpu::write_msr(ModelSpecificRegister.TSC_DEADLINE, 0); // writing 0 disarms the local-APIC timer
+}
+
+fn double APICTscTimer.get_frequency(&self) @dynamic {
+    return self.frequency;
 }
 
 fn void? init() {
