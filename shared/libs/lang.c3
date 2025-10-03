@@ -60,3 +60,17 @@ macro bitcast(expr, $Type) @builtin {
 		return x;
 	$endif
 }
+
+extern char[] __init_array_start;
+extern char[] __init_array_end;
+
+alias DynamicRegisterFn = fn void();
+
+fn void init_runtime() {
+    usz count = ((ulong)&__init_array_end - (ulong)&__init_array_start) / DynamicRegisterFn.sizeof;
+    DynamicRegisterFn[] initArray = ((DynamicRegisterFn*)&__init_array_start)[:count];
+
+    foreach (DynamicRegisterFn func : initArray) {
+        func();
+    }
+}
