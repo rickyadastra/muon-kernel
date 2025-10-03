@@ -3,10 +3,13 @@ module dev::timing;
 import datetime;
 import muon::logging;
 import arch::cpu;
+import arch::interrupts;
+import arch::mem;
 import dev::timing::hpet @public;
+import dev::interrupts::apic @public;
 
 uint128? wallclock @local = WALLCLOCK_NOT_SET?;
-double tscFrequency @local;
+Timer timer @local;
 
 fn void get_wallclock_callback(ulong irq) {
     if (try utime = rtc::get_datetime().seconds_since_epoch()) {
@@ -30,11 +33,34 @@ fn double get_tsc_frequency_with_hpet() @local {
     return (tscDelta * hpet::frequency) / (double)hpetDelta;
 }
 
-fn void? calibrate() {
-    tscFrequency = get_tsc_frequency_with_hpet();
-    logging::printn("TSC freq: %f GHz", tscFrequency / 1e9);
+fn void setup_tsc_deadline_timer(double frequency) {
+    // set up apic timer in tsc-deadline
+    apic::timer_enable(APICTimerMode.TSC_DEADLINE);
 
-    if (cpuid::query_tsc_deadline_support()!) {
-        logging::printn("supported");
-    }
+    // set timer interface
+    APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer.sizeof);
+    apicTimer.frequency = frequency;
+    timer = (Timer)apicTimer;
+}
+
+fn void? calibrate() {   
+    if (!cpuid::query_tsc_deadline_support()!) return TIMER_UNSUPPORTED?;
+
+    double tscFrequency = get_tsc_frequency_with_hpet();
+    logging::debug("TSC frequency: %f GHz", tscFrequency / 1e9);
+
+    setup_tsc_deadline_timer(tscFrequency);
+}
+
+fn void schedule_nano(ulong nano, TimerCallbackFn callback) {
+    ulong deltaTicks = (ulong) (nano * (timer.get_frequency() / 1e9));
+    timer.set(deltaTicks, callback);
+}
+
+fn void schedule_micro(ulong micro, TimerCallbackFn callback) => schedule_nano(micro * 1_000, callback);
+fn void schedule_milli(ulong milli, TimerCallbackFn callback) => schedule_nano(milli * 1_000_000, callback);
+
+fn InterruptStack* timer_fired(InterruptStack* stack) @private {
+    logging::printn("Timer fired!");
+    return stack;
 }

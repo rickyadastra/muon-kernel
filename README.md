@@ -38,8 +38,8 @@
    - [x] Interrupt Routing (PIC disable, local APIC configuration)
    - [x] IOAPIC configuration (VMM mapping and MMIO setup)
    - [x] UART serial interrupt-based driver (input)
-   - [ ] Local APIC timer for scheduler preemption 
-   - [ ] HPET timer for `sleep()` and LAPIC timer calibration
+   - [x] HPET timer for LAPIC timer calibration
+   - [ ] Local APIC timer for scheduler preemption and `sleep()`
 - [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
    - [ ] Task/Thread structure with context and stack
    - [ ] Cooperative `yield()` function 

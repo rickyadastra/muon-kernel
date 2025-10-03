@@ -42,6 +42,11 @@ fn void init(BootloaderPayload* payload) {
     timing::hpet::init()!!;
 
     interrupts::init();
+    logging::printn("Interrupts init complete");
+
+    timing::calibrate()!!;
+    logging::printn("Timer calibration complete");
+
 }
 
 macro void panic() {
