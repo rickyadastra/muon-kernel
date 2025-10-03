@@ -18,6 +18,7 @@ trampolineStart:
     cli
 
     movq %r9, %rdi
+    sub $8, %rsp        # ensure 16 byte stack alignment
     pushq %r8
     retq
     hlt
