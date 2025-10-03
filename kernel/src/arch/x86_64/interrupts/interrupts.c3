@@ -1,7 +1,7 @@
 module arch::interrupts;
 
 import dev;
-import dev::timing;
+import dev::timing @public;
 import dev::interrupts::apic @public;
 import muon::logging;
 import arch::mem;
@@ -46,14 +46,19 @@ const KnownInterrupt[*] KERNEL_HANDLED_INTS = {
     DOUBLE_FAULT, PAGE_FAULT, GENERAL_PROTECTION, APIC_TIMER,
 };
 
-fn void add_interrupt_handler(KnownInterrupt inter, InterruptFlags flags, InterruptHandlerFn handler = null) {
+fn void set_interrupt_handler(KnownInterrupt inter, InterruptHandlerFn handler = null) {    
+    handlers[inter.num] = handler;
+    
+    logging::debug("Registering new interrupt handler for %s, vector %d @ %x", inter.nameof, inter.num, handler);
+}
+
+fn void set_interrupt_routing(KnownInterrupt inter, InterruptFlags flags) {
     char irq = inter.num - apic::LEGACY_IRQ_BASE;
     uint gsi = apic::get_gsi_override(irq);
 
     apic::ioapic_set_redirect(gsi, irq, flags);
-    if (handler != null) handlers[inter.num] = handler;
 
-    logging::debug("Registering new interrupt handler for %s, vector %d @ %x", inter.nameof, inter.num, handler);
+    logging::debug("Registering new interrupt routing for %s, vector %d to gsi %d", inter.nameof, inter.num, gsi);
 }
 
 fn void set_interrupt_mask(KnownInterrupt inter, bool val, bool cancelPending = false) {
@@ -71,14 +76,20 @@ fn void init() {
     // SERIAL COM1: enable rx interrupts, set rx buffer and add interrupt
     serial::of(SerialPort.COM1).set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
     serial::of(SerialPort.COM1).enable_rx();
-    add_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, apic::LEVEL_HIGH, @handler_wrapper(&serial::interrupt_handler));
+    set_interrupt_routing(KnownInterrupt.SERIAL_COM1_COM3, apic::LEVEL_HIGH);
+    set_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, @handler_wrapper(&serial::interrupt_handler));
 
     // RTC: enable update interrupt and set wallclock callback
     rtc::enable_update_interrupt();
-    add_interrupt_handler(KnownInterrupt.CMOS_RTC, apic::EDGE_HIGH, @handler_wrapper(&timing::get_wallclock_callback));
+    set_interrupt_routing(KnownInterrupt.CMOS_RTC, apic::EDGE_HIGH);
+    set_interrupt_handler(KnownInterrupt.CMOS_RTC, @handler_wrapper(&timing::get_wallclock_callback));
 
     // HPET: set default handler for timer #0
-    add_interrupt_handler(KnownInterrupt.HPET_TIMER0, apic::LEVEL_HIGH, @handler_wrapper(&timing::hpet::timer_fired));
+    set_interrupt_routing(KnownInterrupt.HPET_TIMER0, apic::LEVEL_HIGH);
+    set_interrupt_handler(KnownInterrupt.HPET_TIMER0, @handler_wrapper(&timing::hpet::timer_fired));
+
+    // APIC timer: set handler
+    set_interrupt_handler(KnownInterrupt.APIC_TIMER, &timing::timer_fired);
 
     // enable interrupts
     arch::cpu::enable_interrupts();
