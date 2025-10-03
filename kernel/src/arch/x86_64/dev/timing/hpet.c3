@@ -4,6 +4,7 @@ import dev::acpi;
 import dev::mmio;
 import muon::logging;
 import mem::vmm;
+import arch::cpu;
 
 HPETTable hpetTable @local;
 MemIO hpetMmio @local;
@@ -69,6 +70,10 @@ macro ulong @femto_to_ticks(usz #femto) {
     return ticks;
 }
 
+macro ulong get_counter() {
+    return @hpet_read(HPETRegister.MAIN_COUNTER_VALUE);
+}
+
 <*
     @require timer <= timerCount
 *>
@@ -79,7 +84,7 @@ fn void set_oneshot_millis(usz timer, double millis) {
     reg.enableInterrupt = true;
 
     ulong ticks = @femto_to_ticks((ulong)(millis * 1e12));
-    ulong mainCounter = @hpet_read(HPETRegister.MAIN_COUNTER_VALUE);
+    ulong mainCounter = get_counter();
 
     @hpet_timer_write(timer, HPETRegister.TIMER_COMPARATOR_VALUE_BASE, mainCounter+ticks);
     @hpet_timer_write(timer, HPETRegister.TIMER_CONFIG_CAPAB_BASE, reg);
