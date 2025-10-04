@@ -39,4 +39,5 @@ libsharedc3_sources = files(
     f'libs/io/stream.c3i',
 
     f'libs/collections/bitmap.c3',
+    f'libs/collections/linkedlist.c3',
 )
