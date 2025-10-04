@@ -10,6 +10,7 @@ const uptr LEGACY_BIOS_BASE = 0x0;
 const uptr LEGACY_BIOS_LIMIT = 0xfffff;
 
 BuddyAllocator kAllocator @local;
+fn Allocator get_allocator() => &kAllocator;
 
 faultdef MEMORY_UNAVAILABLE;
 
