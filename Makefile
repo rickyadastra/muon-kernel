@@ -10,7 +10,7 @@ MUON_TARGET 	:= $(BUILD_DIR)/muon/kernel/muon.elf
 
 QEMU			:= qemu-system-x86_64
 QEMU_FLAGS		:= -bios /usr/share/OVMF/OVMF_CODE.fd \
-				   -net none -m 1G -cpu qemu64,+popcnt
+				   -net none -m 1G -enable-kvm -cpu host #-cpu qemu64,+popcnt,+tsc,+tsc-deadline
 QEMU_DEBUG 		:= -serial file:serial.log -s -S -d cpu_reset,int \
 				   -D qemu.log
 

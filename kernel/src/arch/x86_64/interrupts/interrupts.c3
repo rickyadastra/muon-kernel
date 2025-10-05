@@ -1,9 +1,11 @@
 module arch::interrupts;
 
-import arch::cpu::gdt;
-
-const usz IDT_ENTRIES = 256;
-GateDescriptor[IDT_ENTRIES] idt @private;
+import dev;
+import dev::timing @public;
+import dev::interrupts::apic @public;
+import muon::logging;
+import arch::mem;
+import arch::cpu;
 
 enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has_error_code, String name) {
     DIVISION_ERROR          = {0x0, "#DE", FAULT, false, "Divide error"},
@@ -29,8 +31,13 @@ enum KnownInterrupt : uint (char num, String mnmem, InterruptType type, bool has
     VIRTUALIZATION_EXC      = {0x14, "#VE", FAULT, false, "Virtualization Exception"},
     CONTROL_PROTECTION_EXC  = {0x15, "#CP", FAULT, true, "Control Protection Exception"},
     // 22..31 reserved
-    APIC_TIMER              = {0x20, "N/A", INTERRUPT, false, "APIC Timer Interrupt"},
-    SPURIOUS_INTERRUPT      = {0xff, "N/A", INTERRUPT, false, "Spurious Interrupt"},
+    LEGACY_PIT              = {0x20, "", INTERRUPT, false, "Legacy PIT Interrupt"},
+    SERIAL_COM2_COM4        = {0x23, "", INTERRUPT, false, "COM2/4 Interrupt"},
+    SERIAL_COM1_COM3        = {0x24, "", INTERRUPT, false, "COM1/3 Interrupt"},
+    CMOS_RTC                = {0x28, "", INTERRUPT, false, "CMOS RTC Interrupt"},
+    APIC_TIMER              = {0x30, "", INTERRUPT, false, "APIC Timer Interrupt"},
+    HPET_TIMER0             = {0x31, "", INTERRUPT, false, "HPET Timer #0 Interrupt"},
+    SPURIOUS_INTERRUPT      = {0xff, "", INTERRUPT, false, "Spurious Interrupt"},
 }
 
 const uint EXCEPTIONS = KnownInterrupt.CONTROL_PROTECTION_EXC.ordinal+1;
@@ -39,44 +46,51 @@ const KnownInterrupt[*] KERNEL_HANDLED_INTS = {
     DOUBLE_FAULT, PAGE_FAULT, GENERAL_PROTECTION, APIC_TIMER,
 };
 
-fn GateDescriptor construct_descriptor(uint irq, InterruptHandler handler, char ist = 0, GateType type,
-                                       PrivilegeLevel privilege_level = KERNEL, bool present = true) @private {
-    return {
-        .offset_low = (ushort)((uptr)handler & 0xffff),
-        .selector = {
-            .privilege_req = PrivilegeLevel.KERNEL,
-            .use_ldt = false,
-            .index = (ushort)KnownDescriptor.KERNEL_CODE.ordinal
-        },
-        .ist_offset = ist & 0x3, // trunc to lower 2 bits
-        .type = type.flags,
-        .privilege_level = privilege_level,
-        .present = present,
-        .offset_mid = (ushort)(((uptr)handler >> 16) & 0xffff),
-        .offset_high = (uint)(((uptr)handler >> 32) & 0xffffffff),
-    };
+fn void set_interrupt_handler(KnownInterrupt inter, InterruptHandlerFn handler = null) {    
+    handlers[inter.num] = handler;
+    
+    logging::debug("Registering new interrupt handler for %s, vector %d @ %x", inter.nameof, inter.num, handler);
 }
 
-fn bool is_kernel_handled(KnownInterrupt val) @local @inline {
-    foreach (KnownInterrupt e : KERNEL_HANDLED_INTS) {
-        if (e == val) return true;
-    }
-    return false;
-} 
+fn void set_interrupt_routing(KnownInterrupt inter, InterruptFlags flags) {
+    char irq = inter.num - apic::LEGACY_IRQ_BASE;
+    uint gsi = apic::get_gsi_override(irq);
 
-fn void setup() {
-    for (uint i = 0; i < IRQS; i++) {
-        char ist = (i < EXCEPTIONS && is_kernel_handled(KnownInterrupt.from_ordinal(i))) ? 1 : 0;
-        
-        idt[i] = construct_descriptor(i, irqs[i], ist: ist, type: GateType.INTERRUPT);
-    }
+    apic::ioapic_set_redirect(gsi, irq, flags);
+
+    logging::debug("Registering new interrupt routing for %s, vector %d to gsi %d", inter.nameof, inter.num, gsi);
 }
 
-fn void install() {
-    IDTRegister idtr = {
-        .offset = &idt,
-        .size = (GateDescriptor.sizeof * IDT_ENTRIES) - 1
-    };
+fn void set_interrupt_mask(KnownInterrupt inter, bool val, bool cancelPending = false) {
+    uint gsi = apic::get_gsi_override(inter.num - apic::LEGACY_IRQ_BASE);
 
-    idt_load(&idtr);
+    apic::ioapic_set_mask(gsi, val, cancelPending);
+
+    logging::debug("%sasking interrupt line for %s, vector %d", val ? "M" : "Unm", inter.nameof, inter.num);
+}
+
+fn void init() {
+    // LEGACY PIT: mask interrupts
+    set_interrupt_mask(KnownInterrupt.LEGACY_PIT, true, cancelPending: true);
+
+    // SERIAL COM1: enable rx interrupts, set rx buffer and add interrupt
+    serial::of(SerialPort.COM1).set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
+    serial::of(SerialPort.COM1).enable_rx();
+    set_interrupt_routing(KnownInterrupt.SERIAL_COM1_COM3, apic::LEVEL_HIGH);
+    set_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, @handler_wrapper(&serial::interrupt_handler));
+
+    // RTC: enable update interrupt and set wallclock callback
+    rtc::enable_update_interrupt();
+    set_interrupt_routing(KnownInterrupt.CMOS_RTC, apic::EDGE_HIGH);
+    set_interrupt_handler(KnownInterrupt.CMOS_RTC, @handler_wrapper(&timing::get_wallclock_callback));
+
+    // HPET: set default handler for timer #0
+    set_interrupt_routing(KnownInterrupt.HPET_TIMER0, apic::LEVEL_HIGH);
+    set_interrupt_handler(KnownInterrupt.HPET_TIMER0, @handler_wrapper(&timing::hpet::timer_fired));
+
+    // APIC timer: set handler
+    set_interrupt_handler(KnownInterrupt.APIC_TIMER, &timing::timer_fired);
+
+    // enable interrupts
+    arch::cpu::enable_interrupts();
 }

@@ -1,10 +1,18 @@
 module dev::interrupts::apic;
 
 import dev::acpi;
+import dev::mmio;
+import dev::timing;
 
 faultdef APIC_DISABLED;
 
 const SDTSignature SIGNATURE @private = "APIC";
+
+struct IOApic {
+    IOAPICRecord* record;
+    usz managedIntLines;
+    MemIO mmAddr;
+}
 
 enum RecordType : const char {
     LOCAL_APIC,
@@ -70,8 +78,6 @@ struct IOAPICSourceOverrideRecord @packed {
 
 struct IOAPICNonMaskableIntsRecord @packed {
     inline RecordHeader header;
-    char nmiSource;
-    char reserved;
     InterruptFlags flags;
     uint globalSystemInterrupt;
 }
@@ -136,12 +142,55 @@ enum IOAPICRegister : const uint {
     IOAPIC_ID                   = 0x00,
     IOAPIC_VER                  = 0x01,
     IOAPIC_ARBITRATION_ID       = 0x02,
+    IOAPIC_REDTBL_BASE          = 0x10,
+}
+
+enum APICTimerMode : char {
+    ONESHOT,
+    PERIODIC,
+    TSC_DEADLINE,
+}
+
+bitstruct LocalVectorEntry : uint {
+    char vector : 0..7;
+    bool nonMaskable : 10;              // no timer
+    bool pending : 12;
+    bool activeOnLow : 13;              // no timer
+    bool remoteIrr : 14;                // no timer
+    bool triggerOnLevel : 15;           // no timer
+    bool masked : 16;
+    APICTimerMode timerMode : 17..18;   // timer only
 }
 
 const uint IOAPIC_REGSEL = 0x00;
-const uint IOAPIC_DATA   = 0x10;
+const uint IOAPIC_REGWIN = 0x10;
 
 bitstruct IOAPICVerReg : uint {
     char ioApicVer : 0..7;
-    char maxRedirectIndex : 16..23;
+    char maxRedirectEntry : 16..23;
+}
+
+enum DeliveryMode : const char {
+    FIXED           = 0b000,
+    LOWEST          = 0b001,
+    SMI             = 0b010,
+    NMI             = 0b100,
+    INIT            = 0b101,
+    EXT_INT         = 0b111,
+}
+
+bitstruct IOAPICRedirectionEntry : ulong {
+    char vector : 0..7;
+    DeliveryMode deliveryMode : 8..10;
+    bool useLogicalDestination : 11;
+    bool deliveryStatus : 12;
+    bool activeOnLow : 13;
+    bool remoteIrr : 14;
+    bool triggerOnLevel : 15;
+    bool masked : 16;
+    char destination : 56..63;
+}
+
+struct APICTscTimer (Timer) {
+    double frequency;
 }

@@ -1,0 +1,19 @@
+module dev::timing;
+
+faultdef WALLCLOCK_NOT_SET, TIMER_UNSUPPORTED;
+
+alias TimerCallbackFn = fn void(Timer*);
+alias KernelTime = ulong;
+
+interface Timer {
+    fn void set(KernelTime time);
+    fn void cancel();
+
+    fn double get_frequency();
+    fn KernelTime get_current();
+}
+
+struct TimerEvent {
+    KernelTime timestamp;
+    TimerCallbackFn callback;
+}

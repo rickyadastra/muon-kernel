@@ -2,43 +2,16 @@ module arch::interrupts;
 
 import arch::cpu;
 
+alias InterruptHandlerFn = fn InterruptStack*(InterruptStack*);
+alias SimpleInterruptHandlerFn = fn void(ulong irq);
+
+const usz IRQS = idt::IDT_ENTRIES;
+
 enum InterruptType : char {
     FAULT,
     TRAP,
     ABORT,
     INTERRUPT,
-}
-
-enum GateType : char (char flags) {
-    INTERRUPT   = 0xe,
-    TRAP        = 0xf,
-}
-
-bitstruct SegmentSelector : ushort {
-    PrivilegeLevel privilege_req : 0..1;
-    bool use_ldt : 2;
-    ushort index : 3..15;
-}
-
-struct GateDescriptor {
-    ushort offset_low;              // offset[0:15]
-    SegmentSelector selector;
-    bitstruct : ushort {
-        char ist_offset : 0..2;
-        // bits 3..7 are reserved
-        char type : 8..11;
-        // bit 12 is always 0
-        PrivilegeLevel privilege_level : 13..14;
-        bool present : 15;
-    }
-    ushort offset_mid;              // offset[16:31]
-    uint offset_high;               // offset[32:63]
-    uint __reserved;
-}
-
-struct IDTRegister @packed {
-    ushort size;
-    GateDescriptor* offset;
 }
 
 struct InterruptStack @packed {

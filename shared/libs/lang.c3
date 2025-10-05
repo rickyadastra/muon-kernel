@@ -43,3 +43,34 @@ fn void* memset(void* dest, CInt value, usz n) @extern("memset") @nostrip {
 	for (usz i = 0; i < n; i++) ((char*)dest)[i] = (char)value;
 	return dest;
 }
+
+<*
+ @param expr : "the expression to cast"
+ @param $Type : "the type to cast to"
+
+ @require $sizeof(expr) == $Type.sizeof : "Cannot bitcast between types of different size."
+ @ensure $typeof(return) == $Type*
+*>
+macro bitcast(expr, $Type) @builtin {
+	$if $Type.alignof <= $alignof(expr):
+		return *($Type*)&expr;
+	$else
+		$Type x @noinit;
+		$$memcpy(&x, &expr, $sizeof(expr), false, $Type.alignof, $alignof(expr));
+		return x;
+	$endif
+}
+
+extern char[] __init_array_start;
+extern char[] __init_array_end;
+
+alias DynamicRegisterFn = fn void();
+
+fn void init_runtime() {
+    usz count = ((ulong)&__init_array_end - (ulong)&__init_array_start) / DynamicRegisterFn.sizeof;
+    DynamicRegisterFn[] initArray = ((DynamicRegisterFn*)&__init_array_start)[:count];
+
+    foreach (DynamicRegisterFn func : initArray) {
+        func();
+    }
+}

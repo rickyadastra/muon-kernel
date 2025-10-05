@@ -12,9 +12,11 @@ alias Register = ulong;
 macro void enable_interrupts() { asm("sti"); }
 macro void disable_interrupts() { asm("cli"); }
 macro void idle() { asm("hlt"); }
+macro void pause() { asm("pause"); }
 
 enum ModelSpecificRegister : const uint {
     APIC =              0x1b,
+    TSC_DEADLINE =      0x6e0,
     EFER =              0xC0000080,
     STAR =              0xC0000081,
     LSTAR =             0xC0000082,
@@ -110,4 +112,15 @@ fn uptr read_cr2() {
     }
 
     return (uptr)reg;
+}
+
+fn ulong read_tsc() {
+    uint dataLow, dataHigh;
+    asm("rdtsc");
+    asm {
+        movl dataLow, $eax;
+        movl dataHigh, $edx;
+    }
+
+    return (((ulong)dataHigh) << 32) | dataLow;
 }

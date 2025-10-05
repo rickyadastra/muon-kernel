@@ -26,11 +26,18 @@ liblepton_sources = files(
 
 libsharedc3_sources = files(
     f'libs/boson.c3i',
+    f'libs/datetime.c3',
+    f'libs/datetime.c3i',
     f'libs/formatting.c3',
     f'libs/lang.c3',
     f'libs/math.c3',
 
     f'libs/mem/allocator.c3i',
     f'libs/mem/buddy_allocator.c3',
+    
+    f'libs/io/ringbuffer.c3',
+    f'libs/io/stream.c3i',
+
     f'libs/collections/bitmap.c3',
+    f'libs/collections/linkedlist.c3',
 )

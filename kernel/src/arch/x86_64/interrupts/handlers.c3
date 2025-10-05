@@ -3,6 +3,14 @@ module arch::interrupts;
 import muon::logging;
 import arch::mem @public;
 import arch::cpu::gdt;
+import dev::interrupts::apic;
+
+InterruptHandlerFn[IRQS] handlers @private;
+
+macro InterruptHandlerFn @handler_wrapper(SimpleInterruptHandlerFn $fn) => fn (InterruptStack* stack) {
+    $fn(stack.irq);
+    return stack;
+};
 
 macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
     logging::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
@@ -35,6 +43,14 @@ fn InterruptStack* exception_handler(InterruptStack* stack) @private {
 }
 
 fn InterruptStack* interrupt_handler(InterruptStack* stack) @private {
-    logging::printn("interrupt %d", stack.irq);
+    InterruptHandlerFn func = handlers[stack.irq];
+    
+    if (func != null) {
+        stack = func(stack);
+    } else {
+        logging::debug("unhandled interrupt %d", stack.irq);
+    }
+
+    apic::lapic_eoi();
     return stack;
 }

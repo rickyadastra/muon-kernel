@@ -1,6 +1,9 @@
 module dev::serial;
 
 import dev::port;
+import std::io::ringbuffer;
+
+alias SerialBuffer = RingBuffer{256};
 
 enum SerialPort : ushort (Port value) {
     COM1 = 0x3f8,
@@ -39,6 +42,14 @@ bitstruct LineStatusRegister : char {
     bool impending_error : 7;
 }
 
+bitstruct InterruptEnableRegister : char {
+    bool dataAvail : 0;
+    bool canSend : 1;
+    bool receiverLineStatusChange : 2;
+    bool modemStatusChange : 3;
+}
+
 struct Serial {
     Port port;
+    SerialBuffer* rxBuffer;
 }

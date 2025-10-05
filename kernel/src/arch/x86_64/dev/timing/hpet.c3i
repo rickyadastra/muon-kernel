@@ -1,8 +1,14 @@
 module dev::timing::hpet;
 
 import dev::acpi;
+import arch::interrupts;
 
 const SDTSignature SIGNATURE @private = "HPET";
+
+const double FREQUENCY_FEMTO = 1e15;
+const char TIMER_IRQ_BASE = KnownInterrupt.HPET_TIMER0.num - 0x20;
+
+faultdef UNSUPPORTED_ROUTING;
 
 enum PageProtectionCapability : const char {
     NO_GUARANTEE,
@@ -20,11 +26,54 @@ struct HPETTable @packed {
         char legacyReplacement : 15..15;
         ushort pciVendorId : 16..31;
     }
-    AddressSpaceID address;
+    GenericAddress address;
     char hpetNumber;
     ushort minimumPeriodicClockTick;
     bitstruct : char {
         PageProtectionCapability pageProtection : 0..3;
         char oemAttributes : 4..7;
     }
+}
+
+enum HPETRegister : const uint {
+    GENERAL_CAPABILITIES_ID         = 0x000,
+    GENERAL_CONFIGURATION           = 0x010,
+    GENERAL_INTR_STATUS             = 0x020,
+    MAIN_COUNTER_VALUE              = 0x0f0,
+    TIMER_CONFIG_CAPAB_BASE         = 0x100,
+    TIMER_COMPARATOR_VALUE_BASE     = 0x108,
+    TIMER_FSB_INTERRUPT_ROUTE_BASE  = 0x110,
+}
+
+bitstruct GeneralCapabIDRegister : ulong {
+    char revisionId : 0..7;
+    char timerCount : 8..12;
+    bool isMainCounter64Bit : 13;
+    bool supportsLegacyReplacement : 15;
+    short vendorId : 16..31;
+    uint clockPeriod : 32..63;
+}
+
+bitstruct GeneralConfigRegister : ulong {
+    bool enableMainCounter : 0;
+    bool enableLegacyReplacement : 1;
+}
+
+enum TimerMode : const char {
+    ONESHOT,
+    PERIODIC,
+}
+
+bitstruct TimerCapabConfigRegister : ulong {
+    bool useLevelTriggeredInterrupt : 1;
+    bool enableInterrupt : 2;
+    TimerMode timerMode : 3..3;
+    bool supportsPeriodic : 4;
+    bool isTimer64Bit : 5;
+    bool enableSetAccumulator : 6;
+    bool force32Bit : 8;
+    char interruptRoute : 9..13;
+    bool useFSBInterruptMapping : 14;
+    bool supportsFSBInterrupt : 15;
+    uint routingCapability : 32..63;
 }

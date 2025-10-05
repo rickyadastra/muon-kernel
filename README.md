@@ -36,14 +36,14 @@
    - [x] Page Fault verbose handler
 - [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing
    - [x] Interrupt Routing (PIC disable, local APIC configuration)
-   - [ ] UART serial interrupt-based driver (input)
-   - [ ] IOAPIC configuration (VMM mapping and MMIO setup)
-   - [ ] HPET timer for `sleep()` and LAPIC timer calibration
-   - [ ] Local APIC timer for scheduler preemption 
+   - [x] IOAPIC configuration (VMM mapping and MMIO setup)
+   - [x] UART serial interrupt-based driver (input)
+   - [x] HPET timer for LAPIC timer calibration
+   - [x] Local APIC timer for event scheduling
 - [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
    - [ ] Task/Thread structure with context and stack
-   - [ ] Cooperative `yield()` function 
-   - [ ] Preemptive switch via timer interrupt
+   - [ ] Cooperative `yield()` function and `sleep()` function
+   - [ ] Preemptive context switch via timer interrupt
    - [ ] Basic shell to launch programs
 
 ## Why C3?

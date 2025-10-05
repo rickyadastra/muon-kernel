@@ -8,7 +8,8 @@ bool supportsCpuid @local = false;
 Register scratch @local;
 
 enum CPUIDLeaf : usz (Register a, Register c) @local {
-    PHYSICAL_ADDRESS_SIZE = {0x80000008, 0},
+    FEATURE_INFORMATION     = {0x01, 0},
+    PHYSICAL_ADDRESS_SIZE   = {0x80000008, 0},
 }
 
 bitstruct AddressLength : ushort {
@@ -64,4 +65,10 @@ macro AddressLength? query_address_length() {
     usz len;
     query_leaf(PHYSICAL_ADDRESS_SIZE, &(Register)len, &scratch, &scratch, &scratch)!;
     return (AddressLength)(ushort)(len & 0xffff);
+}
+
+macro bool? query_tsc_deadline_support() {
+    Register rcx;
+    query_leaf(FEATURE_INFORMATION, &scratch, &scratch, &rcx, &scratch)!;
+    return (bool)((rcx >> 24) & 1);
 }

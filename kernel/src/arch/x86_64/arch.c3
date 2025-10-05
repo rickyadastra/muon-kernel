@@ -8,23 +8,30 @@ import dev;
 fn void init(BootloaderPayload* payload) {
     uptr rsdpAddr = payload.rsdpAddr;
 
+    arch::cpu::disable_interrupts();
+
+    // Foundations
     gdt::setup(payload.stack.base);
     logging::printn("GDT setup complete");
 
     gdt::install();
     logging::printn("GDT install complete");
 
-    interrupts::setup();
+    idt::setup();
     logging::printn("IDT setup complete");
 
-    interrupts::install();
+    idt::install();
     logging::printn("IDT install complete");
 
     cpu::cpuid::enable()!!;
     logging::printn("CPUID enabled");
 
+    // Memory Management
     mem::init(payload)!!;
     logging::printn("Memory manager init complete");
+
+    // Interrupts and Timing
+    timing::pit::disable();
 
     acpi::init(rsdpAddr)!!;
     logging::printn("ACPI init complete");
@@ -32,7 +39,14 @@ fn void init(BootloaderPayload* payload) {
     apic::init()!!;
     logging::printn("APIC init complete");
 
-    // logging::@catch_or_log(hpet::init(), "HPET init complete");
+    timing::hpet::init()!!;
+
+    interrupts::init();
+    logging::printn("Interrupts init complete");
+
+    timing::calibrate()!!;
+    logging::printn("Timer calibration complete");
+
 }
 
 macro void panic() {

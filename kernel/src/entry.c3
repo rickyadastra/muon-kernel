@@ -2,14 +2,13 @@ import arch;
 import muon::logging;
 
 import boson;
+import lang;
 
 fn void kstart(BootloaderPayload* payload) @export("kstart") {
-    arch::cpu::disable_interrupts();
+    lang::init_runtime();
 
     logging::init();
     arch::init(payload);
-
-    arch::cpu::enable_interrupts();
     
-    arch::cpu::idle();
+    while (true) arch::cpu::idle();
 }
