@@ -5,7 +5,7 @@ faultdef WALLCLOCK_NOT_SET, TIMER_UNSUPPORTED;
 alias TimerCallbackFn = fn void(Timer*);
 
 interface Timer {
-    fn void set(ulong delta, TimerCallbackFn callback = null);
+    fn void set(ulong time);
     fn void cancel();
 
     fn double get_frequency();

@@ -197,8 +197,8 @@ fn void timer_enable(APICTimerMode mode) @private {
     @lapic_write(LAPICRegister.LVT_TIMER, (uint)lvt);
 }
 
-fn void APICTscTimer.set(&self, ulong delta, TimerCallbackFn callback = null) @dynamic {
-    cpu::write_msr(ModelSpecificRegister.TSC_DEADLINE, cpu::read_tsc()+delta);
+fn void APICTscTimer.set(&self, ulong time) @dynamic {
+    cpu::write_msr(ModelSpecificRegister.TSC_DEADLINE, time);
 }
 
 fn void APICTscTimer.cancel(&self) @dynamic {
