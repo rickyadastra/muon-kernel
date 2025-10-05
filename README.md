@@ -39,11 +39,11 @@
    - [x] IOAPIC configuration (VMM mapping and MMIO setup)
    - [x] UART serial interrupt-based driver (input)
    - [x] HPET timer for LAPIC timer calibration
-   - [ ] Local APIC timer for scheduler preemption and `sleep()`
+   - [x] Local APIC timer for event scheduling
 - [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
    - [ ] Task/Thread structure with context and stack
-   - [ ] Cooperative `yield()` function 
-   - [ ] Preemptive switch via timer interrupt
+   - [ ] Cooperative `yield()` function and `sleep()` function
+   - [ ] Preemptive context switch via timer interrupt
    - [ ] Basic shell to launch programs
 
 ## Why C3?
