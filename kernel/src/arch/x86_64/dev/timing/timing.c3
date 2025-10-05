@@ -52,7 +52,7 @@ fn void? calibrate() {
 }
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
-    ulong curTime = cpu::read_tsc();
+    KernelTime curTime = timer.get_current();
     logging::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
 
     serve_timer_events(curTime)!!;

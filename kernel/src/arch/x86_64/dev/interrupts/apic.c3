@@ -197,7 +197,7 @@ fn void timer_enable(APICTimerMode mode) @private {
     @lapic_write(LAPICRegister.LVT_TIMER, (uint)lvt);
 }
 
-fn void APICTscTimer.set(&self, ulong time) @dynamic {
+fn void APICTscTimer.set(&self, KernelTime time) @dynamic {
     cpu::write_msr(ModelSpecificRegister.TSC_DEADLINE, time);
 }
 
@@ -209,7 +209,7 @@ fn double APICTscTimer.get_frequency(&self) @dynamic {
     return self.frequency;
 }
 
-fn ulong APICTscTimer.get_current(&self) @dynamic @inline {
+fn KernelTime APICTscTimer.get_current(&self) @dynamic @inline {
     return cpu::read_tsc();
 }
 
