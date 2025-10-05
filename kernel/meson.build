@@ -97,6 +97,7 @@ muon_sources = [
 
     f'src/entry.c3',
     f'src/logging.c3',
+    f'src/muon.c3',
     f'src/muon.c3i',
 ]
 
