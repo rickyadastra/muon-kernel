@@ -46,7 +46,6 @@ fn void init(BootloaderPayload* payload) {
 
     timing::calibrate()!!;
     logging::printn("Timer calibration complete");
-
 }
 
 macro void panic() {

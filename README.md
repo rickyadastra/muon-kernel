@@ -34,7 +34,7 @@
    - [x] Virtual memory mapping (paging interface)
    - [x] Kernel heap allocator (buddy allocator)
    - [x] Page Fault verbose handler
-- [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing
+- [x] 🕹️ **Milestone 0.3** – Interrupts and Timing
    - [x] Interrupt Routing (PIC disable, local APIC configuration)
    - [x] IOAPIC configuration (VMM mapping and MMIO setup)
    - [x] UART serial interrupt-based driver (input)
