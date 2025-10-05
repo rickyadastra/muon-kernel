@@ -209,6 +209,10 @@ fn double APICTscTimer.get_frequency(&self) @dynamic {
     return self.frequency;
 }
 
+fn ulong APICTscTimer.get_current(&self) @dynamic @inline {
+    return cpu::read_tsc();
+}
+
 fn void? init() {
     arch::cpu::disable_interrupts();
 

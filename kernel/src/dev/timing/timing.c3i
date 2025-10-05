@@ -9,6 +9,7 @@ interface Timer {
     fn void cancel();
 
     fn double get_frequency();
+    fn ulong get_current();
 }
 
 struct TimerEvent {
