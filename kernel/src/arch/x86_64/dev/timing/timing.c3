@@ -7,9 +7,13 @@ import arch::interrupts;
 import arch::mem;
 import dev::timing::hpet @public;
 import dev::interrupts::apic @public;
+import std::collections::linkedlist;
 
 uint128? wallclock @local = WALLCLOCK_NOT_SET?;
+
+// timer subsystem
 Timer timer @local;
+LinkedList{TimerEvent} timerEvents @local;
 
 fn void get_wallclock_callback(ulong irq) {
     if (try utime = rtc::get_datetime().seconds_since_epoch()) {
@@ -41,6 +45,7 @@ fn void setup_tsc_deadline_timer(double frequency) {
     APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer.sizeof);
     apicTimer.frequency = frequency;
     timer = (Timer)apicTimer;
+    timerEvents = linkedlist::init{TimerEvent}(mem::get_allocator());
 }
 
 fn void? calibrate() {   
@@ -52,15 +57,40 @@ fn void? calibrate() {
     setup_tsc_deadline_timer(tscFrequency);
 }
 
+fn void? add_timer_event(TimerEvent event) @private {
+    if (timerEvents.is_empty()) {
+        timerEvents.add(event);
+    } else {
+        usz i = 0;
+        while (try e = timerEvents.get(i) && e.timestamp < event.timestamp) i++;
+        timerEvents.insert_at(i, event)!;
+    }
+}
+
+fn void? serve_timer_events(ulong currentTime) @private {
+    while (try e = timerEvents.first() && e.timestamp <= currentTime) {
+        timerEvents.remove_at(0)!!;
+        e.callback(&timer);
+    }
+}
+
 fn void schedule_nano(ulong nano, TimerCallbackFn callback) {
     ulong deltaTicks = (ulong) (nano * (timer.get_frequency() / 1e9));
-    timer.set(deltaTicks, callback);
+    ulong time = cpu::read_tsc()+deltaTicks;
+
+    add_timer_event({time, callback})!!;
+    if (try event = timerEvents.first() && event.timestamp >= time) timer.set(time);
 }
 
 fn void schedule_micro(ulong micro, TimerCallbackFn callback) => schedule_nano(micro * 1_000, callback);
 fn void schedule_milli(ulong milli, TimerCallbackFn callback) => schedule_nano(milli * 1_000_000, callback);
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
-    logging::printn("Timer fired!");
+    ulong curTime = cpu::read_tsc();
+    logging::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
+
+    serve_timer_events(curTime)!!;
+    if (try event = timerEvents.first() && event.timestamp > curTime) timer.set(event.timestamp); 
+
     return stack;
 }

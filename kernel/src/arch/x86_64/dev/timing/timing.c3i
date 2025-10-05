@@ -10,3 +10,8 @@ interface Timer {
 
     fn double get_frequency();
 }
+
+struct TimerEvent {
+    ulong timestamp;
+    TimerCallbackFn callback;
+}
