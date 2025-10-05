@@ -131,3 +131,13 @@ fn Type? LinkedList.get(&self, usz index) {
 }
 
 fn bool LinkedList.is_empty(&self) => self._head == null;
+
+fn Type? LinkedList.first(&self) {
+    if (self.is_empty()) return collections::OUT_OF_BOUNDS?;
+    return self._head.data;
+}
+
+fn Type? LinkedList.last(&self) {
+    if (self.is_empty()) return collections::OUT_OF_BOUNDS?;
+    return self._tail.data;
+}
