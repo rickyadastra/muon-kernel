@@ -94,11 +94,19 @@ fn Type? LinkedList.remove_at(&self, usz index) {
     for (usz i=0; i < index; i++) cur = cur.next;
 
     if (cur.next == null) { // end of list
-        cur.prev.next = null;
+        if (cur.prev != null) {
+            cur.prev.next = null;
+        } else {
+            self._head = null;
+        }
         self._tail = cur.prev;
 
     } else if (cur.prev == null) { // node is head of list
-        cur.next.prev = null;
+        if (cur.next != null) {
+            cur.next.prev = null;
+        } else {
+            self._tail = null;
+        }
         self._head = cur.next;
 
     } else { // node in the middle
