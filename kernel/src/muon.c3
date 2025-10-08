@@ -10,7 +10,6 @@ fn void kmain(BootloaderPayload* payload) {
     arch::init(payload);
 
     scheduler::init();
-    // scheduler::spawn_bootstrap()
 
     // muon::init()
     idle();
