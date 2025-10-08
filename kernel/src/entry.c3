@@ -9,5 +9,4 @@ fn void kstart(BootloaderPayload* payload) @export("kstart") {
     muon::kmain(payload);
     
     muon::panic("muon::kmain() returned");
-    while (true) arch::cpu::idle();
 }
