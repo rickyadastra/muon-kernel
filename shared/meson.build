@@ -25,6 +25,7 @@ liblepton_sources = files(
 )
 
 libsharedc3_sources = files(
+    f'libs/atomic.c3',
     f'libs/boson.c3i',
     f'libs/datetime.c3',
     f'libs/datetime.c3i',
