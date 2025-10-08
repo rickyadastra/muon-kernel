@@ -11,5 +11,5 @@ struct Task {
     TaskState state;
     TaskContext context;
     // TaskSpace* space;  TODO: implement user-mode and distinct spaces (#16)
-    void* kernelStack;
+    // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
 }

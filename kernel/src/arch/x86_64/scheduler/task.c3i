@@ -12,6 +12,6 @@ typedef TaskSpace = inline AddressSpace;
 
 struct TaskContext {
     inline CpuContext cpuContext;
-    FpuContext fpuContext @align(16);
+    FpuContext fpuContext;
 }
 
