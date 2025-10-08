@@ -1,0 +1,15 @@
+module scheduler::task;
+
+enum TaskState : uint {
+    READY,
+    RUNNING,
+    WAITING,
+}
+
+struct Task {
+    ulong id;
+    TaskState state;
+    TaskContext context;
+    // TaskSpace* space;  TODO: implement user-mode and distinct spaces (#16)
+    void* kernelStack;
+}

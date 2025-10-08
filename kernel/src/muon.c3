@@ -2,13 +2,14 @@ module muon;
 
 import arch;
 import boson;
+import scheduler;
 
 fn void kmain(BootloaderPayload* payload) {
     logging::init();
 
     arch::init(payload);
 
-    // scheduler::init();
+    scheduler::init();
     // scheduler::spawn_bootstrap()
 
     // muon::init()
