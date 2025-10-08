@@ -177,7 +177,7 @@ fn void? map_impl_direct(PagingPath path, PageTable table, uptr paddr, PageSize 
 
 fn void? map(PageTable table, uptr paddr, uptr vaddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @private {
     PagingPath path = @addr_path(vaddr);
-    logging::debug("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
+    // logging::debug("mapping paddr: %x to vaddr: %x (%d %d %d %d)", paddr, vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
     // should we use table recursion?
     if (cpu::read_cr3() == (uptr)table.ptr) {
