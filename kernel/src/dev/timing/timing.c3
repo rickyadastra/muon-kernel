@@ -18,10 +18,11 @@ fn void? add_timer_event(TimerEvent event) @private {
     }
 }
 
-fn void? serve_timer_events(KernelTime currentTime) @private {
+fn void? serve_timer_events(KernelTime currentTime, void* ctx) @private {
     while (try e = timerEvents.first() && e.timestamp <= currentTime) {
+        e.context = ctx;
+        e.callback(&e);
         timerEvents.remove_at(0)!!;
-        e.callback(&timer);
     }
 }
 
@@ -29,7 +30,7 @@ fn void schedule_nano(ulong nano, TimerCallbackFn callback) {
     ulong deltaTicks = (ulong) (nano * (timer.get_frequency() / 1e9));
     KernelTime time = timer.get_current()+deltaTicks;
 
-    add_timer_event({time, callback})!!;
+    add_timer_event({time, callback, null})!!;
     if (try event = timerEvents.first() && event.timestamp >= time) timer.set(time);
 }
 

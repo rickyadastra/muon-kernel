@@ -55,7 +55,7 @@ fn InterruptStack* timer_fired(InterruptStack* stack) @private {
     KernelTime curTime = timer.get_current();
     logging::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
 
-    serve_timer_events(curTime)!!;
+    serve_timer_events(curTime, stack)!!;
     if (try event = timerEvents.first() && event.timestamp > curTime) timer.set(event.timestamp); 
 
     return stack;
