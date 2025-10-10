@@ -10,8 +10,9 @@ fn void kmain(BootloaderPayload* payload) {
     arch::init(payload);
 
     scheduler::init();
-
-    // muon::init()
+    // init();
+    scheduler::start();
+    
     idle();
 }
 
