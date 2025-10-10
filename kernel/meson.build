@@ -80,6 +80,7 @@ muon_sources = [
     f'src/arch/@arch@/interrupts/routines.c3',
 
     f'src/arch/@arch@/scheduler/task.c3i',
+    f'src/arch/@arch@/scheduler/task.c3',
     
     f'src/arch/@arch@/arch.c3',
 

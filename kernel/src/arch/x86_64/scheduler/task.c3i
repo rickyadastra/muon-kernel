@@ -10,8 +10,7 @@ typedef FpuContext = inline char[FPU_CONTEXT_SIZE];
 
 typedef TaskSpace = inline AddressSpace;
 
-struct TaskContext {
-    inline CpuContext cpuContext;
+struct TaskContext (RestorableContext) {
+    CpuContext* cpuContext;
     FpuContext fpuContext;
 }
-

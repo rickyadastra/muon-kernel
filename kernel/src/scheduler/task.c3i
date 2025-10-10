@@ -13,3 +13,8 @@ struct Task {
     // TaskSpace* space;  TODO: implement user-mode and distinct spaces (#16)
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
 }
+
+interface RestorableContext {
+    fn void save(CpuContext* context);
+    fn void load(CpuContext* context);
+}
