@@ -78,6 +78,8 @@ fn void? init(BootloaderPayload* payload) {
     kAllocator = buddy::init(&alloc_pages, &free_pages)!;
 }
 
+macro usz page_size() => pmm::FRAME_SIZE;
+
 fn uptr? alloc_pages(usz pages) {
     return vmm::@phys((uptr)pmm::alloc(pages)!);
 }

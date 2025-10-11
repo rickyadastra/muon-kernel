@@ -1,9 +1,12 @@
 module scheduler::task;
 
+faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL;
+
 enum TaskState : uint {
     READY,
     RUNNING,
     WAITING,
+    TERMINATED,
 }
 
 struct Task {
@@ -14,7 +17,10 @@ struct Task {
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
 }
 
+alias EntryPointFn = fn void();
+
 interface RestorableContext {
+    fn void init(EntryPointFn entryPoint, uptr stackBase, uptr stackTop);
     fn void save(CpuContext* context);
     fn void load(CpuContext* context);
 }

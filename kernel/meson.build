@@ -99,6 +99,7 @@ muon_sources = [
     f'src/dev/timing/timing.c3i',
 
     f'src/scheduler/scheduler.c3',
+    f'src/scheduler/task.c3',
     f'src/scheduler/task.c3i',
 
     f'src/entry.c3',
