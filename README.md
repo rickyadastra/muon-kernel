@@ -41,9 +41,10 @@
    - [x] HPET timer for LAPIC timer calibration
    - [x] Local APIC timer for event scheduling
 - [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
-   - [ ] Task/Thread structure with context and stack
+   - [x] Task/Thread structure with context and stack
+   - [x] Preemptive context switch via timer interrupt
+   - [ ] Scheduler basics: `spawn()`, `terminate()` and `block()`
    - [ ] Cooperative `yield()` function and `sleep()` function
-   - [ ] Preemptive context switch via timer interrupt
    - [ ] Basic shell to launch programs
 
 ## Why C3?
