@@ -15,12 +15,14 @@ struct Task {
     TaskContext context;
     // TaskSpace* space;  TODO: implement user-mode and distinct spaces (#16)
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
+    void* taskStackBase;
+    usz taskStackSize;
 }
 
 alias EntryPointFn = fn void();
 
 interface RestorableContext {
     fn void init(EntryPointFn entryPoint, uptr stackBase, uptr stackTop);
-    fn void save(CpuContext* context);
-    fn void load(CpuContext* context);
+    fn void save_from(CpuContext* context);
+    fn void load_to(CpuContext* context);
 }
