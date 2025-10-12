@@ -26,6 +26,39 @@ macro unlock_scheduler() @private {
     if (!interruptDisableCounter) cpu::enable_interrupts();
 }
 
+macro schedule_next_preempt_event() => timing::schedule_nano(PREEMPT_INTERVAL_NANO, &scheduler::preempt_handler);
+
+macro enqueue_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    logging::debug("enqueue task %d", task.id);
+
+    taskQueue.add(task);
+}
+
+macro enqueue_terminated_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    logging::debug("enqueue task %d (terminated)", task.id);
+
+    terminatedQueue.add(task);
+}
+
+macro wake_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    if (task.state == WAITING) {
+        task.state = READY;
+        enqueue_task(task);
+    }
+}
+
+<*
+    Setup queues, create bootstrap/idle task and workers
+*>
 fn void? init() {
     lock_scheduler();
     defer unlock_scheduler();
@@ -44,13 +77,17 @@ fn void? init() {
     currentTask = idleTask;
 }
 
+<*
+    Start preemption by scheduling next timer event
+*>
 fn void start() {
     schedule_next_preempt_event();
 }
 
-macro schedule_next_preempt_event() => timing::schedule_nano(PREEMPT_INTERVAL_NANO, &scheduler::schedule_preempt_handler);
-
-fn Task* schedule_next_ready_task() @private {
+<*
+    Pick next ready task from queue with round-robin policy
+*>
+fn Task* pick_next_ready_task() @private {
     lock_scheduler();
     defer unlock_scheduler();
 
@@ -84,48 +121,27 @@ fn Task* schedule_next_ready_task() @private {
     return nextTask;
 }
 
+<*
+    Save given context, pick next task and restore its context
+    @param[&inout] ctx
+*>
 fn void schedule_rr(CpuContext* ctx) {
     lock_scheduler();
     defer unlock_scheduler();
     
     currentTask.context.save_from(ctx);
-    Task* nextTask = schedule_next_ready_task();
+    Task* nextTask = pick_next_ready_task();
     nextTask.context.load_to(ctx);
 }
 
-fn void schedule_preempt_handler(TimerEvent* timer) {
+<*
+    Timer event handler for preemption
+*>
+fn void preempt_handler(TimerEvent* timer) @private {
     lock_scheduler();
     defer unlock_scheduler();
 
     schedule_rr((CpuContext*)timer.context);
 
     schedule_next_preempt_event();
-}
-
-macro enqueue_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    logging::debug("enqueue task %d", task.id);
-
-    taskQueue.add(task);
-}
-
-macro enqueue_terminated_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    logging::debug("enqueue task %d (terminated)", task.id);
-
-    terminatedQueue.add(task);
-}
-
-macro wake_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    if (task.state == WAITING) {
-        task.state = READY;
-        enqueue_task(task);
-    }
 }
