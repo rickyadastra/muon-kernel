@@ -2,7 +2,7 @@ module dev::timing;
 
 import std::collections::linkedlist;
 
-uint128? wallclock @private = WALLCLOCK_NOT_SET?;
+ulong? wallclock @private = WALLCLOCK_NOT_SET?;
 
 // timer subsystem
 Timer timer @private;
@@ -17,6 +17,8 @@ fn void? add_timer_event(TimerEvent event) @private {
         timerEvents.insert_at(i, event)!;
     }
 }
+
+fn ulong get_current() => wallclock!!;
 
 fn void? serve_timer_events(KernelTime currentTime, void* ctx) @private {
     while (try e = timerEvents.first() && e.timestamp <= currentTime) {

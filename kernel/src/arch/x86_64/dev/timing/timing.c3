@@ -15,8 +15,15 @@ fn void get_wallclock_callback(ulong irq) {
         wallclock = utime;
     }
 
+    timing::schedule_milli(1000, &increment_wallclock);
+
     rtc::acknoledge_interrupt();
     rtc::disable_update_interrupt();
+}
+
+fn void increment_wallclock(TimerEvent* event) @local {
+    if (try wallclock) logging::debug("Wallclock updated to %d", (ulong)++wallclock);
+    timing::schedule_milli(1000, &increment_wallclock);
 }
 
 fn double get_tsc_frequency_with_hpet() @local {
