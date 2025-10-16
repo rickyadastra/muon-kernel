@@ -1,0 +1,16 @@
+module handle;
+
+bitstruct Handle : ulong {
+    uint index : 0..23;
+    uint gen : 24..47;
+    ushort salt : 48..63;
+}
+
+module handle::table{ResourceType};
+
+struct HandleTableEntry {
+    ResourceType* data;
+    ResourceType* parent;
+    uint generation;
+    ushort salt;
+}

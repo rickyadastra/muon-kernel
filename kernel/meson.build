@@ -83,6 +83,7 @@ muon_sources = [
     f'src/arch/@arch@/scheduler/task.c3',
     
     f'src/arch/@arch@/arch.c3',
+    f'src/arch/@arch@/random.c3',
 
     ########################################
 
@@ -94,6 +95,9 @@ muon_sources = [
     f'src/dev/port.c3',
     f'src/dev/serial.c3',
     f'src/dev/serial.c3i',
+
+    f'src/handle/handle.c3i',
+    f'src/handle/handle.c3',
 
     f'src/dev/timing/timing.c3',
     f'src/dev/timing/timing.c3i',
