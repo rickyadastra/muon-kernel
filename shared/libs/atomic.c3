@@ -69,7 +69,7 @@ macro void Atomic.store(&self, Type value, AtomicOrdering ordering = SEQ_CONSIST
  @require $failure != AtomicOrdering.RELEASE && $failure != AtomicOrdering.ACQUIRE_RELEASE : "Acquire release is not valid."
 *>
 macro Atomic.compare_exchange(&self, compare, value, AtomicOrdering $success = SEQ_CONSISTENT, AtomicOrdering $failure = SEQ_CONSISTENT, bool $volatile = true, bool $weak = false, usz $alignment = 0) {
-	return $$compare_exchange(ptr, compare, value, $volatile, $weak, $success.ordinal, $failure.ordinal, $alignment);
+	return $$compare_exchange(&self.data, compare, value, $volatile, $weak, $success.ordinal, $failure.ordinal, $alignment);
 }
 
 macro @atomic_exec(#func, data, value, ordering) @local {
