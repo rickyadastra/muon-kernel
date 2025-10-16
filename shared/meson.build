@@ -29,9 +29,11 @@ libsharedc3_sources = files(
     f'libs/boson.c3i',
     f'libs/datetime.c3',
     f'libs/datetime.c3i',
+    f'libs/env.c3',
     f'libs/formatting.c3',
     f'libs/lang.c3',
     f'libs/math.c3',
+    f'libs/spinlock.c3',
 
     f'libs/mem/allocator.c3i',
     f'libs/mem/buddy_allocator.c3',
