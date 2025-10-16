@@ -1,0 +1,30 @@
+module resource::handle;
+
+alias HandlePerms = ulong;
+
+bitstruct Handle : ulong {
+    uint index : 0..23;
+    uint generation : 24..47;
+    ushort salt : 48..63;
+}
+
+module resource::handletable{ResourceType};
+
+import std::collections;
+import std::lock;
+import resource::handle;
+
+struct HandleEntry {
+    ResourceType* data;
+    ResourceType* parent;
+    uint generation;
+    ushort salt;
+    HandlePerms perms;
+}
+
+struct HandleTable {
+    HandleEntry[] entries;
+    BitMap bitmap;
+    Spinlock lock;
+}
+
