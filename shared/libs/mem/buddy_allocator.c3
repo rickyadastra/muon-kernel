@@ -1,8 +1,9 @@
 module mem::allocator::buddy;
 
-const usz MAX_ORDER = 12; // 4096B block
+const usz MAX_ORDER = 13; // 8192B block
 const usz MIN_ORDER = 3;  // 8B block, minimum to accomodate BuddyBlockHeader
 const float FREE_THRESHOLD = 0.25f;
+const usz SYS_BLOCK_SIZE = 0x1000;
 
 alias AllocPageFn = fn uptr?(usz pages);
 alias FreePageFn = fn void?(uptr ptr, usz pages);
@@ -59,7 +60,7 @@ fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @loca
     BuddyBlockHeader*[2] splits;
 
     if (idx >= self.freelist.len) {      // get a new block from alloc
-        if (try block = self.allocFn(1)) {
+        if (try block = self.allocFn(allocator::@order_size(MAX_ORDER) / SYS_BLOCK_SIZE)) {
             self.totalMemory += allocator::@order_size(MAX_ORDER);
             return (BuddyBlockHeader*)block;
         } else {
