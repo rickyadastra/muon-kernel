@@ -12,6 +12,14 @@ enum CPUIDLeaf : usz (Register a, Register c) @local {
     PHYSICAL_ADDRESS_SIZE   = {0x80000008, 0},
 }
 
+enum CPUFeature : const char {
+    // 0-31 are RCX (see https://www.felixcloutier.com/x86/cpuid#input-eax-=-01h--returns-feature-information-in-ecx-and-edx)
+    TSC_DEADLINE_SUPPORT = 24,
+    RDRAND_SUPPORT = 30,
+    // 32-63 are RDX
+    FPU_PRESENT = 32,
+}
+
 bitstruct AddressLength : ushort {
     char physicalLength : 0..7;
     char virtualLength : 8..15;
@@ -67,8 +75,13 @@ macro AddressLength? query_address_length() {
     return (AddressLength)(ushort)(len & 0xffff);
 }
 
-macro bool? query_tsc_deadline_support() {
-    Register rcx;
-    query_leaf(FEATURE_INFORMATION, &scratch, &scratch, &rcx, &scratch)!;
-    return (bool)((rcx >> 24) & 1);
+macro bool? query_feature(CPUFeature feature) {
+    Register rcx, rdx;
+    query_leaf(FEATURE_INFORMATION, &scratch, &scratch, &rcx, &rdx)!;
+
+    if (feature < FPU_PRESENT) {
+        return (bool)((rcx >> (char)(feature)) & 1);
+    } else {
+        return (bool)((rdx >> (char)(feature-CPUFeature.FPU_PRESENT)) & 1);
+    }
 }
