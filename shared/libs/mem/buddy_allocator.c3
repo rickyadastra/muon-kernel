@@ -1,19 +1,17 @@
 module mem::allocator::buddy;
 
 const usz MAX_ORDER = 13; // 8192B block
-const usz MIN_ORDER = 3;  // 8B block, minimum to accomodate BuddyBlockHeader
+const usz MIN_ORDER = 4;  // 16B block, minimum to accomodate BuddyBlockHeader
 const float FREE_THRESHOLD = 0.25f;
 const usz SYS_BLOCK_SIZE = 0x1000;
+const usz SYS_REQUEST_BLOCKS = allocator::@order_size(MAX_ORDER) / SYS_BLOCK_SIZE; 
 
 alias AllocPageFn = fn uptr?(usz pages);
 alias FreePageFn = fn void?(uptr ptr, usz pages);
 
 struct BuddyBlockHeader {
-    union {
-        BuddyBlockHeader* next;
-        usz size;
-    }
-    ulong _padding;
+    BuddyBlockHeader* next;
+    ulong size;
 }
 
 struct BuddyAllocator (Allocator) {
@@ -60,7 +58,7 @@ fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @loca
     BuddyBlockHeader*[2] splits;
 
     if (idx >= self.freelist.len) {      // get a new block from alloc
-        if (try block = self.allocFn(allocator::@order_size(MAX_ORDER) / SYS_BLOCK_SIZE)) {
+        if (try block = self.allocFn(SYS_REQUEST_BLOCKS)) {
             self.totalMemory += allocator::@order_size(MAX_ORDER);
             return (BuddyBlockHeader*)block;
         } else {
@@ -148,7 +146,7 @@ fn void? BuddyAllocator.release(&self, void* ptr) @dynamic {
     float usage = (float)self.usedMemory / self.totalMemory;
 
     if (order == MAX_ORDER && usage < FREE_THRESHOLD) {
-        self.freeFn((uptr)header, 1)!;
+        self.freeFn((uptr)header, SYS_REQUEST_BLOCKS)!;
     } else {
         header.next = null;
         self.freelist_add(idx, header);
