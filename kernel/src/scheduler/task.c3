@@ -81,11 +81,11 @@ fn void terminate() {
     scheduler::terminate_task(scheduler::current_task());
 }
 
-fn void yield() @naked {
+fn void yield() @SchedulerYieldFn {
     scheduler::yield_task();
 }
 
-fn void sleep() {
+fn void sleep() @SchedulerYieldFn {
     scheduler::suspend_task(scheduler::current_task());
 }
 

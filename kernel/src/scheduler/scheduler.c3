@@ -196,8 +196,7 @@ macro terminate_task(Task* task) {
 
     unlock_scheduler();
     
-    // yield_task();
-    while (true) arch::cpu::idle();
+    yield_task();
 }
 
 <*
@@ -210,5 +209,5 @@ macro suspend_task(Task* task) {
     task.state = WAITING;
     logging::debug("Sleep task %d", task.id);
 
-    // yield_task();
+    yield_task();
 }

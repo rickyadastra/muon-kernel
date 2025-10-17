@@ -4,6 +4,8 @@ import resource;
 
 faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL;
 
+attrdef @SchedulerYieldFn = @naked;
+
 enum TaskState : uint {
     READY,
     RUNNING,
