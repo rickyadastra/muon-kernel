@@ -102,11 +102,11 @@ fn Task* pick_next_ready_task() @private {
     Save given context, pick next task and restore its context
     @param[&inout] ctx
 *>
-fn void schedule_rr(CpuContext* ctx) {
+fn void schedule_rr(CpuContext** ctx) {
     lock_scheduler();
     defer unlock_scheduler();
     
-    currentTask.context.save_from(ctx);
+    currentTask.context.save_from(*ctx);
     Task* nextTask = pick_next_ready_task();
     nextTask.context.load_to(ctx);
 }
@@ -118,7 +118,7 @@ fn void preempt_handler(TimerEvent* timer) @private {
     lock_scheduler();
     defer unlock_scheduler();
 
-    schedule_rr((CpuContext*)timer.context);
+    schedule_rr((CpuContext**)timer.context);
 
     schedule_next_preempt_event();
 }

@@ -38,5 +38,5 @@ alias EntryPointFn = fn void();
 interface RestorableContext {
     fn void init(EntryPointFn entryPoint, uptr stackBase, uptr stackTop);
     fn void save_from(CpuContext* context);
-    fn void load_to(CpuContext* context);
+    fn void load_to(CpuContext** context);
 }
