@@ -3,8 +3,36 @@ module scheduler::task;
 import arch;
 import muon;
 import scheduler @public;
+import dev::timing;
+import resource;
+import random;
+import std::lock;
 
-macro Task*? create(EntryPointFn entryPoint = null, usz stackSize = 2, TaskState state = READY) {
+TaskHandleTable taskHandleTable;
+
+<*
+    @param[&in] task
+    @param[in] parent
+*>
+macro TaskHandle? create_handle(Task* task, Task* parent, TaskHandlePerms perms = {}) @private {
+    taskHandleTable.lock.acquire();
+    defer taskHandleTable.lock.release();
+
+    TaskHandle handle; 
+    usz idx = taskHandleTable.bitmap.find_free()!;
+    TaskHandleEntry* entry = &taskHandleTable.entries[idx];
+
+    handle = handle::init((uint)idx, entry.generation, (ushort)random::random()!);
+    entry.set(idx, task, parent, handle.salt);
+
+    taskHandleTable.bitmap.set(idx);
+
+    logging::printn("New handle created: %x", (ulong)handle);
+
+    return handle;
+}
+
+macro Task*? create(EntryPointFn entryPoint = null, usz stackSize = 2, TaskState state = READY) @private {
     uptr? stackBase;
     if (entryPoint != null && stackSize > 0) {
         // TODO: move stack setup in TaskSpace.init
@@ -23,11 +51,11 @@ macro Task*? create(EntryPointFn entryPoint = null, usz stackSize = 2, TaskState
         task.context.init(entryPoint, stackBase, stackBase+stackSize*mem::page_size())!;
     }
 
-    logging::debug("Task #%d created", task.id);
+    logging::debug("Task #%d created, stack %x-%x", task.id, stackBase, stackBase+stackSize*mem::page_size())!;
     return task;
 }
 
-macro void? destroy(Task* task) {
+macro void? destroy(Task* task) @private {
     if (task.taskStackBase != null) {
         mem::free_pages((uptr)task.taskStackBase, task.taskStackSize)!;
     }
@@ -36,44 +64,36 @@ macro void? destroy(Task* task) {
     logging::debug("Task #%d destroyed", task.id);
 }
 
-fn void? spawn(EntryPointFn entryPoint, usz stackSize = 2) {
+fn TaskHandle? spawn(EntryPointFn entryPoint, usz stackSize = 2) {
     if (stackSize < 1) return INIT_STACK_TOO_SMALL?;
+
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
     
     Task* task = create(entryPoint, stackSize)!;
+    TaskHandle handle = create_handle(task, scheduler::currentTask)!;
+
     scheduler::enqueue_task(task);
+    return handle;
 }
 
 fn void terminate() {
-    scheduler::lock_scheduler();
-
-    scheduler::currentTask.state = TERMINATED;
-    scheduler::enqueue_terminated_task(scheduler::currentTask);
-    scheduler::wake_task(scheduler::cleanupTask);
-
-    scheduler::unlock_scheduler();
-
-    yield();
+    scheduler::terminate_task(scheduler::current_task());
 }
 
-alias VoidFn = fn void();
-
 fn void yield() @naked {
-    scheduler::lock_scheduler();
-
-    prepare_yielding();
-    ((VoidFn)&scheduler::schedule_rr)();
-    complete_yielding();
-
-    scheduler::unlock_scheduler();
-    exit_yielding();
+    scheduler::yield_task();
 }
 
 fn void sleep() {
-    scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
+    scheduler::suspend_task(scheduler::current_task());
+}
 
-    scheduler::currentTask.state = WAITING;
-    logging::debug("Sleep task %d", scheduler::currentTask.id);
+fn void sleep_milli(usz ms) {
+    // scheduler::lock_scheduler();
 
-    yield();
+    // // Task* callerTask = scheduler::currentTask;
+    // // timing::schedule_milli(ms, fn void(TimerEvent* e) => scheduler::wake_task(callerTask));
+    // sleep();
+    // scheduler::unlock_scheduler();
 }

@@ -18,21 +18,24 @@ fn void kmain(BootloaderPayload* payload) {
 
 fn void init() {
     task::spawn(&test)!!;
-    task::spawn(&test2)!!;
 
     logging::printn("Muon init complete");
 }
 
 fn void test() @local {
     logging::printn("task 2 says hello world!");
-    task::yield();
+    // task::yield();
+    task::spawn(&test2)!!;
+
     logging::printn("task 2 says i wont crash no more");
 }
 
 fn void test2() @local {
     logging::printn("task 3 says hello world, again!");
-    task::yield();
-    logging::printn("task 3 says what will happen now?");
+    // task::yield();
+    logging::printn("task 3 will wake up in 3 seconds");
+    // task::sleep_milli(3000);
+    logging::printn("task 3 says gm world!");
 }
 
 fn void idle() @local {

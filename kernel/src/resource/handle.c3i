@@ -1,6 +1,11 @@
 module resource::handle;
 
+import resource::handletable;
+
+faultdef INVALID_HANDLE, HANDLE_GEN_MISMATCH, HANDLE_SALT_MISMATCH;
+
 alias HandlePerms = ulong;
+alias GenericHandleEntry = HandleEntry{void};
 
 bitstruct Handle : ulong {
     uint index : 0..23;
@@ -19,6 +24,7 @@ struct HandleEntry {
     ResourceType* parent;
     uint generation;
     ushort salt;
+    bool valid;
     HandlePerms perms;
 }
 

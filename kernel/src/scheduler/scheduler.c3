@@ -5,6 +5,8 @@ import dev::timing;
 import std::collections::linkedlist;
 import std::atomic;
 import muon;
+import scheduler::task @public;
+import resource;
 
 usz interruptDisableCounter @local = 0;
 LinkedList{Task*} taskQueue @private;
@@ -28,34 +30,6 @@ macro unlock_scheduler() @private {
 
 macro schedule_next_preempt_event() => timing::schedule_nano(PREEMPT_INTERVAL_NANO, &scheduler::preempt_handler);
 
-macro enqueue_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    logging::debug("enqueue task %d", task.id);
-
-    taskQueue.add(task);
-}
-
-macro enqueue_terminated_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    logging::debug("enqueue task %d (terminated)", task.id);
-
-    terminatedQueue.add(task);
-}
-
-macro wake_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    if (task.state == WAITING) {
-        task.state = READY;
-        enqueue_task(task);
-    }
-}
-
 <*
     Setup queues, create bootstrap/idle task and workers
 *>
@@ -65,13 +39,16 @@ fn void? init() {
 
     taskQueue = linkedlist::init{Task*}(mem::get_allocator());
     terminatedQueue = linkedlist::init{Task*}(mem::get_allocator());
+    task::taskHandleTable = handletable::init{Task}(task::MAX_TASK_COUNT)!;
 
     // setup bootstrap task
     Task* task = task::create()!;
+    task::create_handle(task, null)!;
     idleTask = task;
 
     // setup terminated_tasks_cleanup
     Task* worker = task::create(&worker::terminated_tasks_cleanup, state: WAITING)!;
+    task::create_handle(worker, task)!;
     cleanupTask = worker;
 
     currentTask = idleTask;
@@ -92,7 +69,7 @@ fn Task* pick_next_ready_task() @private {
     defer unlock_scheduler();
 
     // set current state and add to queue if needed
-    if (currentTask != idleTask && currentTask != cleanupTask && currentTask.state == RUNNING) {
+    if (currentTask != idleTask && currentTask.state == RUNNING) {
         currentTask.state = READY;
         enqueue_task(currentTask);
     }
@@ -144,4 +121,94 @@ fn void preempt_handler(TimerEvent* timer) @private {
     schedule_rr((CpuContext*)timer.context);
 
     schedule_next_preempt_event();
+}
+
+<*
+    @require task != null
+*>
+macro enqueue_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    logging::debug("enqueue task %d", task.id);
+
+    taskQueue.add(task);
+}
+
+<*
+    @require task != null
+*>
+macro enqueue_terminated_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    logging::debug("enqueue task %d (terminated)", task.id);
+
+    terminatedQueue.add(task);
+}
+
+<*
+    @ensure return != null
+*>
+macro Task* current_task() {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    return currentTask;
+}
+
+<*
+    @require task != null
+*>
+
+macro wake_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    if (task.state == WAITING) {
+        task.state = READY;
+        enqueue_task(task);
+    }
+}
+
+alias VoidFn = fn void();
+
+macro yield_task() {
+    lock_scheduler();
+
+    task::prepare_yielding();
+    ((VoidFn)&schedule_rr)();
+    task::complete_yielding();
+
+    unlock_scheduler();
+    task::exit_yielding();
+}
+
+<*
+    @require task != null
+*>
+macro terminate_task(Task* task) {
+    lock_scheduler();
+
+    task.state = TERMINATED;
+    enqueue_terminated_task(task);
+    wake_task(scheduler::cleanupTask);
+
+    unlock_scheduler();
+    
+    // yield_task();
+    while (true) arch::cpu::idle();
+}
+
+<*
+    @require task != null
+*>
+macro suspend_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    task.state = WAITING;
+    logging::debug("Sleep task %d", task.id);
+
+    // yield_task();
 }

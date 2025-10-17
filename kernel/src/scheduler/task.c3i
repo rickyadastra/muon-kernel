@@ -1,5 +1,7 @@
 module scheduler::task;
 
+import resource;
+
 faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL;
 
 enum TaskState : uint {
@@ -17,6 +19,18 @@ struct Task {
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
     void* taskStackBase;
     usz taskStackSize;
+}
+
+alias TaskHandleTable = HandleTable{Task};
+alias TaskHandleEntry = HandleEntry{Task};
+alias TaskHandle = Handle;
+
+const MAX_TASK_COUNT = 128;
+
+bitstruct TaskHandlePerms : HandlePerms {
+    bool canTerminate : 0;
+    bool canSuspend : 1;
+    bool canSpawn : 2;
 }
 
 alias EntryPointFn = fn void();
