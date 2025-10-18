@@ -6,6 +6,9 @@ faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL;
 
 attrdef @SchedulerYieldFn = @naked;
 
+const usz MAX_TASK_COUNT = 128;
+const usz DEFAULT_KERNEL_STACK_SIZE = 4;
+
 enum TaskState : uint {
     READY,
     RUNNING,
@@ -26,8 +29,6 @@ struct Task {
 alias TaskHandleTable = HandleTable{Task};
 alias TaskHandleEntry = HandleEntry{Task};
 alias TaskHandle = Handle;
-
-const MAX_TASK_COUNT = 128;
 
 bitstruct TaskHandlePerms : HandlePerms {
     bool canTerminate : 0;

@@ -23,7 +23,7 @@ macro TaskHandle? create_handle(Task* task, Task* parent, TaskHandlePerms perms 
     TaskHandleEntry* entry = &taskHandleTable.entries[idx];
 
     handle = handle::init((uint)idx, entry.generation, (ushort)random::random()!);
-    entry.set(idx, task, parent, handle.salt);
+    entry.set(idx, task, parent, handle.salt, (HandlePerms)perms);
 
     taskHandleTable.bitmap.set(idx);
 
@@ -32,7 +32,7 @@ macro TaskHandle? create_handle(Task* task, Task* parent, TaskHandlePerms perms 
     return handle;
 }
 
-macro Task*? create(EntryPointFn entryPoint = null, usz stackSize = 2, TaskState state = READY) @private {
+macro Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_STACK_SIZE, TaskState state = READY) @private {
     uptr? stackBase;
     if (entryPoint != null && stackSize > 0) {
         // TODO: move stack setup in TaskSpace.init
@@ -64,7 +64,7 @@ macro void? destroy(Task* task) @private {
     logging::debug("Task #%d destroyed", task.id);
 }
 
-fn TaskHandle? spawn(EntryPointFn entryPoint, usz stackSize = 2) {
+fn TaskHandle? spawn(EntryPointFn entryPoint, usz stackSize = DEFAULT_KERNEL_STACK_SIZE) {
     if (stackSize < 1) return INIT_STACK_TOO_SMALL?;
 
     scheduler::lock_scheduler();
