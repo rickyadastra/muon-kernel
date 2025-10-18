@@ -52,7 +52,15 @@ fn BuddyBlockHeader* BuddyAllocator.freelist_remove(&self, usz i) @local {
     return block;
 }
 
-fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) @local => { block, (BuddyBlockHeader*)((uptr)block+(allocator::@order_size(order)/2)) };
+fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) @local { 
+    BuddyBlockHeader* first = block;
+    BuddyBlockHeader* second = (BuddyBlockHeader*)((uptr)block+(allocator::@order_size(order)/2));
+
+    first.size = second.size = allocator::@order_size(order-1);
+    first.next = second.next = null;
+
+    return { first, second };
+}
 
 fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @local {
     BuddyBlockHeader*[2] splits;
@@ -60,7 +68,11 @@ fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @loca
     if (idx >= self.freelist.len) {      // get a new block from alloc
         if (try block = self.allocFn(SYS_REQUEST_BLOCKS)) {
             self.totalMemory += allocator::@order_size(MAX_ORDER);
-            return (BuddyBlockHeader*)block;
+
+            BuddyBlockHeader* bblock = (BuddyBlockHeader*)block;
+            bblock.size = allocator::@order_size(MAX_ORDER);
+
+            return bblock;
         } else {
             return allocator::OUT_OF_MEMORY?;
         }
@@ -79,30 +91,23 @@ fn void*? BuddyAllocator.acquire(&self, usz size) @dynamic {
     if (size > allocator::@order_size(MAX_ORDER) - BuddyBlockHeader.sizeof) return allocator::INVALID_ALLOC_SIZE?;
 
     usz order = $$max(allocator::@order_of(size+BuddyBlockHeader.sizeof), MIN_ORDER);
-
     int idx = (int)order - MIN_ORDER;
-    assert(idx >= 0);
 
     BuddyBlockHeader* block;
 
     if (self.freelist[idx] != null) {
         block = self.freelist_remove(idx);
-        block.size = allocator::@order_size(order);
-
-        self.usedMemory += allocator::@order_size(order);
-
     } else {
         // find a bigger block to split
         block = self.get_from_parent_block(idx+1)!;
-        block.size = allocator::@order_size(order);
-
-        self.usedMemory += allocator::@order_size(order);
     }
 
-    char[] data = ((char*)block + BuddyBlockHeader.sizeof)[:allocator::@order_size(order) - BuddyBlockHeader.sizeof];
-    data[..] = 0;
+    $$memset((char*)block, (char)0, allocator::@order_size(order), false, (usz)1);
 
-    return (void*)data.ptr;
+    block.size = allocator::@order_size(order);
+    self.usedMemory += allocator::@order_size(order);
+
+    return (void*)((char*)block + BuddyBlockHeader.sizeof);
 }
 
 fn void? BuddyAllocator.release(&self, void* ptr) @dynamic {
@@ -110,7 +115,7 @@ fn void? BuddyAllocator.release(&self, void* ptr) @dynamic {
 
     BuddyBlockHeader* header = (BuddyBlockHeader*)(ptr - BuddyBlockHeader.sizeof);
 
-    usz order = allocator::@order_of(header.size)-1;
+    usz order = allocator::@order_of(header.size);
     usz size = header.size;
     int idx = (int)order - MIN_ORDER;
 
@@ -138,6 +143,7 @@ fn void? BuddyAllocator.release(&self, void* ptr) @dynamic {
             order++;
             idx++;
             size <<= 1;
+            header.size = size;
         } else {
             break;
         }
