@@ -5,11 +5,13 @@ import mem @public;
 import muon::logging;
 
 import mem::allocator::buddy;
+import std::lock;
 
 const uptr LEGACY_BIOS_BASE = 0x0;
 const uptr LEGACY_BIOS_LIMIT = 0xfffff;
 
 BuddyAllocator kAllocator @local;
+Spinlock lock @local;
 fn Allocator get_allocator() => &kAllocator;
 
 faultdef MEMORY_UNAVAILABLE;
@@ -89,12 +91,18 @@ fn void? free_pages(uptr addr, usz pages) {
 }
 
 fn void* alloc(usz bytes) {
+    lock.acquire();
+    defer lock.release();
+
     void* ptr = (void*)kAllocator.acquire(bytes)!!;
     logging::printn("KERNEL ALLOCATOR - NEW ALLOCATION of %d bytes at %x (usage %d%)", bytes, ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
     return ptr;
 }
 
 fn void free(void* ptr) {
+    lock.acquire();
+    defer lock.release();
+
     if (catch kAllocator.release(ptr)) {
         logging::printn("Attempted free on null pointer.");
     } else {
