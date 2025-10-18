@@ -28,6 +28,7 @@ fn ulong? any_to_decimal(any arg, bool* negative, typeid* type) {
         case TypeKind.POINTER.ordinal:
             return (ulong)(uptr)*(void**)arg.ptr;
         case TypeKind.DISTINCT.ordinal:
+        case TypeKind.BITSTRUCT.ordinal:
         case TypeKind.CONST_ENUM.ordinal: 
             return any_to_decimal(arg.as_inner(), negative, type)!;
         default:
