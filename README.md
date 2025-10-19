@@ -40,11 +40,12 @@
    - [x] UART serial interrupt-based driver (input)
    - [x] HPET timer for LAPIC timer calibration
    - [x] Local APIC timer for event scheduling
-- [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
+- [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler (cooperative round-robin)
    - [x] Task/Thread structure with context and stack
    - [x] Preemptive context switch via timer interrupt
-   - [ ] Scheduler basics: `spawn()`, `terminate()` and `block()`
-   - [ ] Cooperative `yield()` function and `sleep()` function
+   - [x] FPU context save and restore
+   - [x] Scheduler basics: `spawn()` and `terminate()`
+   - [ ] Cooperative `yield()` and `sleep()`/`wake()` functions
    - [ ] Basic shell to launch programs
 
 ## Why C3?
