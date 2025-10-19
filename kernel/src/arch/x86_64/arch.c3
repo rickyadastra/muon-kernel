@@ -26,6 +26,9 @@ fn void init(BootloaderPayload* payload) {
     muon::@wrap_panic(cpu::cpuid::enable());
     logging::printn("CPUID enabled");
 
+    muon::@wrap_panic(cpu::sse::enable());
+    logging::printn("SSE enabled");
+
     // Memory Management
     muon::@wrap_panic(mem::init(payload));
     logging::printn("Memory manager init complete");

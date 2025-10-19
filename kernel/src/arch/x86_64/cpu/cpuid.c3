@@ -18,6 +18,9 @@ enum CPUFeature : const char {
     RDRAND_SUPPORT = 30,
     // 32-63 are RDX
     FPU_PRESENT = 32,
+    FXSR_SUPPORT = 56,
+    SSE_SUPPORT = 57,
+    SSE2_SUPPORT = 58,
 }
 
 bitstruct AddressLength : ushort {
