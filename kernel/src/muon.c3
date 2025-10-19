@@ -9,7 +9,7 @@ fn void kmain(BootloaderPayload* payload) {
 
     arch::init(payload);
 
-    scheduler::init()!!;
+    muon::@wrap_panic(scheduler::init());
     muon::init();
     scheduler::start();
     
@@ -43,3 +43,10 @@ fn void idle() @local {
 }
 
 macro panic(String message) => arch::log_and_panic(message, $$FILE, $$FUNC, $$LINE);
+
+macro @wrap_panic(#func) {
+    if (catch excuse = #func) {
+        logging::printn("Got fault %s during %s. Cannot continue, goodbye, world.", excuse.nameof, $$FUNC);
+        panic("Init failed");
+    }
+}
