@@ -24,17 +24,18 @@ import arch::mem;
 import std::collections;
 import resource::handle;
 
-<*
-    @require entriesSize < 0x2000 / HandleEntry.sizeof
-*>
-fn HandleTable? init(usz entriesSize) {
-    HandleEntry[] entries = ((HandleEntry*)mem::alloc(HandleEntry.sizeof * entriesSize))[:entriesSize];
+fn void? HandleTable.init(&self, usz entriesSize) {
+    HandleEntry[] entries = ((HandleEntry*)mem::alloc_pages(mem::pages(HandleEntry.sizeof * entriesSize))!)[:entriesSize];
     void* bitmap = mem::alloc(entriesSize / ulong.sizeof);
 
-    return {
-        .entries = entries,
-        .bitmap = bitmap::init(bitmap, entriesSize),
-    };
+    self.entries = entries;
+    self.bitmap = bitmap::init(bitmap, entriesSize);
+}
+
+fn void? HandleTable.destroy(&self) {
+    usz entriesSize = self.bitmap.size;
+    mem::free((void*)self.bitmap.data.ptr);
+    mem::free_pages((uptr)self.entries.ptr, mem::pages(HandleEntry.sizeof * entriesSize))!;
 }
 
 macro HandleEntry.valid(&self) => self.resource != null;

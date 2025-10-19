@@ -81,6 +81,7 @@ fn void? init(BootloaderPayload* payload) {
 }
 
 macro usz page_size() => pmm::FRAME_SIZE;
+macro usz pages(bytes) => vmm::@pages(bytes);
 
 fn uptr? alloc_pages(usz pages) {
     return vmm::@phys((uptr)pmm::alloc(pages)!);
