@@ -114,6 +114,7 @@ muon_sources = [
     f'src/muon.c3',
     f'src/muon.c3i',
 
+    f'test/test.c3t',
     f'test/scheduler.c3t',
     f'test/scheduler_fpu.c3t',
 ]

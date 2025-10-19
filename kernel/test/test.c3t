@@ -1,0 +1,29 @@
+module muon::test;
+
+import scheduler;
+import muon;
+
+macro prepare_scheduler() {
+    task::spawn(&test::task_simple_counter)!!;
+    task::spawn(&test::task_spawner)!!;
+    task::spawn(&test::task_intensive_loop)!!;
+    task::spawn(&test::task_quick_exit)!!;
+    task::spawn(&test::task_conditional_logic)!!;
+    task::spawn(&test::task_switch_logic)!!;
+    task::spawn(&test::task_yield_stress)!!;
+}
+
+macro prepare_scheduler_fpu() {
+    task::spawn(&test::task_fpu_basic_arithmetic)!!;
+    task::spawn(&test::task_fpu_accumulator)!!;
+    task::spawn(&test::task_fpu_interleaved)!!;
+    task::spawn(&test::task_fpu_double_precision)!!;
+    task::spawn(&test::task_fpu_register_persistence)!!;
+    task::spawn(&test::task_fpu_advanced_math)!!;
+    task::spawn(&test::task_fpu_stress)!!;
+    task::spawn(&test::task_fpu_division_chain)!!;
+    task::spawn(&test::task_fpu_interleave_test_a)!!;
+    task::spawn(&test::task_fpu_interleave_test_b)!!;
+    task::spawn(&test::task_fpu_intensive_loop_1)!!;
+    task::spawn(&test::task_fpu_intensive_loop_2)!!;
+}
