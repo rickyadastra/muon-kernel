@@ -24,12 +24,12 @@ fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr st
 
 fn void TaskContext.save_from(&self, CpuContext* context) @dynamic {
     self.cpuContext = context;
-    // TODO: add fpu state save and restore
+    sse::save_context(&self.fpuContext);
 }
 
 fn void TaskContext.load_to(&self, CpuContext** context) @dynamic {
     *context = self.cpuContext;
-    // TODO: add fpu state save and restore
+    sse::restore_context(&self.fpuContext);
 }
 
 macro prepare_yielding() {
