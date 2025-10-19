@@ -41,10 +41,14 @@ fn void? execute_raw(Register* a, Register* b, Register* c, Register* d) {
     }
     asm("cpuid");
     asm {
-        movq _a, $rax;
-        movq _b, $rbx;
-        movq _c, $rcx;
-        movq _d, $rdx;
+        pushq $rax;
+        pushq $rbx;
+        pushq $rcx;
+        pushq $rdx;
+        popq _d;
+        popq _c;
+        popq _b;
+        popq _a;
     }
 
     *a = _a;
