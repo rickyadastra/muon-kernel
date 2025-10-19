@@ -18,8 +18,8 @@ fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr st
         .ss = gdt::@segment_selector_of(gdt::KnownDescriptor.KERNEL_DATA.ordinal),
     };
 
-    // set fpuContext
-    self.fpuContext[..] = 0;
+    // set initial fpuContext
+    sse::init_context(&self.fpuContext);
 }
 
 fn void TaskContext.save_from(&self, CpuContext* context) @dynamic {

@@ -3,14 +3,12 @@ module scheduler::task;
 import arch;
 import mem;
 
-const usz FPU_CONTEXT_SIZE = 512;
-
 typedef CpuContext = inline interrupts::InterruptStack;
-typedef FpuContext = inline char[FPU_CONTEXT_SIZE];
+typedef FpuContext = inline char[sse::FPU_CONTEXT_SIZE];
 
 typedef TaskSpace = inline AddressSpace;
 
 struct TaskContext (RestorableContext) {
     CpuContext* cpuContext;
-    FpuContext fpuContext;
+    FpuContext fpuContext @align(16);
 }

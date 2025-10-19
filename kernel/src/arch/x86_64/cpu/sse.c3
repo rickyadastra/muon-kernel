@@ -4,76 +4,6 @@ import arch::cpu;
 import arch::interrupts;
 import muon;
 
-faultdef SSE_UNSUPPORTED, SSE2_UNSUPPORTED;
-
-const CR0_EM = 2;
-const CR0_MP = 1;
-const CR4_OSFXSR = 9;
-const CR4_OSXMMEXCPT = 10;
-
-const MXCSReg DEFAULT_MXCSR = {
-    .invalidOperationMasked = true,
-    .denormOperandMasked = true,
-    .zeroDivMasked = true,
-    .numOverflowMasked = true,
-    .numUnderflowMasked = true,
-    .inexactResMasked = true,
-};
-
-const FPUCtrlWord DEFAULT_FCW = {
-    .invalidOperationMasked = true,
-    .denormOperandMasked = true,
-    .zeroDivMasked = true,
-    .overflowMasked = true,
-    .underflowMasked = true,
-    .precisionMasked = true,
-    .precisionControl = EXTENDED,
-    .roundingControl = TO_NEAREST,
-};
-
-bitstruct MXCSReg : uint {
-    // Exceptions
-    bool invalidOperationExcpt : 0;
-    bool denormOperandExcpt : 1;
-    bool zeroDivExcpt : 2;
-    bool numOverflowExcpt : 3;
-    bool numUnderflowExcpt : 4;
-    bool inexactResExcpt : 5;
-    // Masks
-    bool invalidOperationMasked : 7;
-    bool denormOperandMasked : 8;
-    bool zeroDivMasked : 9;
-    bool numOverflowMasked : 10;
-    bool numUnderflowMasked : 11;
-    bool inexactResMasked : 12;
-}
-
-enum PrecisionControl : const char {
-    SINGLE = 0b00,
-    DOUBLE = 0b10,
-    EXTENDED = 0b11, 
-}
-
-enum RoundingControl : const char {
-    TO_NEAREST = 0b00,
-    DOWN = 0b01,
-    UP = 0b10,
-    TO_ZERO = 0b11,
-}
-
-bitstruct FPUCtrlWord : ushort {
-    // Exception masks
-    bool invalidOperationMasked : 0;
-    bool denormOperandMasked : 1;
-    bool zeroDivMasked : 2;
-    bool overflowMasked : 3;
-    bool underflowMasked : 4;
-    bool precisionMasked : 5;
-    // Configs
-    PrecisionControl precisionControl : 8..9;
-    RoundingControl roundingControl : 10..11;
-}
-
 <*
     clear the CR0.EM bit (bit 2)
     set the CR0.MP bit (bit 1)
@@ -111,12 +41,18 @@ fn void? enable() {
     load_fcw(&DEFAULT_FCW);
 }
 
-fn void save_context(char* to) {
+fn void save_context(char[FPU_CONTEXT_SIZE]* to) {
     asm("fxsave (%rdi)");
 }
 
-fn void restore_context(char* from) {
+fn void restore_context(char[FPU_CONTEXT_SIZE]* from) {
     asm("fxrstor (%rdi)");
+}
+
+fn void init_context(char[FPU_CONTEXT_SIZE]* ctx) {
+    (*ctx)[..] = 0;
+    *(MXCSReg*)&((*ctx)[MXCSR_CTX_BYTE_OFFSET]) = sse::DEFAULT_MXCSR;
+    *(FPUCtrlWord*)&((*ctx)[FCW_CTX_BYTE_OFFSET]) = sse::DEFAULT_FCW;
 }
 
 fn void store_mxcsr(MXCSReg* to) @private {
