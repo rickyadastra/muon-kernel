@@ -24,6 +24,8 @@ struct Task {
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
     void* taskStackBase;
     usz taskStackSize;
+    
+    HandleTable handles;
 }
 
 bitstruct TaskHandlePerms : HandlePerms {

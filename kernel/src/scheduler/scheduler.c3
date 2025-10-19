@@ -39,16 +39,14 @@ fn void? init() {
 
     taskQueue = linkedlist::init{Task*}(mem::get_allocator());
     terminatedQueue = linkedlist::init{Task*}(mem::get_allocator());
-    task::taskHandleTable = table::init(task::MAX_TASK_COUNT)!;
 
     // setup bootstrap task
     Task* task = task::create()!;
-    task::create_handle(task)!;
     idleTask = task;
 
     // setup terminated_tasks_cleanup
     Task* worker = task::create(&worker::terminated_tasks_cleanup, state: WAITING)!;
-    task::create_handle(worker)!;
+    task::create_handle(idleTask, worker)!;
     cleanupTask = worker;
 
     currentTask = idleTask;

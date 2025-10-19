@@ -8,25 +8,23 @@ import resource;
 import random;
 import std::lock;
 
-HandleTable taskHandleTable;
-
 <*
     @param[&in] task
 *>
-macro Handle? create_handle(Task* task, TaskHandlePerms perms = {}) @private {
-    taskHandleTable.lock.acquire();
-    defer taskHandleTable.lock.release();
+macro Handle? create_handle(Task* owner, Task* task, TaskHandlePerms perms = {}) @private {
+    owner.handles.lock.acquire();
+    defer owner.handles.lock.release();
 
     Handle handle; 
-    usz idx = taskHandleTable.bitmap.find_free()!;
-    HandleEntry* entry = &taskHandleTable.entries[idx];
+    usz idx = owner.handles.bitmap.find_free()!;
+    HandleEntry* entry = &owner.handles.entries[idx];
 
     handle = handle::init((uint)idx, entry.generation, (ushort)random::random()!);
     entry.set(idx, task, handle.salt, (HandlePerms)perms);
 
-    taskHandleTable.bitmap.set(idx);
+    owner.handles.bitmap.set(idx);
 
-    logging::printn("New handle created: %x", (ulong)handle);
+    logging::printn("New handle created on task #%d: %x", owner.id, handle);
 
     return handle;
 }
@@ -43,6 +41,7 @@ macro Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERN
 
     task.id = scheduler::nextTaskId.add(1);
     task.state = state;
+    task.handles.init(168)!;
 
     if (entryPoint != null && stackSize > 0) {
         task.taskStackBase = (void*)stackBase!;
@@ -59,7 +58,9 @@ macro void? destroy(Task* task) @private {
         mem::free_pages((uptr)task.taskStackBase, task.taskStackSize)!;
     }
 
+    task.handles.destroy()!;
     mem::free(task);
+
     logging::debug("Task #%d destroyed", task.id);
 }
 
@@ -70,7 +71,7 @@ fn Handle? spawn(EntryPointFn entryPoint, usz stackSize = DEFAULT_KERNEL_STACK_S
     defer scheduler::unlock_scheduler();
     
     Task* task = create(entryPoint, stackSize)!;
-    Handle handle = create_handle(task)!;
+    Handle handle = create_handle(scheduler::current_task(), task)!;
 
     scheduler::enqueue_task(task);
     return handle;

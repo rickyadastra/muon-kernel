@@ -20,13 +20,12 @@ fn void terminated_tasks_cleanup() {
 
         logging::debug("removing and destroying task");
         Task* t = scheduler::terminatedQueue.remove_at(0)!!;
-        task::destroy(t)!!;
         
         // destroy handles
-        task::taskHandleTable.lock.acquire();
+        t.handles.lock.acquire();
         logging::debug("handle table lock acquired");
 
-        foreach (usz idx, HandleEntry* &entry : task::taskHandleTable.entries) {
+        foreach (usz idx, HandleEntry* &entry : t.handles.entries) {
             if (!entry.valid()) continue;
 
             // if (entry.data == t || entry.parent == t) entry.clear();
@@ -42,7 +41,10 @@ fn void terminated_tasks_cleanup() {
             logging::printn("handle[%d]: resource=%x (%s), gen=%d, salt=%d, perms=%x", idx, entry.resource.ptr, type, entry.generation, entry.salt, entry.perms);
         }
 
-        task::taskHandleTable.lock.release();
+        t.handles.lock.release();
+
+        task::destroy(t)!!;
+
         logging::debug("handle table lock released");
         scheduler::unlock_scheduler();
         logging::debug("scheduler lock releasing");
