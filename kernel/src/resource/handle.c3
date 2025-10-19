@@ -1,5 +1,6 @@
 module resource::handle;
 
+import resource::table;
 
 macro Handle init(uint index, uint generation, ushort salt) {
     return {
@@ -9,15 +10,15 @@ macro Handle init(uint index, uint generation, ushort salt) {
     };
 }
 
-macro bool Handle.validate(Handle handle, GenericHandleEntry* entry) {
-    if (!entry.valid) return handle::INVALID_HANDLE?;
+macro bool Handle.validate(Handle handle, HandleEntry* entry) {
+    if (!entry.valid()) return handle::INVALID_HANDLE?;
     if (entry.generation != handle.generation) return handle::HANDLE_GEN_MISMATCH?;
     if (entry.salt != handle.salt) return handle::HANDLE_SALT_MISMATCH?;
 
     return true;
 }
 
-module resource::handletable{ResourceType};
+module resource::table;
 
 import arch::mem;
 import std::collections;
@@ -36,21 +37,26 @@ fn HandleTable? init(usz entriesSize) {
     };
 }
 
-macro HandleEntry.set(&self, usz idx, ResourceType* data, ResourceType* parent, ushort salt, HandlePerms perms = 0) {
-    self.data = data;
-    self.parent = parent;
+macro HandleEntry.valid(&self) => self.resource != null;
+
+<*
+    @require self.resource == null
+*>
+macro HandleEntry.set(&self, usz idx, any resource, ushort salt, HandlePerms perms = 0) {
+    self.resource = resource;
     self.salt = salt;
     self.perms = perms;
-    self.valid = true;
 }
 
-macro ResourceType* HandleEntry.clear(&self, ResourceType* parent = null) {
-    ResourceType* data = self.data;
-    if (parent != null) parent = self.parent;
+<*
+    @ensure return.resource == null
+*>
+macro any HandleEntry.clear(&self) {
+    ResourceType* resource = self.resource;
 
-    self.valid = false;
+    self.resource = null;
     self.generation++;
     self.perms = 0;
 
-    return data;
+    return resource;
 }

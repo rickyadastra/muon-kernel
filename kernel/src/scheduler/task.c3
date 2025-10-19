@@ -8,22 +8,21 @@ import resource;
 import random;
 import std::lock;
 
-TaskHandleTable taskHandleTable;
+HandleTable taskHandleTable;
 
 <*
     @param[&in] task
-    @param[in] parent
 *>
-macro TaskHandle? create_handle(Task* task, Task* parent, TaskHandlePerms perms = {}) @private {
+macro Handle? create_handle(Task* task, TaskHandlePerms perms = {}) @private {
     taskHandleTable.lock.acquire();
     defer taskHandleTable.lock.release();
 
-    TaskHandle handle; 
+    Handle handle; 
     usz idx = taskHandleTable.bitmap.find_free()!;
-    TaskHandleEntry* entry = &taskHandleTable.entries[idx];
+    HandleEntry* entry = &taskHandleTable.entries[idx];
 
     handle = handle::init((uint)idx, entry.generation, (ushort)random::random()!);
-    entry.set(idx, task, parent, handle.salt, (HandlePerms)perms);
+    entry.set(idx, task, handle.salt, (HandlePerms)perms);
 
     taskHandleTable.bitmap.set(idx);
 
@@ -64,14 +63,14 @@ macro void? destroy(Task* task) @private {
     logging::debug("Task #%d destroyed", task.id);
 }
 
-fn TaskHandle? spawn(EntryPointFn entryPoint, usz stackSize = DEFAULT_KERNEL_STACK_SIZE) {
+fn Handle? spawn(EntryPointFn entryPoint, usz stackSize = DEFAULT_KERNEL_STACK_SIZE) {
     if (stackSize < 1) return INIT_STACK_TOO_SMALL?;
 
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
     
     Task* task = create(entryPoint, stackSize)!;
-    TaskHandle handle = create_handle(task, scheduler::currentTask)!;
+    Handle handle = create_handle(task)!;
 
     scheduler::enqueue_task(task);
     return handle;

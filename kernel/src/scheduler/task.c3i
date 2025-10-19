@@ -26,10 +26,6 @@ struct Task {
     usz taskStackSize;
 }
 
-alias TaskHandleTable = HandleTable{Task};
-alias TaskHandleEntry = HandleEntry{Task};
-alias TaskHandle = Handle;
-
 bitstruct TaskHandlePerms : HandlePerms {
     bool canTerminate : 0;
     bool canSuspend : 1;

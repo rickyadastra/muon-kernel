@@ -2,6 +2,7 @@ module scheduler::worker;
 
 import scheduler @public;
 import muon;
+import resource;
 
 fn void terminated_tasks_cleanup() {
     while (true) {
@@ -25,12 +26,20 @@ fn void terminated_tasks_cleanup() {
         task::taskHandleTable.lock.acquire();
         logging::debug("handle table lock acquired");
 
-        foreach (usz idx, TaskHandleEntry* &entry : task::taskHandleTable.entries) {
-            if (!entry.valid) continue;
+        foreach (usz idx, HandleEntry* &entry : task::taskHandleTable.entries) {
+            if (!entry.valid()) continue;
 
             // if (entry.data == t || entry.parent == t) entry.clear();
 
-            logging::printn("handle[%d]: valid=%d, data=%x, parent=%x, gen=%d, salt=%d, perms=%x", idx, entry.valid, entry.data, entry.parent, entry.generation, entry.salt, entry.perms);
+            String type;
+            switch (entry.resource.type) {
+                case Task.typeid:
+                    type = Task.typeid.nameof;
+                default:
+                    type = "Unknown";
+            }
+
+            logging::printn("handle[%d]: resource=%x (%s), gen=%d, salt=%d, perms=%x", idx, entry.resource.ptr, type, entry.generation, entry.salt, entry.perms);
         }
 
         task::taskHandleTable.lock.release();

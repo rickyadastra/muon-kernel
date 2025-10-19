@@ -1,11 +1,8 @@
 module resource::handle;
 
-import resource::handletable;
-
 faultdef INVALID_HANDLE, HANDLE_GEN_MISMATCH, HANDLE_SALT_MISMATCH;
 
-alias HandlePerms = ulong;
-alias GenericHandleEntry = HandleEntry{void};
+alias HandlePerms = ushort;
 
 bitstruct Handle : ulong {
     uint index : 0..23;
@@ -13,18 +10,16 @@ bitstruct Handle : ulong {
     ushort salt : 48..63;
 }
 
-module resource::handletable{ResourceType};
+module resource::table;
 
 import std::collections;
 import std::lock;
 import resource::handle;
 
 struct HandleEntry {
-    ResourceType* data;
-    ResourceType* parent;
+    any resource;
     uint generation;
     ushort salt;
-    bool valid;
     HandlePerms perms;
 }
 
@@ -33,4 +28,3 @@ struct HandleTable {
     BitMap bitmap;
     Spinlock lock;
 }
-
