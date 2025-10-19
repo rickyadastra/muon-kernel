@@ -113,6 +113,9 @@ muon_sources = [
     f'src/logging.c3',
     f'src/muon.c3',
     f'src/muon.c3i',
+
+    f'test/scheduler.c3t',
+    f'test/scheduler_fpu.c3t',
 ]
 
 muon_sources_asm = files(

@@ -1,0 +1,323 @@
+module muon::test;
+
+import muon;
+import scheduler;
+
+// Task 1: Basic arithmetic operations test with verification
+fn void task_fpu_basic_arithmetic() {
+    logging::printn("[FPU Test 1] Starting basic arithmetic test");
+    
+    float a = 10.5f;
+    float b = 3f;
+    float expected_sum = 13.5f;
+    float expected_mul = 31.5f;
+    float expected_div = 3.5f;
+    
+    task::yield();
+    
+    float sum = a + b;
+    float mul = a * b;
+    float div = a / b;
+    
+    task::yield();
+    
+    // Verifica con tolleranza per errori floating-point
+    bool sum_ok = (sum > 13.49f && sum < 13.51f);
+    bool mul_ok = (mul > 31.49f && mul < 31.51f);
+    bool div_ok = (div > 3.49f && div < 3.51f);
+    
+    if (sum_ok && mul_ok && div_ok) {
+        logging::printn("[FPU Test 1] ✓ PASS - sum=%f, mul=%f, div=%f", sum, mul, div);
+    } else {
+        logging::printn("[FPU Test 1] ✗ FAIL - sum=%f (expected 13.5), mul=%f (expected 31.5), div=%f (expected 3.5)", sum, mul, div);
+    }
+    
+    task::terminate();
+}
+
+// Task 2: Accumulation test with yield between iterations
+fn void task_fpu_accumulator() {
+    logging::printn("[FPU Test 2] Starting accumulator test");
+    
+    float accumulator = 0.0f;
+    float increment = 0.1f;
+    
+    for (int i = 0; i < 100; i++) {
+        accumulator += increment;
+        
+        if (i % 10 == 0) {
+            task::yield();
+        }
+    }
+    
+    // Risultato atteso: 10.0 (100 * 0.1)
+    float expected = 10.0f;
+    bool test_ok = (accumulator > 9.99f && accumulator < 10.01f);
+    
+    if (test_ok) {
+        logging::printn("[FPU Test 2] ✓ PASS - accumulator=%f (expected ~10.0)", accumulator);
+    } else {
+        logging::printn("[FPU Test 2] ✗ FAIL - accumulator=%f (expected ~10.0)", accumulator);
+    }
+    
+    task::terminate();
+}
+
+// Task 3: Interleaved calculations test with yield
+fn void task_fpu_interleaved() {
+    logging::printn("[FPU Test 3] Starting interleaved test");
+    
+    float x = 5.5f;
+    float y = 2.0f;
+    
+    task::yield();
+    
+    float step1 = x * y;  // 11.0
+    task::yield();
+    
+    float step2 = step1 + 4.5f;  // 15.5
+    task::yield();
+    
+    float step3 = step2 / 5.0f;  // 3.1
+    task::yield();
+    
+    float result = step3 - 0.1f;  // 3.0
+    
+    bool test_ok = (result > 2.99f && result < 3.01f);
+    
+    if (test_ok) {
+        logging::printn("[FPU Test 3] ✓ PASS - result=%f (expected 3.0)", result);
+    } else {
+        logging::printn("[FPU Test 3] ✗ FAIL - result=%f (expected 3.0)", result);
+    }
+    
+    task::terminate();
+}
+
+// Task 4: Double precision test
+fn void task_fpu_double_precision() {
+    logging::printn("[FPU Test 4] Starting double precision test");
+    
+    double a = 123.456789;
+    double b = 987.654321;
+    
+    task::yield();
+    
+    double sum = a + b;  // 1111.11111
+    task::yield();
+    
+    double product = a * b;  // 121932.631112635269
+    task::yield();
+    
+    double quotient = b / a;  // ~8.0
+    
+    bool sum_ok = (sum > 1111.11 && sum < 1111.12);
+    bool product_ok = (product > 121932.6 && product < 121932.7);
+    bool quotient_ok = (quotient > 7.99 && quotient < 8.01);
+    
+    if (sum_ok && product_ok && quotient_ok) {
+        logging::printn("[FPU Test 4] ✓ PASS - sum=%f, product=%f, quotient=%f", sum, product, quotient);
+    } else {
+        logging::printn("[FPU Test 4] ✗ FAIL - sum=%f, product=%f, quotient=%f", sum, product, quotient);
+    }
+    
+    task::terminate();
+}
+
+// Task 5: FPU register persistence test across multiple yields
+fn void task_fpu_register_persistence() {
+    logging::printn("[FPU Test 5] Starting register persistence test");
+    
+    float reg0 = 1.1f;
+    float reg1 = 2f;
+    float reg2 = 3.3f;
+    float reg3 = 4.4f;
+    
+    task::yield();
+    
+    // Somma iniziale
+    float checkpoint1 = reg0 + reg1 + reg2 + reg3;  // 10.8
+    
+    task::yield();
+    task::yield();
+    
+    // Verifica che i valori siano preservati
+    float checkpoint2 = reg0 + reg1 + reg2 + reg3;
+    
+    task::yield();
+    
+    // Operazioni aggiuntive
+    float result = (reg0 * reg1) + (reg2 * reg3);  // 2.2 + 14.52 = 16.72
+    
+    bool check1_ok = (checkpoint1 > 10.79f && checkpoint1 < 10.81f);
+    bool check2_ok = (checkpoint2 > 10.79f && checkpoint2 < 11.81f);
+    bool result_ok = (result > 16.71f && result < 16.73f);
+    
+    if (check1_ok && check2_ok && result_ok) {
+        logging::printn("[FPU Test 5] ✓ PASS - persistenza OK, result=%f", result);
+    } else {
+        logging::printn("[FPU Test 5] ✗ FAIL - check1=%f, check2=%f, result=%f", checkpoint1, checkpoint2, result);
+    }
+    
+    task::terminate();
+}
+
+// Task 6: Square root and power calculations test
+fn void task_fpu_advanced_math() {
+    logging::printn("[FPU Test 6] Starting advanced math test");
+    
+    float base = 16.0f;
+    float exponent = 0.5f;  // Radice quadrata
+    
+    task::yield();
+    
+    // Calcolo radice quadrata manuale (iterazioni di Newton)
+    float sqrt_result = base;
+    for (int i = 0; i < 5; i++) {
+        sqrt_result = (sqrt_result + base / sqrt_result) / 2.0f;
+        task::yield();
+    }
+    
+    // sqrt(16) = 4.0
+    bool sqrt_ok = (sqrt_result > 3.99f && sqrt_result < 4.01f);
+    
+    task::yield();
+    
+    // Test potenza quadrata
+    float square = sqrt_result * sqrt_result;  // 16.0
+    bool square_ok = (square > 15.99f && square < 16.01f);
+    
+    if (sqrt_ok && square_ok) {
+        logging::printn("[FPU Test 6] ✓ PASS - sqrt=%f, square=%f", sqrt_result, square);
+    } else {
+        logging::printn("[FPU Test 6] ✗ FAIL - sqrt=%f (exp 4.0), square=%f (exp 16.0)", sqrt_result, square);
+    }
+    
+    task::terminate();
+}
+
+// Task 7: Stress test with repeated calculations
+fn void task_fpu_stress() {
+    logging::printn("[FPU Test 7] Starting stress test");
+    
+    float running_total = 0.0f;
+    float multiplier = 1.5f;
+    
+    for (int iteration = 0; iteration < 50; iteration++) {
+        float temp = (float)iteration * multiplier;
+        running_total += temp;
+        
+        if (iteration % 5 == 0) {
+            task::yield();
+        }
+    }
+    
+    // Somma: 0*1.5 + 1*1.5 + ... + 49*1.5 = 1.5 * (0+1+...+49) = 1.5 * 1225 = 1837.5
+    float expected = 1837.5f;
+    bool test_ok = (running_total > 1837.4f && running_total < 1837.6f);
+    
+    if (test_ok) {
+        logging::printn("[FPU Test 7] ✓ PASS - total=%f (expected 1837.5)", running_total);
+    } else {
+        logging::printn("[FPU Test 7] ✗ FAIL - total=%f (expected 1837.5)", running_total);
+    }
+    
+    task::terminate();
+}
+
+// Task 8: Successive divisions test with verification
+fn void task_fpu_division_chain() {
+    logging::printn("[FPU Test 8] Starting division chain test");
+    
+    float value = 1000.0f;
+    float divisor = 2.0f;
+    
+    task::yield();
+    
+    // 5 divisioni successive: 1000 / 2 / 2 / 2 / 2 / 2 = 315
+    for (int i = 0; i < 5; i++) {
+        value = value / divisor;
+        task::yield();
+    }
+    
+    float expected = 31.25f;
+    bool test_ok = (value > 31.24f && value < 31.26f);
+    
+    if (test_ok) {
+        logging::printn("[FPU Test 8] ✓ PASS - value=%f (expected 31.25)", value);
+    } else {
+        logging::printn("[FPU Test 8] ✗ FAIL - value=%f (expected 31.25)", value);
+    }
+    
+    task::terminate();
+}
+
+fn void task_fpu_interleave_test_a() {
+    float value = 100.0f;  // Carica in FPU
+    
+    logging::printn("[Task A] Step 1: value = %f", value);
+    task::yield();  // ← Context switch QUI, con value nei registri FPU
+    
+    // Se Task B ha usato FPU, 'value' potrebbe essere corrotto qui
+    logging::printn("[Task A] Step 2: value = %f (expected 100.0)", value);
+    
+    value = value * 2.0f;  // Operazione dovrebbe dare 200.0
+    task::yield();
+    
+    logging::printn("[Task A] Step 3: value = %f (expected 200.0)", value);
+    
+    bool test_ok = (value > 199.99f && value < 200.01f);
+    logging::printn("[Task A] %s", test_ok ? "✓ PASS" : "✗ FAIL - FPU CORRUPTED!");
+    
+    task::terminate();
+}
+
+fn void task_fpu_interleave_test_b() {
+    float value = 777.0f;  // Diverso valore per corrompere Task A
+    
+    logging::printn("[Task B] Step 1: value = %f", value);
+    task::yield();
+    
+    value = value / 7.0f;  // 111.0
+    logging::printn("[Task B] Step 2: value = %f", value);
+    task::yield();
+    
+    logging::printn("[Task B] Step 3: value = %f (expected 111.0)", value);
+    
+    task::terminate();
+}
+
+fn void task_fpu_intensive_loop_1() {
+    double value = 1e25f;
+
+    for (int i = 0; i < 1000; i++) {
+        value /= 2;
+        if (i % 50 == 0) {
+            logging::printn("Task FPU Intensive Loop 1: iterazione %d, risultato %f", i, value);
+            task::yield();
+        }
+    }
+
+    double expected = 9.33263618503219e-277f;
+    logging::printn("[FPU Test 9] value=%f (expected %f)", value, expected);
+}
+
+fn void task_fpu_intensive_loop_2() {
+    double value = 13e-112f;
+
+    for (int i = 0; i < 1000; i++) {
+        if (i % 2 == 0) {
+            value += 0.5f;
+        } else {
+            value *= 1.5f;
+        }
+
+        if (i % 50 == 0) {
+            logging::printn("Task FPU Intensive Loop 2: iterazione %d, risultato %f", i, value);
+            task::yield();
+        }
+    }
+
+    double expected = 1.666175663919892e+88f;
+    logging::printn("[FPU Test 10] value=%f (expected %f)", value, expected);
+}

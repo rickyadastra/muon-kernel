@@ -1,0 +1,202 @@
+module muon::test;
+
+import muon;
+import scheduler;
+
+// Task 1: Simple counter with periodic yield
+fn void task_simple_counter() {
+    int counter = 0;
+    while (counter < 100) {
+        logging::printn("Task Simple Counter: %d", counter);
+        counter++;
+        task::yield();
+    }
+    logging::printn("Task Simple Counter completed");
+}
+
+// Task 2: Intensive loop with sporadic yield
+fn void task_intensive_loop() {
+    int result = 0;
+    for (int i = 0; i < 1000; i++) {
+        result += i * 2;
+        if (i % 50 == 0) {
+            logging::printn("Task Intensive Loop: iteration %d, result %d", i, result);
+            task::yield();
+        }
+    }
+    logging::printn("Task Intensive Loop completed with result: %d", result);
+}
+
+// Task 3: Immediate termination
+fn void task_quick_exit() {
+    logging::printn("Task Quick Exit: started and terminated immediately");
+    task::terminate();
+}
+
+// Task 4: Spawn child tasks
+fn void task_spawner() {
+    logging::printn("Task Spawner: creating 3 child tasks");
+    task::spawn(&task_child_1)!!;
+    task::yield();
+    task::spawn(&task_child_2)!!;
+    task::yield();
+    task::spawn(&task_child_3)!!;
+    logging::printn("Task Spawner: all child tasks created");
+    task::terminate();
+}
+
+fn void task_child_1() {
+    for (int i = 0; i < 10; i++) {
+        logging::printn("  Child 1: step %d", i);
+        task::yield();
+    }
+    task::terminate();
+}
+
+fn void task_child_2() {
+    for (int i = 0; i < 15; i++) {
+        logging::printn("  Child 2: step %d", i);
+        task::yield();
+    }
+    task::terminate();
+}
+
+fn void task_child_3() {
+    for (int i = 0; i < 5; i++) {
+        logging::printn("  Child 3: step %d", i);
+        task::yield();
+    }
+    task::terminate();
+}
+
+// Task 5: Complex conditional operations
+fn void task_conditional_logic() {
+    int state = 0;
+    int iterations = 0;
+    
+    while (iterations < 50) {
+        if (state == 0) {
+            logging::printn("Task Conditional: INITIAL state");
+            state = 1;
+        } else if (state == 1) {
+            logging::printn("Task Conditional: INTERMEDIATE state");
+            state = 2;
+        } else if (state == 2) {
+            logging::printn("Task Conditional: ADVANCED state");
+            state = 3;
+        } else {
+            logging::printn("Task Conditional: FINAL state, reset");
+            state = 0;
+        }
+        iterations++;
+        task::yield();
+    }
+    task::terminate();
+}
+
+// Task 6: Switch with multiple conditions
+fn void task_switch_logic() {
+    for (int mode = 0; mode < 20; mode++) {
+        int result = mode % 5;
+        switch (result) {
+            case 0:
+                logging::printn("Task Switch: mode ZERO [%d]", mode);
+            case 1:
+                logging::printn("Task Switch: mode ONE [%d]", mode);
+            case 2:
+                logging::printn("Task Switch: mode TWO [%d]", mode);
+            case 3:
+                logging::printn("Task Switch: mode THREE [%d]", mode);
+            case 4:
+                logging::printn("Task Switch: mode FOUR [%d]", mode);
+            default:
+                logging::printn("Task Switch: UNKNOWN mode [%d]", mode);
+        }
+        task::yield();
+    }
+    task::terminate();
+}
+
+// Task 7: Recursive spawning (stress test)
+fn void task_recursive_spawner() {
+    logging::printn("Recursive Spawner: level 0");
+    task::spawn(&task_recursive_level_1)!!;
+    for (int i = 0; i < 5; i++) {
+        task::yield();
+    }
+    task::terminate();
+}
+
+fn void task_recursive_level_1() {
+    logging::printn("Recursive Spawner: level 1");
+    task::spawn(&task_recursive_level_2)!!;
+    for (int i = 0; i < 3; i++) {
+        task::yield();
+    }
+    task::terminate();
+}
+
+fn void task_recursive_level_2() {
+    logging::printn("Recursive Spawner: level 2 (leaf)");
+    for (int i = 0; i < 5; i++) {
+        logging::printn("  Level 2: iteration %d", i);
+        task::yield();
+    }
+    task::terminate();
+}
+
+// Task 8: Rapid yield/work alternation
+fn void task_yield_stress() {
+    for (int i = 0; i < 200; i++) {
+        int dummy_work = i * i;
+        task::yield();
+        if (i % 20 == 0) {
+            logging::printn("Task Yield Stress: checkpoint %d", i);
+        }
+    }
+    logging::printn("Task Yield Stress completed");
+    task::terminate();
+}
+
+// Task 12: Multiple task coordinator
+fn void task_coordinator() {
+    logging::printn("Coordinator: system startup");
+    
+    task::spawn(&task_worker_a)!!;
+    task::yield();
+    task::spawn(&task_worker_b)!!;
+    task::yield();
+    task::spawn(&task_worker_c)!!;
+    
+    for (int i = 0; i < 20; i++) {
+        logging::printn("Coordinator: checkpoint %d", i);
+        task::yield();
+    }
+    
+    logging::printn("Coordinator: system shutdown");
+    task::terminate();
+}
+
+fn void task_worker_a() {
+    for (int i = 0; i < 8; i++) {
+        logging::printn("  Worker A: processing %d", i);
+        task::yield();
+    }
+    task::terminate();
+}
+
+fn void task_worker_b() {
+    for (int i = 0; i < 12; i++) {
+        logging::printn("  Worker B: processing %d", i);
+        task::yield();
+    }
+    task::terminate();
+}
+
+fn void task_worker_c() {
+    for (int i = 0; i < 6; i++) {
+        logging::printn("  Worker C: processing %d", i);
+        task::yield();
+    }
+    task::terminate();
+}
