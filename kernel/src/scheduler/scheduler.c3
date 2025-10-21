@@ -45,7 +45,7 @@ fn void? init() {
     idleTask = task;
 
     // setup terminated_tasks_cleanup
-    Task* worker = task::create(&worker::terminated_tasks_cleanup, state: WAITING)!;
+    Task* worker = task::create(&worker::terminated_tasks_cleanup, state: WAITING, parent: task)!;
     task::create_handle(idleTask, worker)!;
     cleanupTask = worker;
 

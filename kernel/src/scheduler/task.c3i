@@ -1,13 +1,16 @@
 module scheduler::task;
 
 import resource;
+import arch::mem;
 
-faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL;
+faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL, INIT_SPAWN_INFO_FAIL, INIT_SELF_HANDLE_FAIL,
+    INIT_SPAWN_HANDLES_FAIL;
 
 attrdef @SchedulerYieldFn = @naked;
 
-const usz MAX_TASK_COUNT = 128;
+const usz MAX_HANDLE_TABLE_SIZE = mem::page_size() / HandleEntry.sizeof;
 const usz DEFAULT_KERNEL_STACK_SIZE = 4;
+const usz MAX_SPAWN_INFO_EXTRA_HANDLE = 16;
 
 enum TaskState : uint {
     READY,
@@ -25,19 +28,40 @@ struct Task {
     void* taskStackBase;
     usz taskStackSize;
     
+    SpawnInfo* spawnInfo;
     HandleTable handles;
 }
 
 bitstruct TaskHandlePerms : HandlePerms {
     bool canTerminate : 0;
-    bool canSuspend : 1;
-    bool canSpawn : 2;
+    bool canSpawn : 1;
+    bool canSuspend : 2;
+    bool canWake : 3;
+}
+
+const TaskHandlePerms DEFAULT_SELF = {
+    .canTerminate = true,
+    .canSpawn = true,
+    .canSuspend = true,
+    .canWake = true,
+};
+
+struct SpawnHandle {
+    Handle handle;
+    ResourceType type;
+} 
+
+struct SpawnInfo {
+    Handle taskHandle;
+    SpawnHandle[MAX_SPAWN_INFO_EXTRA_HANDLE] extraHandles;
+
+    // argc, argv etc.
 }
 
 alias EntryPointFn = fn void();
 
 interface RestorableContext {
-    fn void init(EntryPointFn entryPoint, uptr stackBase, uptr stackTop);
+    fn void init(EntryPointFn entryPoint, uptr stackBase, uptr stackTop, SpawnInfo* spawnInfo);
     fn void save_from(CpuContext* context);
     fn void load_to(CpuContext** context);
 }

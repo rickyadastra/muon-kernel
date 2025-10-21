@@ -3,7 +3,7 @@ module scheduler::task;
 import muon;
 import arch;
 
-fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr stackTop) @dynamic {
+fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr stackTop, SpawnInfo* spawnInfo = null) @dynamic {
     // set exit return address
     *(uptr*)(stackTop-8) = (uptr)&scheduler::task::terminate;
     self.cpuContext = (CpuContext*)(stackTop-8-CpuContext.sizeof);
@@ -17,6 +17,8 @@ fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr st
         .cs = gdt::@segment_selector_of(gdt::KnownDescriptor.KERNEL_CODE.ordinal),
         .ss = gdt::@segment_selector_of(gdt::KnownDescriptor.KERNEL_DATA.ordinal),
     };
+
+    if (spawnInfo != null) self.cpuContext.rdi = (Register)spawnInfo;
 
     // set initial fpuContext
     sse::init_context(&self.fpuContext);
