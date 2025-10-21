@@ -30,15 +30,7 @@ fn void terminated_tasks_cleanup() {
 
             // if (entry.data == t || entry.parent == t) entry.clear();
 
-            String type;
-            switch (entry.resource.type) {
-                case Task.typeid:
-                    type = Task.typeid.nameof;
-                default:
-                    type = "Unknown";
-            }
-
-            logging::printn("handle[%d]: resource=%x (%s), gen=%d, salt=%d, perms=%x", idx, entry.resource.ptr, type, entry.generation, entry.salt, entry.perms);
+            logging::printn("Task(%d).handles[%d]: resource=%x (%s), gen=%d, salt=%d, perms=%x", t.id, idx, entry.resource, entry.type.nameof, entry.generation, entry.salt, entry.perms);
         }
 
         t.handles.lock.release();

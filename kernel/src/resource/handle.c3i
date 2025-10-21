@@ -1,13 +1,19 @@
 module resource::handle;
 
-faultdef INVALID_HANDLE, HANDLE_GEN_MISMATCH, HANDLE_SALT_MISMATCH;
+import scheduler::task;
 
-alias HandlePerms = ushort;
+faultdef INVALID_HANDLE, HANDLE_GEN_MISMATCH, HANDLE_SALT_MISMATCH, HANDLE_TYPE_MISMATCH;
+
+alias HandlePerms = char;
 
 bitstruct Handle : ulong {
     uint index : 0..23;
     uint generation : 24..47;
     ushort salt : 48..63;
+}
+
+enum ResourceType : char (typeid type) {
+    TASK = Task.typeid,
 }
 
 module resource::table;
@@ -17,9 +23,10 @@ import std::lock;
 import resource::handle;
 
 struct HandleEntry {
-    any resource;
+    void* resource;
     uint generation;
     ushort salt;
+    ResourceType type;
     HandlePerms perms;
 }
 

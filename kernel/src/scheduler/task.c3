@@ -15,14 +15,7 @@ macro Handle? create_handle(Task* owner, Task* task, TaskHandlePerms perms = {})
     owner.handles.lock.acquire();
     defer owner.handles.lock.release();
 
-    Handle handle; 
-    usz idx = owner.handles.bitmap.find_free()!;
-    HandleEntry* entry = &owner.handles.entries[idx];
-
-    handle = handle::init((uint)idx, entry.generation, (ushort)random::random()!);
-    entry.set(idx, task, handle.salt, (HandlePerms)perms);
-
-    owner.handles.bitmap.set(idx);
+    Handle handle = owner.handles.insert(task, ResourceType.TASK, (HandlePerms)perms)!;
 
     logging::printn("New handle created on task #%d: %x", owner.id, handle);
 
