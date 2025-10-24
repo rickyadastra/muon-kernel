@@ -31,8 +31,6 @@ fn void task_fpu_basic_arithmetic() {
     } else {
         logging::printn("[FPU Test 1] ✗ FAIL - sum=%f (expected 13.5), mul=%f (expected 31.5), div=%f (expected 3.5)", sum, mul, div);
     }
-    
-    task::terminate();
 }
 
 // Task 2: Accumulation test with yield between iterations
@@ -59,8 +57,6 @@ fn void task_fpu_accumulator() {
     } else {
         logging::printn("[FPU Test 2] ✗ FAIL - accumulator=%f (expected ~10.0)", accumulator);
     }
-    
-    task::terminate();
 }
 
 // Task 3: Interleaved calculations test with yield
@@ -90,8 +86,6 @@ fn void task_fpu_interleaved() {
     } else {
         logging::printn("[FPU Test 3] ✗ FAIL - result=%f (expected 3.0)", result);
     }
-    
-    task::terminate();
 }
 
 // Task 4: Double precision test
@@ -120,8 +114,6 @@ fn void task_fpu_double_precision() {
     } else {
         logging::printn("[FPU Test 4] ✗ FAIL - sum=%f, product=%f, quotient=%f", sum, product, quotient);
     }
-    
-    task::terminate();
 }
 
 // Task 5: FPU register persistence test across multiple yields
@@ -158,8 +150,6 @@ fn void task_fpu_register_persistence() {
     } else {
         logging::printn("[FPU Test 5] ✗ FAIL - check1=%f, check2=%f, result=%f", checkpoint1, checkpoint2, result);
     }
-    
-    task::terminate();
 }
 
 // Task 6: Square root and power calculations test
@@ -192,8 +182,6 @@ fn void task_fpu_advanced_math() {
     } else {
         logging::printn("[FPU Test 6] ✗ FAIL - sqrt=%f (exp 4.0), square=%f (exp 16.0)", sqrt_result, square);
     }
-    
-    task::terminate();
 }
 
 // Task 7: Stress test with repeated calculations
@@ -221,8 +209,6 @@ fn void task_fpu_stress() {
     } else {
         logging::printn("[FPU Test 7] ✗ FAIL - total=%f (expected 1837.5)", running_total);
     }
-    
-    task::terminate();
 }
 
 // Task 8: Successive divisions test with verification
@@ -247,9 +233,7 @@ fn void task_fpu_division_chain() {
         logging::printn("[FPU Test 8] ✓ PASS - value=%f (expected 31.25)", value);
     } else {
         logging::printn("[FPU Test 8] ✗ FAIL - value=%f (expected 31.25)", value);
-    }
-    
-    task::terminate();
+    }    
 }
 
 fn void task_fpu_interleave_test_a() {
@@ -268,8 +252,6 @@ fn void task_fpu_interleave_test_a() {
     
     bool test_ok = (value > 199.99f && value < 200.01f);
     logging::printn("[Task A] %s", test_ok ? "✓ PASS" : "✗ FAIL - FPU CORRUPTED!");
-    
-    task::terminate();
 }
 
 fn void task_fpu_interleave_test_b() {
@@ -283,8 +265,6 @@ fn void task_fpu_interleave_test_b() {
     task::yield();
     
     logging::printn("[Task B] Step 3: value = %f (expected 111.0)", value);
-    
-    task::terminate();
 }
 
 fn void task_fpu_intensive_loop_1() {
