@@ -10,10 +10,11 @@ macro Handle init(uint index, uint generation, ushort salt) {
     };
 }
 
-macro bool? Handle.validate(Handle handle, HandleEntry entry) {
+macro bool? Handle.validate(Handle handle, HandleEntry entry, HandlePerms perms) {
     if (!entry.valid()) return handle::INVALID_HANDLE?;
     if (entry.generation != handle.generation) return handle::HANDLE_GEN_MISMATCH?;
     if (entry.salt != handle.salt) return handle::HANDLE_SALT_MISMATCH?;
+    if (entry.perms & perms != perms) return handle::HANDLE_NO_PERMISSION?; 
 
     return true;
 }
@@ -40,11 +41,17 @@ fn void? HandleTable.destroy(&self) {
     mem::free_pages((uptr)self.entries.ptr, mem::pages(HandleEntry.sizeof * entriesSize))!;
 }
 
-macro bool? HandleTable.validate_handle(&self, Handle handle) {
+fn any? HandleTable.resolve_handle(&self, Handle handle, HandlePerms perms = {}) {
     usz idx = handle.index;
     if (idx > self.entries.len) return handle::INVALID_HANDLE?;
 
-    return handle.validate(self.entries[idx]);
+    HandleEntry entry = self.entries[idx];
+
+    if (handle.validate(entry, perms)!) {
+        return $$any_make(entry.resource, entry.type.type);
+    }
+
+    $$unreachable();
 }
 
 fn Handle? HandleTable.insert(&self, void* resource, ResourceType type, HandlePerms perms = {}) {
@@ -64,7 +71,7 @@ fn Handle? HandleTable.insert(&self, void* resource, ResourceType type, HandlePe
 
 fn Handle? HandleTable.copy_handle_to(&self, HandleTable dest, Handle handle, ResourceType type) {
     // self table fails to validate given handle
-    if (catch excuse = self.validate_handle(handle)) return excuse?;
+    if (catch excuse = self.resolve_handle(handle)) return excuse?;
 
     // handle is valid, get entry and create handle
     HandleEntry entry = self.entries[handle.index];
