@@ -1,5 +1,6 @@
 module scheduler::task;
 
+import lang;
 import arch;
 import muon;
 import scheduler @public;
@@ -102,8 +103,29 @@ fn Handle? spawn(EntryPointFn entryPoint, SpawnHandle... extraHandles) {
     return handle;
 }
 
-fn void terminate() {
-    scheduler::terminate_task(scheduler::current_task());
+<*
+    This naked function is called when returning from the task entry point to address
+    stack not being aligned to 8 byte on a function call to comply with System V ABI
+    requirements. 
+
+    TODO: move to arch-dependant task.c3
+*>
+fn void exit_trampoline() @naked @private {
+    exit();
+}
+
+fn void exit() {
+    terminate(scheduler::current_task().spawnInfo.taskHandle)!!;
+}
+
+fn void? terminate(Handle handle) {
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
+
+    HandleTable table = scheduler::current_task().handles;
+    Task* task = anycast(table.resolve_handle(handle, (HandlePerms)(TaskHandlePerms){.canTerminate = true})!, Task)!;
+
+    scheduler::terminate_task(task);
 }
 
 fn void yield() @SchedulerYieldFn {

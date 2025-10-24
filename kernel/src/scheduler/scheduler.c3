@@ -158,7 +158,6 @@ macro Task* current_task() {
 <*
     @require task != null
 *>
-
 macro wake_task(Task* task) {
     lock_scheduler();
     defer unlock_scheduler();

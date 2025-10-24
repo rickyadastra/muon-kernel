@@ -26,8 +26,15 @@ enum TypeKind : char {
 	INTERFACE,
 }
 
+faultdef TYPE_MISMATCH @builtin;
+
 macro any.as_inner(&self) {
 	return $$any_make(self.ptr, self.type.inner);
+}
+
+macro anycast(any v, $Type) @builtin {
+	if (v.type != $Type.typeid) return TYPE_MISMATCH?;
+	return ($Type*)v.ptr;
 }
 
 fn void* memcpy(void* dest, void* src, usz n) @extern("memcpy") @nostrip {

@@ -3,6 +3,7 @@ module muon;
 import arch;
 import boson;
 import scheduler;
+import resource;
 
 fn void kmain(BootloaderPayload* payload) {
     logging::init();
@@ -17,15 +18,22 @@ fn void kmain(BootloaderPayload* payload) {
 }
 
 fn void init() {
-    task::spawn(&test)!!;
+    task::spawn((EntryPointFn)&test)!!;
+
+    //// Run tests (remove comments)
+    // test::prepare_scheduler();
+    // test::prepare_scheduler_fpu();
+
+    // logging::printn("counter: %x, spawner: %x", counterHandle, spawnerHandle);
 
     logging::printn("Muon init complete");
 }
 
-fn void test() @local {
-    logging::printn("task 2 says hello world!");
-    // task::yield();
-    task::spawn(&test2)!!;
+fn void test(SpawnInfo* info) @local {
+    logging::printn("task 2 says hello world! i got info @ %x", info);
+    task::yield();
+    logging::printn("task 2's handle is %x", info.taskHandle);
+    task::spawn(&test2, {info.taskHandle, ResourceType.TASK})!!;
 
     logging::printn("task 2 says i wont crash no more");
 }
