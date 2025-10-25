@@ -96,7 +96,7 @@ fn void* alloc(usz bytes) {
     defer lock.release();
 
     void* ptr = (void*)kAllocator.acquire(bytes)!!;
-    logging::printn("KERNEL ALLOCATOR - NEW ALLOCATION of %d bytes at %x (usage %d%)", bytes, ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
+    logging::debug("KERNEL ALLOCATOR - NEW ALLOCATION of %d bytes at %x (usage %d%)", bytes, ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
     return ptr;
 }
 
@@ -107,6 +107,6 @@ fn void free(void* ptr) {
     if (catch kAllocator.release(ptr)) {
         logging::printn("Attempted free on null pointer.");
     } else {
-        logging::printn("KERNEL ALLOCATOR - FREED %x (usage %d%)", ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
+        logging::debug("KERNEL ALLOCATOR - FREED %x (usage %d%)", ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
     }
 }
