@@ -20,21 +20,21 @@ fn void? add_timer_event(TimerEvent event) @private {
 
 fn ulong get_current() => wallclock!!;
 
-fn void? serve_timer_events(KernelTime currentTime, void* ctx) @private {
+fn void? serve_timer_events(KernelTime currentTime, any ctx) @private {
     while (try e = timerEvents.first() && e.timestamp <= currentTime) {
-        e.context = ctx;
+        if (e.context == null) e.context = ctx;
         e.callback(&e);
         timerEvents.remove_at(0)!!;
     }
 }
 
-fn void schedule_nano(ulong nano, TimerCallbackFn callback) {
+fn void schedule_nano(ulong nano, TimerCallbackFn callback, any context = null) {
     ulong deltaTicks = (ulong) (nano * (timer.get_frequency() / 1e9));
     KernelTime time = timer.get_current()+deltaTicks;
 
-    add_timer_event({time, callback, null})!!;
+    add_timer_event({time, callback, context})!!;
     if (try event = timerEvents.first() && event.timestamp >= time) timer.set(time);
 }
 
-fn void schedule_micro(ulong micro, TimerCallbackFn callback) => schedule_nano(micro * 1_000, callback);
-fn void schedule_milli(ulong milli, TimerCallbackFn callback) => schedule_nano(milli * 1_000_000, callback);
+fn void schedule_micro(ulong micro, TimerCallbackFn callback, any context = null) => schedule_nano(micro * 1_000, callback, context);
+fn void schedule_milli(ulong milli, TimerCallbackFn callback, any context = null) => schedule_nano(milli * 1_000_000, callback, context);

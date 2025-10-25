@@ -16,5 +16,5 @@ interface Timer {
 struct TimerEvent {
     KernelTime timestamp;
     TimerCallbackFn callback;
-    void* context;
+    any context;
 }

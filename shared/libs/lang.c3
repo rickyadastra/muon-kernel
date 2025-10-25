@@ -37,6 +37,10 @@ macro anycast(any v, $Type) @builtin {
 	return ($Type*)v.ptr;
 }
 
+macro any_make(void* ptr, typeid type) @builtin {
+	return $$any_make(ptr, type);
+}
+
 fn void* memcpy(void* dest, void* src, usz n) @extern("memcpy") @nostrip {
 	for (usz i = 0; i < n; i++) ((char*)dest)[i] = ((char*)src)[i];
 	return dest;
