@@ -40,9 +40,9 @@ fn void test(SpawnInfo* info) @local {
 
 fn void test2() @local {
     logging::printn("task 3 says hello world, again!");
-    // task::yield();
+    task::yield();
     logging::printn("task 3 will wake up in 3 seconds");
-    // task::sleep_milli(3000);
+    task::sleep_ms(3000)!!;
     logging::printn("task 3 says gm world!");
 }
 

@@ -158,7 +158,7 @@ macro Task* current_task() {
 <*
     @require task != null
 *>
-macro wake_task(Task* task) {
+macro resume_task(Task* task) {
     lock_scheduler();
     defer unlock_scheduler();
 
@@ -170,7 +170,7 @@ macro wake_task(Task* task) {
 
 alias VoidFn = fn void();
 
-macro yield_task() {
+fn void yield_task() @naked {
     lock_scheduler();
 
     task::prepare_yielding();
@@ -189,7 +189,7 @@ macro terminate_task(Task* task) {
 
     task.state = TERMINATED;
     enqueue_terminated_task(task);
-    wake_task(scheduler::cleanupTask);
+    resume_task(scheduler::cleanupTask);
 
     unlock_scheduler();
     

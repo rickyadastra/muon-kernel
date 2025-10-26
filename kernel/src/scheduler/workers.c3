@@ -13,7 +13,7 @@ fn void terminated_tasks_cleanup() {
             logging::debug("terminated queue is empty, releasing lock");
             scheduler::unlock_scheduler();
             logging::debug("lock released, going to sleep");
-            task::sleep();
+            task::suspend()!!;
             logging::debug("back from sleep");
             continue;
         }

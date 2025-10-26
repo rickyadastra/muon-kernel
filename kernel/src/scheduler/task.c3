@@ -128,19 +128,47 @@ fn void? terminate(Handle handle) {
     scheduler::terminate_task(task);
 }
 
-fn void yield() @SchedulerYieldFn {
+fn void yield() {
     scheduler::yield_task();
 }
 
-fn void sleep() @SchedulerYieldFn {
-    scheduler::suspend_task(scheduler::current_task());
+fn void? suspend(Handle handle = scheduler::current_task().spawnInfo.taskHandle) {
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
+
+    HandleTable table = scheduler::current_task().handles;
+    Task* task = anycast(table.resolve_handle(handle, (HandlePerms)(TaskHandlePerms){.canSuspend = true})!, Task)!;
+
+    scheduler::suspend_task(task);
 }
 
-fn void sleep_milli(usz ms) {
-    // scheduler::lock_scheduler();
+macro resume(Handle handle) => resume_by_context({handle, scheduler::current_task()});
 
-    // // Task* callerTask = scheduler::currentTask;
-    // // timing::schedule_milli(ms, fn void(TimerEvent* e) => scheduler::wake_task(callerTask));
-    // sleep();
-    // scheduler::unlock_scheduler();
+fn void? resume_by_context(ResumeContext ctx) @local {
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
+
+    HandleTable table = ctx.actor.handles;
+    Task* task = anycast(table.resolve_handle(ctx.resumingHandle, (HandlePerms)(TaskHandlePerms){.canResume = true})!, Task)!;
+
+    scheduler::resume_task(task);
+}
+
+fn void? sleep_ms(usz ms) {
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
+
+    Task* task = scheduler::current_task();
+    ResumeContext* resCtx = mem::alloc(ResumeContext.sizeof);
+    resCtx.resumingHandle = task.spawnInfo.taskHandle;
+    resCtx.actor = task;
+    
+    timing::schedule_milli(ms, fn void(TimerEvent* e) {
+        if (catch ex = resume_by_context(*anycast(e.context, ResumeContext))) {
+            logging::printn("ERROR: %s", ex.nameof);
+        }
+        mem::free(e.context);
+    }, (any)resCtx);
+
+    suspend()!;
 }
