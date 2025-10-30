@@ -64,12 +64,12 @@ fn Handle? HandleTable.insert(&self, void* resource, ResourceType type, HandlePe
 
     self.bitmap.set(idx);
 
-    logging::printn("insert HandleEntry[%d]{resource=%x (%s), gen=%d, salt=%d, perms=%x} -> %x", idx, entry.resource, entry.type.nameof, entry.generation, entry.salt, entry.perms, handle);
+    logging::printn("insert HandleEntry@%x[%d]{resource=%x (%s), gen=%d, salt=%d, perms=%x} -> %x", self, idx, entry.resource, entry.type.nameof, entry.generation, entry.salt, entry.perms, handle);
 
     return handle;
 }
 
-fn Handle? HandleTable.copy_handle_to(&self, HandleTable dest, Handle handle, ResourceType type) {
+fn Handle? HandleTable.copy_handle_to(&self, HandleTable* dest, Handle handle, ResourceType type) {
     // self table fails to validate given handle
     if (catch excuse = self.resolve_handle(handle)) return excuse?;
 
