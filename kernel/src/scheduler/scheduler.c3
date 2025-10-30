@@ -191,9 +191,10 @@ macro terminate_task(Task* task) {
     enqueue_terminated_task(task);
     resume_task(scheduler::cleanupTask);
 
+    bool shouldYield = currentTask == task;
     unlock_scheduler();
     
-    yield_task();
+    if (shouldYield) yield_task();
 }
 
 <*
@@ -206,5 +207,5 @@ macro suspend_task(Task* task) {
     task.state = WAITING;
     logging::debug("Sleep task %d", task.id);
 
-    yield_task();
+    if (currentTask == task) yield_task();
 }
