@@ -164,10 +164,24 @@ fn void? sleep_ms(usz ms) {
     resCtx.actor = task;
     
     timing::schedule_milli(ms, fn void(TimerEvent* e) {
-        if (catch ex = resume_by_context(*anycast(e.context, ResumeContext))) {
-            logging::printn("ERROR: %s", ex.nameof);
+        ResumeContext*? resumeCtx = anycast(e.context, ResumeContext);
+
+        if (catch ex = resumeCtx) {
+            logging::printn("error after sleep: %s", ex.nameof);
+
+        } else {
+            // resume task if is suspended
+            if (resumeCtx.actor.state == TaskState.SUSPENDED) {
+                logging::printn("sleep ended");
+                if (catch exx = resume_by_context(*resumeCtx)) {
+                    logging::printn("error after sleep: %s", exx.nameof);
+                }
+            }
         }
+
+        // free event context
         mem::free(e.context);
+
     }, (any)resCtx);
 
     suspend()!;

@@ -45,7 +45,7 @@ fn void? init() {
     idleTask = task;
 
     // setup terminated_tasks_cleanup
-    Task* worker = task::create(&worker::terminated_tasks_cleanup, state: WAITING, parent: task)!;
+    Task* worker = task::create(&worker::terminated_tasks_cleanup, state: SUSPENDED, parent: task)!;
     task::create_handle(idleTask, worker)!;
     cleanupTask = worker;
 
@@ -162,7 +162,7 @@ macro resume_task(Task* task) {
     lock_scheduler();
     defer unlock_scheduler();
 
-    if (task.state == WAITING) {
+    if (task.state == SUSPENDED) {
         task.state = READY;
         enqueue_task(task);
     }
@@ -204,7 +204,7 @@ macro suspend_task(Task* task) {
     lock_scheduler();
     defer unlock_scheduler();
 
-    task.state = WAITING;
+    task.state = SUSPENDED;
     logging::debug("Sleep task %d", task.id);
 
     if (currentTask == task) yield_task();

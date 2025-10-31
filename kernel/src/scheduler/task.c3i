@@ -14,6 +14,7 @@ enum TaskState : uint {
     READY,
     RUNNING,
     WAITING,
+    SUSPENDED,
     TERMINATED,
 }
 
