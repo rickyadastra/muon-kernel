@@ -4,6 +4,8 @@ faultdef OUT_OF_BOUNDS;
 
 module std::collections::linkedlist{Type};
 
+const IS_EQUATABLE = Type.is_eq;
+
 import mem::allocator;
 
 struct Node {
@@ -87,12 +89,7 @@ fn void? LinkedList.insert_at(&self, usz index, Type data) {
     self.size++;
 }
 
-fn Type? LinkedList.remove_at(&self, usz index) {
-    if (index >= self.size) return collections::OUT_OF_BOUNDS?;
-
-    Node* cur = self._head;
-    for (usz i=0; i < index; i++) cur = cur.next;
-
+macro LinkedList.remove_node(&self, Node* cur) @local {
     if (cur.next == null) { // end of list
         if (cur.prev != null) {
             cur.prev.next = null;
@@ -113,12 +110,40 @@ fn Type? LinkedList.remove_at(&self, usz index) {
         cur.prev.next = cur.next;
         cur.next.prev = cur.prev;
     }
+}
+
+fn Type? LinkedList.remove_at(&self, usz index) {
+    if (index >= self.size) return collections::OUT_OF_BOUNDS?;
+
+    Node* cur = self._head;
+    for (usz i=0; i < index; i++) cur = cur.next;
+
+    self.remove_node(cur);
 
     Type data = cur.data;
     self.free_node(cur);
     self.size--;
 
     return data;
+}
+
+fn bool LinkedList.remove(&self, Type el) @if(IS_EQUATABLE) {
+    Node* cur = self._head;
+    usz i = 0;
+
+    while (cur != null) {
+        if (cur.data == el) break;
+    }
+
+    if (cur != null) {
+        self.remove_node(cur);
+        self.free_node(cur);
+        self.size--;
+
+        return true;
+    }
+
+    return false;
 }
 
 fn Type? LinkedList.get(&self, usz index) {
