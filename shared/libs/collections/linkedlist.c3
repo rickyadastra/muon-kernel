@@ -7,6 +7,7 @@ module std::collections::linkedlist{Type};
 const IS_EQUATABLE = Type.is_eq;
 
 import mem::allocator;
+import std::collections::iterator;
 
 struct Node {
     Node* prev;
@@ -19,6 +20,13 @@ struct LinkedList {
     usz size;
     Node* _head;
     Node* _tail;
+}
+
+struct LinkedListIterator (Iterator{Type}) {
+    Allocator allocator;
+    LinkedList* list;
+    Node* _cur;
+    Node* _next;
 }
 
 <*
@@ -146,6 +154,16 @@ fn bool LinkedList.remove(&self, Type el) @if(IS_EQUATABLE) {
     return false;
 }
 
+fn bool LinkedList.remove_all(&self, Type el) @if(IS_EQUATABLE) {
+    Iterator{Type} it = self.iterator();
+    defer it.destroy();
+
+    while (it.has_next()) {
+        Type e = it.next();
+        if (e == el) it.remove();
+    }
+}
+
 fn Type? LinkedList.get(&self, usz index) {
     if (index >= self.size) return collections::OUT_OF_BOUNDS?;
 
@@ -165,4 +183,38 @@ fn Type? LinkedList.first(&self) {
 fn Type? LinkedList.last(&self) {
     if (self.is_empty()) return collections::OUT_OF_BOUNDS?;
     return self._tail.data;
+}
+
+fn Iterator{Type} LinkedList.iterator(&self) {
+    LinkedListIterator* it = allocator::alloc(self.allocator, LinkedListIterator);
+    it.list = self;
+    it._cur = null;
+    it._next = self._head;
+    it.allocator = self.allocator;
+
+    return it;
+}
+
+fn bool LinkedListIterator.has_next(&self) @dynamic {
+    return self._next != null;
+}
+
+fn Type LinkedListIterator.next(&self) @dynamic {
+    self._cur = self._next;
+    self._next = self._cur.next;
+    return self._cur.data;
+}
+
+fn bool LinkedListIterator.remove(&self) @dynamic {
+    Node* cur = self._cur;
+    if (cur == null) return false;
+
+    self.list.remove_node(cur);
+    self.list.free_node(cur);
+    self.list.size--;
+    return true;
+}
+
+fn void LinkedListIterator.destroy(&self) @dynamic {
+    allocator::free(self.allocator, (void*)self);
 }
