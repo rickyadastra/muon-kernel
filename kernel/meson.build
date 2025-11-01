@@ -1,4 +1,4 @@
-muon_c3c = find_program('c3c', required: true, version: '>=0.7.4')
+muon_c3c = find_program('c3c', required: true, version: '>=0.7.7')
 arch = host_machine.cpu()
 
 linker_file = '@0@.ld'.format(arch)

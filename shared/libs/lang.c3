@@ -55,6 +55,14 @@ fn void* memset(void* dest, CInt value, usz n) @extern("memset") @nostrip {
 	return dest;
 }
 
+fn CInt memcmp(void* buf1, void* buf2, usz count) @extern("memcmp") @nostrip {
+	for (char* p = buf1, char* q = buf2; count > 0; count--, p++, q++) {
+		if (*p != *q) return (*p - *q);
+	}
+
+    return 0;
+}
+
 <*
  @param expr : "the expression to cast"
  @param $Type : "the type to cast to"
