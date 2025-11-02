@@ -46,7 +46,7 @@ fn void setup_tsc_deadline_timer(double frequency) {
     APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer.sizeof);
     apicTimer.frequency = frequency;
     timer = (Timer)apicTimer;
-    timerEvents = linkedlist::init{TimerEvent}(mem::get_allocator());
+    timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());
 }
 
 fn void? calibrate() {   

@@ -17,4 +17,7 @@ struct TimerEvent {
     KernelTime timestamp;
     TimerCallbackFn callback;
     any context;
+    bitstruct : char {
+        bool isCancelled : 0;
+    }
 }
