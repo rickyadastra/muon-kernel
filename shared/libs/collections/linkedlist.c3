@@ -154,7 +154,7 @@ fn bool LinkedList.remove(&self, Type el) @if(IS_EQUATABLE) {
     return false;
 }
 
-fn bool LinkedList.remove_all(&self, Type el) @if(IS_EQUATABLE) {
+fn void LinkedList.remove_all(&self, Type el) @if(IS_EQUATABLE) {
     Iterator{Type} it = self.iterator();
     defer it.destroy();
 
