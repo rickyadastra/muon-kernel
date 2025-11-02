@@ -52,15 +52,18 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
         // root task isn't supposed to have handles passed on creation
         if (parent != null) {
             if (extraHandles.len > 0) {
+                // acquire parent handles table lock
                 parent.handles.lock.acquire();
                 defer parent.handles.lock.release();
 
+                // acquire new task handles table lock
                 task.handles.lock.acquire();
                 defer task.handles.lock.release();
                 
                 foreach (usz idx, SpawnHandle* &handle : extraHandles) {
                     logging::printn("Task(%d).spawnhandles[%d]: %x (%s) from parent Task #%d", task.id, idx, handle.handle, handle.type.nameof, parent.id);
-                    parent.handles.copy_handle_to(task.handles, handle.handle, handle.type)!;
+                    Handle handlez = parent.handles.copy_handle_to(&task.handles, handle.handle, handle.type)!;
+                    task.spawnInfo.extraHandles[idx] = {handlez, handle.type};
                 }
             }
         } else {
@@ -163,13 +166,16 @@ fn void? sleep_ms(usz ms) {
     resCtx.resumingHandle = task.spawnInfo.taskHandle;
     resCtx.actor = task;
     
-    timing::schedule_milli(ms, fn void(TimerEvent* e) {
+    TimerEvent* event = timing::schedule_milli(ms, fn void(TimerEvent* e) {
         ResumeContext*? resumeCtx = anycast(e.context, ResumeContext);
 
         if (catch ex = resumeCtx) {
             logging::printn("error after sleep: %s", ex.nameof);
 
         } else {
+            // clear pending event
+            resumeCtx.actor.pendingEvent = null;
+
             // resume task if is suspended
             if (resumeCtx.actor.state == TaskState.SUSPENDED) {
                 logging::printn("sleep ended");
@@ -184,5 +190,6 @@ fn void? sleep_ms(usz ms) {
 
     }, (any)resCtx);
 
+    task.pendingEvent = event;
     suspend()!;
 }

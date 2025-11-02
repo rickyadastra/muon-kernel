@@ -3,6 +3,8 @@ module scheduler::worker;
 import scheduler @public;
 import muon;
 import resource;
+import dev::timing;
+import arch::mem;
 
 fn void terminated_tasks_cleanup() {
     while (true) {
@@ -35,10 +37,21 @@ fn void terminated_tasks_cleanup() {
 
         t.handles.lock.release();
 
+        // cancel event and free its context
+        clear_pending_event(t);
+
         task::destroy(t)!!;
 
         logging::debug("handle table lock released");
         scheduler::unlock_scheduler();
         logging::debug("scheduler lock releasing");
+    }
+}
+
+fn void clear_pending_event(Task* task) @private {
+    if (task.pendingEvent != null) {
+        logging::printn("clearing event pending on task #%d", task.id);
+        mem::free(task.pendingEvent.context);
+        task.pendingEvent.cancel();
     }
 }

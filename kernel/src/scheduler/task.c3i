@@ -2,6 +2,7 @@ module scheduler::task;
 
 import resource;
 import arch::mem;
+import dev::timing;
 
 faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL, INIT_SPAWN_INFO_FAIL, INIT_SELF_HANDLE_FAIL,
     INIT_SPAWN_HANDLES_FAIL;
@@ -26,6 +27,8 @@ struct Task {
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
     void* taskStackBase;
     usz taskStackSize;
+
+    TimerEvent* pendingEvent;
     
     SpawnInfo* spawnInfo;
     HandleTable handles;
