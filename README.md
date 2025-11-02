@@ -45,7 +45,8 @@
    - [x] Preemptive context switch via timer interrupt
    - [x] FPU context save and restore
    - [x] Scheduler basics: `spawn()` and `terminate()`
-   - [ ] Cooperative `yield()` and `sleep()`/`wake()` functions
+   - [x] Cooperative task `yield()`
+   - [x] `sleep_ms()` and `suspend()`/`resume()` functions
    - [ ] Basic shell to launch programs
 
 ## Why C3?
