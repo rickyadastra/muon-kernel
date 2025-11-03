@@ -15,7 +15,7 @@ struct Node {
     Type data;
 }
 
-struct LinkedList {
+struct LinkedList (MutableIterable{Type}) {
     Allocator allocator;
     usz size;
     Node* _head;
@@ -181,11 +181,11 @@ fn Type? LinkedList.last(&self) {
     return self._tail.data;
 }
 
-fn Iterator{Type} LinkedList.iterator(&self) {
+fn Iterator{Type} LinkedList.iterator(&self) @dynamic {
     return (Iterator{Type})self.mutable_iterator();
 }
 
-fn MutableIterator{Type} LinkedList.mutable_iterator(&self) {
+fn MutableIterator{Type} LinkedList.mutable_iterator(&self) @dynamic {
     LinkedListMutableIterator* it = allocator::alloc(self.allocator, LinkedListMutableIterator);
     it.list = self;
     it._cur = null;
