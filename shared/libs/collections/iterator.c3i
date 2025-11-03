@@ -1,9 +1,18 @@
+module std::collections;
+
+faultdef ITERATOR_ILLEGAL_STATE;
+
 module std::collections::iterator{Type};
 
 interface Iterator {
     fn bool has_next();
-    fn Type next();
-    fn bool remove();
+    fn Type? next();
 
     fn void destroy();
+}
+
+interface MutableIterator : Iterator {
+    fn void insert(Type);
+    fn void? set(Type);
+    fn bool remove();
 }
