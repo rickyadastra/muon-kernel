@@ -92,3 +92,13 @@ macro Type Atomic.sub(&self, Type value, AtomicOrdering ordering = SEQ_CONSISTEN
     Type* data = &self.data;
     return @atomic_exec(atomic::fetch_sub, data, value, ordering);
 }
+
+macro Type Atomic.increment(&self, AtomicOrdering ordering = SEQ_CONSISTENT) {
+    Type* data = &self.data;
+    return @atomic_exec(atomic::fetch_add, data, 1, ordering);
+}
+
+macro Type Atomic.decrement(&self, AtomicOrdering ordering = SEQ_CONSISTENT) {
+    Type* data = &self.data;
+    return @atomic_exec(atomic::fetch_sub, data, 1, ordering);
+}
