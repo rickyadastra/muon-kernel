@@ -191,6 +191,8 @@ macro terminate_task(Task* task) {
     enqueue_terminated_task(task);
     resume_task(scheduler::cleanupTask);
 
+    if (taskQueue.remove(task)) logging::debug("removed terminated task from queue");
+
     bool shouldYield = currentTask == task;
     unlock_scheduler();
     
