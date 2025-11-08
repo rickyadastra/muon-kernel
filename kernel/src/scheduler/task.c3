@@ -7,14 +7,18 @@ import scheduler @public;
 import dev::timing;
 import std::lock;
 
+fn void Task.track_ref(&self) @dynamic => self.refcount.increment();
+fn void Task.drop_ref(&self) @dynamic => self.refcount.decrement();
+fn usz Task.get_ref_count(&self) @dynamic => self.refcount.load();
+
 <*
     @param[&in] task
 *>
-macro Handle? create_handle(Task* owner, Task* task, TaskHandlePerms perms = {}) @private {
+macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights perms = {}) @private {
     owner.handles.lock.acquire();
     defer owner.handles.lock.release();
 
-    Handle handle = owner.handles.insert(task, ResourceType.TASK, (HandlePerms)perms)!;
+    Handle handle = owner.handles.insert(task, ObjectType.TASK, (ObjectRights)perms)!;
 
     logging::printn("New handle created on task #%d: %x", owner.id, handle);
 
@@ -123,8 +127,12 @@ fn void? terminate(Handle handle) {
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
 
-    HandleTable table = scheduler::current_task().handles;
-    Task* task = anycast(table.resolve_handle(handle, (HandlePerms)(TaskHandlePerms){.canTerminate = true})!, Task)!;
+    ObjectTable table = scheduler::current_task().handles;
+    Task* task = anycast(table.resolve(handle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!, Task)!;
+
+    
+    logging::debug("Task #%d terminated", task.id);
+    object::print_info(task);
 
     scheduler::terminate_task(task);
 }
@@ -137,8 +145,8 @@ fn void? suspend(Handle handle = scheduler::current_task().spawnInfo.taskHandle)
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
 
-    HandleTable table = scheduler::current_task().handles;
-    Task* task = anycast(table.resolve_handle(handle, (HandlePerms)(TaskHandlePerms){.canSuspend = true})!, Task)!;
+    ObjectTable table = scheduler::current_task().handles;
+    Task* task = anycast(table.resolve(handle, (ObjectRights)(TaskObjectRights){.canSuspend = true})!, Task)!;
 
     scheduler::suspend_task(task);
 }
@@ -149,8 +157,8 @@ fn void? resume_by_context(ResumeContext ctx) @local {
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
 
-    HandleTable table = ctx.actor.handles;
-    Task* task = anycast(table.resolve_handle(ctx.resumingHandle, (HandlePerms)(TaskHandlePerms){.canResume = true})!, Task)!;
+    ObjectTable table = ctx.actor.handles;
+    Task* task = anycast(table.resolve(ctx.resumingHandle, (ObjectRights)(TaskObjectRights){.canResume = true})!, Task)!;
 
     scheduler::resume_task(task);
 }

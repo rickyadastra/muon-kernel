@@ -2,45 +2,47 @@ module scheduler::task;
 
 import arch::mem;
 import dev::timing;
+import muon::authority;
 
 faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL, INIT_SPAWN_INFO_FAIL, INIT_SELF_HANDLE_FAIL,
     INIT_SPAWN_HANDLES_FAIL;
 
-const usz MAX_HANDLE_TABLE_SIZE = mem::page_size() / HandleEntry.sizeof;
+const usz MAX_HANDLE_TABLE_SIZE = mem::page_size() / ObjectSlot.sizeof;
 const usz DEFAULT_KERNEL_STACK_SIZE = 4;
 const usz MAX_SPAWN_INFO_EXTRA_HANDLE = 16;
 
 enum TaskState : uint {
-    READY,
-    RUNNING,
-    WAITING,
-    SUSPENDED,
-    TERMINATED,
+    READY,              // can be scheduled
+    RUNNING,            // is currently running
+    WAITING,            // waiting for IO 
+    SUSPENDED,          // waiting for a timer event/explicit resume
+    TERMINATED,         // has terminated and is awaiting cleanup
 }
 
-struct Task {
+struct Task (KernelObject) {
     ulong id;
+    SpawnInfo* spawnInfo;
+
     TaskState state;
     TaskContext context;
     // TaskSpace* space;  TODO: implement user-mode and distinct spaces (#16)
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
     void* taskStackBase;
     usz taskStackSize;
-
     TimerEvent* pendingEvent;
     
-    SpawnInfo* spawnInfo;
-    HandleTable handles;
+    ObjectTable handles;
+    RefCount refcount;
 }
 
-bitstruct TaskHandlePerms : HandlePerms {
+bitstruct TaskObjectRights : ObjectRights {
     bool canTerminate : 0;
     bool canSpawn : 1;
     bool canSuspend : 2;
     bool canResume : 3;
 }
 
-const TaskHandlePerms DEFAULT_SELF = {
+const TaskObjectRights DEFAULT_SELF = {
     .canTerminate = true,
     .canSpawn = true,
     .canSuspend = true,
@@ -49,7 +51,7 @@ const TaskHandlePerms DEFAULT_SELF = {
 
 struct SpawnHandle {
     Handle handle;
-    ResourceType type;
+    ObjectType type;
 } 
 
 struct SpawnInfo {
