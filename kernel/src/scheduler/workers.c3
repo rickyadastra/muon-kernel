@@ -2,7 +2,6 @@ module scheduler::worker;
 
 import scheduler @public;
 import muon;
-import resource;
 import dev::timing;
 import arch::mem;
 
@@ -27,13 +26,13 @@ fn void terminated_tasks_cleanup() {
         t.handles.lock.acquire();
         logging::debug("handle table lock acquired");
 
-        foreach (usz idx, HandleEntry* &entry : t.handles.entries) {
-            if (!entry.valid()) continue;
+        // invalidate every handle of t 
+        // foreach (usz idx, ObjectSlot* &entry : t.handles.entries) {
+        //     if (!entry.valid()) continue;
 
-            // if (entry.data == t || entry.parent == t) entry.clear();
-
-            logging::printn("Task(%d).handles[%d]: resource=%x (%s), gen=%d, salt=%d, perms=%x", t.id, idx, entry.resource, entry.type.nameof, entry.generation, entry.salt, entry.perms);
-        }
+        //     logging::printn("Task(%d).handles[%d]: resource=%x (%s), gen=%d, salt=%d, perms=%x", t.id, idx, entry.resource, entry.type.nameof, entry.generation, entry.salt, entry.perms);
+        //     entry.clear();
+        // }
 
         t.handles.lock.release();
 
@@ -50,7 +49,7 @@ fn void terminated_tasks_cleanup() {
 
 fn void clear_pending_event(Task* task) @private {
     if (task.pendingEvent != null) {
-        logging::printn("clearing event pending on task #%d", task.id);
+        logging::debug("clearing event pending on task #%d", task.id);
         mem::free(task.pendingEvent.context);
         task.pendingEvent.cancel();
     }

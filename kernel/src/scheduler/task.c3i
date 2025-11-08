@@ -1,6 +1,5 @@
 module scheduler::task;
 
-import resource;
 import arch::mem;
 import dev::timing;
 

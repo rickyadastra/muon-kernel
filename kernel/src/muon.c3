@@ -3,7 +3,6 @@ module muon;
 import arch;
 import boson;
 import scheduler;
-import resource;
 
 fn void kmain(BootloaderPayload* payload) {
     logging::init();

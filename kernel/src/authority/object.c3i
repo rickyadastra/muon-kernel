@@ -1,0 +1,37 @@
+module muon::authority::object;
+
+import std::atomic;
+import std::collections;
+import std::lock;
+import muon::authority::handle;
+import scheduler::task;
+
+faultdef STILL_REFERENCED;
+
+alias RefCount = Atomic{usz};
+alias ObjectRights = char;
+
+enum ObjectType : char (typeid type) {
+    TASK = Task.typeid,
+}
+
+interface KernelObject {
+    fn void track_ref();
+    fn void drop_ref();
+    fn usz get_ref_count();
+}
+
+struct ObjectSlot {
+    void* resource;
+    uint generation;
+    ushort salt;
+    ObjectType type;
+    ObjectRights perms;
+}
+
+struct ObjectTable {
+    ObjectSlot[] entries;
+    BitMap bitmap;
+    Spinlock lock;
+}
+

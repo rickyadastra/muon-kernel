@@ -5,8 +5,6 @@ import arch;
 import muon;
 import scheduler @public;
 import dev::timing;
-import resource;
-import random;
 import std::lock;
 
 <*

@@ -98,8 +98,11 @@ muon_sources = [
     f'src/dev/serial.c3',
     f'src/dev/serial.c3i',
 
-    f'src/resource/handle.c3i',
-    f'src/resource/handle.c3',
+    f'src/authority/handle.c3i',
+    f'src/authority/handle.c3',
+    f'src/authority/object.c3',
+    f'src/authority/object.c3i',
+    f'src/authority/table.c3',
 
     f'src/dev/timing/timing.c3',
     f'src/dev/timing/timing.c3i',

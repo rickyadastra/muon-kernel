@@ -6,7 +6,6 @@ import std::collections::linkedlist;
 import std::atomic;
 import muon;
 import scheduler::task @public;
-import resource;
 
 usz interruptDisableCounter @local = 0;
 LinkedList{Task*} taskQueue @private;
