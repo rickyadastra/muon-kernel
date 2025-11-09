@@ -5,15 +5,12 @@ import std::collections;
 import std::lock;
 import muon::authority::handle;
 import scheduler::task;
+import arch::mem;
 
 faultdef STILL_REFERENCED;
 
 alias RefCount = Atomic{usz};
-alias ObjectRights = char;
-
-enum ObjectType : char (typeid type) {
-    TASK = Task.typeid,
-}
+alias ObjectRights = ushort;
 
 interface KernelObject {
     fn void track_ref();
@@ -22,11 +19,10 @@ interface KernelObject {
 }
 
 struct ObjectSlot {
-    void* resource;
+    KernelObject object;
     uint generation;
     ushort salt;
-    ObjectType type;
-    ObjectRights perms;
+    ObjectRights rights;
 }
 
 struct ObjectTable {
@@ -35,3 +31,4 @@ struct ObjectTable {
     Spinlock lock;
 }
 
+const usz MAX_TABLE_SIZE = mem::page_size() / ObjectSlot.sizeof;

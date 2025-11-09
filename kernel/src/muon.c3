@@ -8,6 +8,7 @@ fn void kmain(BootloaderPayload* payload) {
     logging::init();
 
     arch::init(payload);
+    object::init();
 
     muon::@wrap_panic(scheduler::init());
     muon::init();

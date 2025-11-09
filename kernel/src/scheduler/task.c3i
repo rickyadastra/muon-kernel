@@ -7,7 +7,6 @@ import muon::authority;
 faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL, INIT_SPAWN_INFO_FAIL, INIT_SELF_HANDLE_FAIL,
     INIT_SPAWN_HANDLES_FAIL;
 
-const usz MAX_HANDLE_TABLE_SIZE = mem::page_size() / ObjectSlot.sizeof;
 const usz DEFAULT_KERNEL_STACK_SIZE = 4;
 const usz MAX_SPAWN_INFO_EXTRA_HANDLE = 16;
 
