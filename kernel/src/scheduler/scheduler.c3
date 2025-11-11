@@ -187,6 +187,8 @@ macro terminate_task(Task* task) {
     lock_scheduler();
 
     task.state = TERMINATED;
+    task.handles.remove_all();
+    
     enqueue_terminated_task(task);
     resume_task(scheduler::cleanupTask);
 
