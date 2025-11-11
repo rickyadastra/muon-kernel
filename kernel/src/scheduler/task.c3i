@@ -48,15 +48,8 @@ const TaskObjectRights DEFAULT_SELF = {
     .canResume = true,
 };
 
-struct SpawnHandle {
-    Handle handle;
-    ObjectType type;
-} 
-
 struct SpawnInfo {
     Handle taskHandle;
-    SpawnHandle[MAX_SPAWN_INFO_EXTRA_HANDLE] extraHandles;
-
     // argc, argv etc.
 }
 

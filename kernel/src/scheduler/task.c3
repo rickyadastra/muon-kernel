@@ -7,18 +7,21 @@ import scheduler @public;
 import dev::timing;
 import std::lock;
 
-fn void Task.track_ref(&self) @dynamic => self.refcount.increment();
-fn void Task.drop_ref(&self) @dynamic => self.refcount.decrement();
 fn usz Task.get_ref_count(&self) @dynamic => self.refcount.load();
+fn void Task.track_ref(&self) @dynamic {
+    usz v = self.refcount.increment()+1;
+    logging::printn("Task@%x's refcount after track_ref(): %d", self, v);
+}
+fn void Task.drop_ref(&self) @dynamic {
+    usz v = self.refcount.decrement()-1;
+    logging::printn("Task@%x's refcount after drop_ref(): %d", self, v);
+}
 
 <*
     @param[&in] task
 *>
-macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights perms = {}) @private {
-    owner.handles.lock.acquire();
-    defer owner.handles.lock.release();
-
-    Handle handle = owner.handles.insert(task, ObjectType.TASK, (ObjectRights)perms)!;
+macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights rights = {}) @private {
+    Handle handle = owner.handles.insert(task, (ObjectRights)rights)!;
 
     logging::printn("New handle created on task #%d: %x", owner.id, handle);
 
@@ -26,7 +29,7 @@ macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights perms = {}
 }
 
 fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_STACK_SIZE, TaskState state = READY,
-                    SpawnHandle[] extraHandles = {}, Task* parent = scheduler::current_task()) @private {
+                Task* parent = scheduler::current_task()) @private {
     if (stackSize < DEFAULT_KERNEL_STACK_SIZE) return INIT_STACK_TOO_SMALL?;
     
     uptr? stackBase;
@@ -40,41 +43,18 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
 
     task.id = scheduler::nextTaskId.add(1);
     task.state = state;
-    task.handles.init(MAX_HANDLE_TABLE_SIZE)!;
+    task.handles.init(object::MAX_TABLE_SIZE)!;
 
     // create self handle
     Handle? selfHandle = create_handle(task, task, DEFAULT_SELF); 
     if (catch selfHandle) return INIT_SELF_HANDLE_FAIL?;
+    task.track_ref();
 
-    // create spawnInfo
-    if (try spawnInfoPtr = mem::alloc_pages(1)) {
-        task.spawnInfo = (SpawnInfo*)spawnInfoPtr; // TODO: map to read only page in userspace
-        task.spawnInfo.taskHandle = selfHandle;
+    task.spawnInfo = (SpawnInfo*)mem::alloc(SpawnInfo.sizeof); // TODO: map to read only page in userspace
+    task.spawnInfo.taskHandle = selfHandle;
 
-        // root task isn't supposed to have handles passed on creation
-        if (parent != null) {
-            if (extraHandles.len > 0) {
-                // acquire parent handles table lock
-                parent.handles.lock.acquire();
-                defer parent.handles.lock.release();
-
-                // acquire new task handles table lock
-                task.handles.lock.acquire();
-                defer task.handles.lock.release();
-                
-                foreach (usz idx, SpawnHandle* &handle : extraHandles) {
-                    logging::printn("Task(%d).spawnhandles[%d]: %x (%s) from parent Task #%d", task.id, idx, handle.handle, handle.type.nameof, parent.id);
-                    Handle handlez = parent.handles.copy_handle_to(&task.handles, handle.handle, handle.type)!;
-                    task.spawnInfo.extraHandles[idx] = {handlez, handle.type};
-                }
-            }
-        } else {
-            if (extraHandles.len > 0) return INIT_SPAWN_HANDLES_FAIL?;
-        }
-
-    } else {
-        return INIT_SPAWN_INFO_FAIL?;
-    }
+    // parent will receive a handle to the new task, track it
+    if (parent != null) task.track_ref();
 
     if (entryPoint != null && stackSize > 0) {
         task.taskStackBase = (void*)stackBase!;
@@ -83,6 +63,8 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     }
 
     logging::debug("Task #%d created, stack %x-%x", task.id, stackBase, stackBase+stackSize*mem::page_size())!;
+
+    object::register(task);
     return task;
 }
 
@@ -97,12 +79,13 @@ macro void? destroy(Task* task) @private {
     logging::debug("Task #%d destroyed", task.id);
 }
 
-fn Handle? spawn(EntryPointFn entryPoint, SpawnHandle... extraHandles) {
+fn Handle? spawn(EntryPointFn entryPoint) {
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
     
-    Task* task = create(entryPoint, extraHandles: extraHandles)!;
-    Handle handle = create_handle(scheduler::current_task(), task)!;
+    Task* parent = scheduler::current_task();
+    Task* task = create(entryPoint)!;
+    Handle handle = create_handle(parent, task)!;
 
     scheduler::enqueue_task(task);
     return handle;
@@ -128,11 +111,10 @@ fn void? terminate(Handle handle) {
     defer scheduler::unlock_scheduler();
 
     ObjectTable table = scheduler::current_task().handles;
-    Task* task = anycast(table.resolve(handle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!, Task)!;
+    KernelObject obj = handle::resolve(table, handle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!;
 
-    
+    Task* task = anycast(obj, Task)!;
     logging::debug("Task #%d terminated", task.id);
-    object::print_info(task);
 
     scheduler::terminate_task(task);
 }
@@ -146,7 +128,9 @@ fn void? suspend(Handle handle = scheduler::current_task().spawnInfo.taskHandle)
     defer scheduler::unlock_scheduler();
 
     ObjectTable table = scheduler::current_task().handles;
-    Task* task = anycast(table.resolve(handle, (ObjectRights)(TaskObjectRights){.canSuspend = true})!, Task)!;
+    KernelObject obj = handle::resolve(table, handle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!;
+
+    Task* task = anycast(obj, Task)!;
 
     scheduler::suspend_task(task);
 }
@@ -158,7 +142,9 @@ fn void? resume_by_context(ResumeContext ctx) @local {
     defer scheduler::unlock_scheduler();
 
     ObjectTable table = ctx.actor.handles;
-    Task* task = anycast(table.resolve(ctx.resumingHandle, (ObjectRights)(TaskObjectRights){.canResume = true})!, Task)!;
+    KernelObject obj = handle::resolve(table, ctx.resumingHandle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!;
+
+    Task* task = anycast(obj, Task)!;
 
     scheduler::resume_task(task);
 }
@@ -184,7 +170,6 @@ fn void? sleep_ms(usz ms) {
 
             // resume task if is suspended
             if (resumeCtx.actor.state == TaskState.SUSPENDED) {
-                logging::printn("sleep ended");
                 if (catch exx = resume_by_context(*resumeCtx)) {
                     logging::printn("error after sleep: %s", exx.nameof);
                 }
@@ -198,4 +183,12 @@ fn void? sleep_ms(usz ms) {
 
     task.pendingEvent = event;
     suspend()!;
+}
+
+fn void? detach(Handle handle) {
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
+
+    ObjectTable table = scheduler::current_task().handles;
+    authority::revoke(table, handle)!;
 }

@@ -19,27 +19,16 @@ fn void terminated_tasks_cleanup() {
             continue;
         }
 
-        logging::debug("removing and destroying task");
+        logging::printn("removing and destroying task");
         Task* t = scheduler::terminatedQueue.remove_at(0)!!;
-        
-        // destroy handles
-        t.handles.lock.acquire();
-        logging::debug("handle table lock acquired");
-
-        // invalidate every handle of t 
-        // foreach (usz idx, ObjectSlot* &entry : t.handles.entries) {
-        //     if (!entry.valid()) continue;
-
-        //     logging::printn("Task(%d).handles[%d]: resource=%x (%s), gen=%d, salt=%d, perms=%x", t.id, idx, entry.resource, entry.type.nameof, entry.generation, entry.salt, entry.perms);
-        //     entry.clear();
-        // }
-
-        t.handles.lock.release();
 
         // cancel event and free its context
         clear_pending_event(t);
 
-        task::destroy(t)!!;
+        if (t.get_ref_count() == 0) {
+            object::unregister(t)!!;
+            task::destroy(t)!!;
+        }
 
         logging::debug("handle table lock released");
         scheduler::unlock_scheduler();
