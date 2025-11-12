@@ -1,35 +1,32 @@
-module scheduler::task;
+module process::task;
 
 import lang;
 import arch;
 import muon;
-import scheduler @public;
+import process @public;
 import dev::timing;
 import std::lock;
 
 fn usz Task.get_ref_count(&self) @dynamic => self.refcount.load();
+
 fn void Task.track_ref(&self) @dynamic {
     usz v = self.refcount.increment()+1;
     logging::printn("Task@%x's refcount after track_ref(): %d", self, v);
 }
+
 fn void Task.drop_ref(&self) @dynamic {
     usz v = self.refcount.decrement()-1;
     logging::printn("Task@%x's refcount after drop_ref(): %d", self, v);
 }
 
 <*
+    @param[&in] owner
     @param[&in] task
 *>
-macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights rights = {}) @private {
-    Handle handle = owner.handles.insert(task, (ObjectRights)rights)!;
-
-    logging::printn("New handle created on task #%d: %x", owner.id, handle);
-
-    return handle;
-}
+macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights rights = {}) => owner.handles.insert(task, (ObjectRights)rights);
 
 fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_STACK_SIZE, TaskState state = READY,
-                Task* parent = scheduler::current_task()) @private {
+                Task* parent = scheduler::get_current_task()) @private {
     if (stackSize < DEFAULT_KERNEL_STACK_SIZE) return INIT_STACK_TOO_SMALL?;
     
     uptr? stackBase;
@@ -68,7 +65,7 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     return task;
 }
 
-macro void? destroy(Task* task) @private {
+fn void? destroy(Task* task) @private {
     if (task.taskStackBase != null) {
         mem::free_pages((uptr)task.taskStackBase, task.taskStackSize)!;
     }
@@ -79,18 +76,6 @@ macro void? destroy(Task* task) @private {
     logging::debug("Task #%d destroyed", task.id);
 }
 
-fn Handle? spawn(EntryPointFn entryPoint) {
-    scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
-    
-    Task* parent = scheduler::current_task();
-    Task* task = create(entryPoint)!;
-    Handle handle = create_handle(parent, task)!;
-
-    scheduler::enqueue_task(task);
-    return handle;
-}
-
 <*
     This naked function is called when returning from the task entry point to address
     stack not being aligned to 8 byte on a function call to comply with System V ABI
@@ -99,61 +84,69 @@ fn Handle? spawn(EntryPointFn entryPoint) {
     TODO: move to arch-dependant task.c3
 *>
 fn void exit_trampoline() @naked @private {
-    exit();
+    process::exit();
 }
 
-fn void exit() {
-    terminate(scheduler::current_task().spawnInfo.taskHandle)!!;
+<*
+    @require task != null
+*>
+macro resume(Task* task) {
+    if (task.state == SUSPENDED) {
+        task.state = READY;
+        scheduler::enqueue_task(task);
+    }
 }
 
-fn void? terminate(Handle handle) {
+alias VoidFn = fn void();
+
+fn void yield() @naked {
+    scheduler::lock_scheduler();
+
+    prepare_yielding();
+    ((VoidFn)&scheduler::schedule_rr)();
+    complete_yielding();
+
+    scheduler::unlock_scheduler();
+    exit_yielding();
+}
+
+<*
+    @require task != null
+*>
+fn void terminate(Task* task) {
+    scheduler::lock_scheduler();
+
+    task.state = TERMINATED;
+    task.handles.remove_all();
+    
+    scheduler::enqueue_terminated_task(task);
+    resume(scheduler::cleanupTask);
+
+    if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from queue");
+
+    bool shouldYield = scheduler::get_current_task() == task;
+    scheduler::unlock_scheduler();
+    
+    if (shouldYield) yield();
+}
+
+<*
+    @require task != null
+*>
+macro suspend(Task* task) {
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
 
-    ObjectTable table = scheduler::current_task().handles;
-    KernelObject obj = handle::resolve(table, handle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!;
+    task.state = SUSPENDED;
 
-    Task* task = anycast(obj, Task)!;
-    logging::debug("Task #%d terminated", task.id);
-
-    scheduler::terminate_task(task);
-}
-
-fn void yield() {
-    scheduler::yield_task();
-}
-
-fn void? suspend(Handle handle = scheduler::current_task().spawnInfo.taskHandle) {
-    scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
-
-    ObjectTable table = scheduler::current_task().handles;
-    KernelObject obj = handle::resolve(table, handle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!;
-
-    Task* task = anycast(obj, Task)!;
-
-    scheduler::suspend_task(task);
-}
-
-macro resume(Handle handle) => resume_by_context({handle, scheduler::current_task()});
-
-fn void? resume_by_context(ResumeContext ctx) @local {
-    scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
-
-    ObjectTable table = ctx.actor.handles;
-    KernelObject obj = handle::resolve(table, ctx.resumingHandle, (ObjectRights)(TaskObjectRights){.canTerminate = true})!;
-
-    Task* task = anycast(obj, Task)!;
-
-    scheduler::resume_task(task);
+    if (scheduler::get_current_task() == task) yield();
 }
 
 fn void? sleep_ms(usz ms) {
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
 
-    Task* task = scheduler::current_task();
+    Task* task = scheduler::get_current_task();
     ResumeContext* resCtx = mem::alloc(ResumeContext.sizeof);
     resCtx.resumingHandle = task.spawnInfo.taskHandle;
     resCtx.actor = task;
@@ -170,7 +163,7 @@ fn void? sleep_ms(usz ms) {
 
             // resume task if is suspended
             if (resumeCtx.actor.state == TaskState.SUSPENDED) {
-                if (catch exx = resume_by_context(*resumeCtx)) {
+                if (catch exx = process::resume_after_sleep(*resumeCtx)) {
                     logging::printn("error after sleep: %s", exx.nameof);
                 }
             }
@@ -182,13 +175,5 @@ fn void? sleep_ms(usz ms) {
     }, (any)resCtx);
 
     task.pendingEvent = event;
-    suspend()!;
-}
-
-fn void? detach(Handle handle) {
-    scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
-
-    ObjectTable table = scheduler::current_task().handles;
-    authority::revoke(table, handle)!;
+    suspend(task);
 }

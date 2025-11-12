@@ -4,7 +4,7 @@ import std::atomic;
 import std::collections;
 import std::lock;
 import muon::authority::handle;
-import scheduler::task;
+import process::task;
 import arch::mem;
 
 faultdef STILL_REFERENCED;

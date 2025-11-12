@@ -1,4 +1,4 @@
-module scheduler::task;
+module process::task;
 
 import arch::mem;
 import dev::timing;
@@ -36,17 +36,22 @@ struct Task (KernelObject) {
 
 bitstruct TaskObjectRights : ObjectRights {
     bool canTerminate : 0;
-    bool canSpawn : 1;
+    bool canCreate : 1;
     bool canSuspend : 2;
     bool canResume : 3;
 }
 
 const TaskObjectRights DEFAULT_SELF = {
     .canTerminate = true,
-    .canSpawn = true,
+    .canCreate = true,
     .canSuspend = true,
     .canResume = true,
 };
+
+const TaskObjectRights CAN_TERMINATE_RIGHTS = {.canTerminate = true};
+const TaskObjectRights CAN_CREATE_RIGHTS = {.canCreate = true};
+const TaskObjectRights CAN_SUSPEND_RIGHTS = {.canSuspend = true};
+const TaskObjectRights CAN_RESUME_RIGHTS = {.canResume = true};
 
 struct SpawnInfo {
     Handle taskHandle;

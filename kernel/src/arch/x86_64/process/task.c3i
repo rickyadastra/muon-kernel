@@ -1,4 +1,4 @@
-module scheduler::task;
+module process::task;
 
 import arch;
 import mem;

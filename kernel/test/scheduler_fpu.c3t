@@ -1,7 +1,7 @@
 module muon::test;
 
 import muon;
-import scheduler;
+import process;
 
 // Task 1: Basic arithmetic operations test with verification
 fn void task_fpu_basic_arithmetic() {
@@ -13,13 +13,13 @@ fn void task_fpu_basic_arithmetic() {
     float expected_mul = 31.5f;
     float expected_div = 3.5f;
     
-    task::yield();
+    process::yield();
     
     float sum = a + b;
     float mul = a * b;
     float div = a / b;
     
-    task::yield();
+    process::yield();
     
     // Verifica con tolleranza per errori floating-point
     bool sum_ok = (sum > 13.49f && sum < 13.51f);
@@ -44,7 +44,7 @@ fn void task_fpu_accumulator() {
         accumulator += increment;
         
         if (i % 10 == 0) {
-            task::yield();
+            process::yield();
         }
     }
     
@@ -66,16 +66,16 @@ fn void task_fpu_interleaved() {
     float x = 5.5f;
     float y = 2.0f;
     
-    task::yield();
+    process::yield();
     
     float step1 = x * y;  // 11.0
-    task::yield();
+    process::yield();
     
     float step2 = step1 + 4.5f;  // 15.5
-    task::yield();
+    process::yield();
     
     float step3 = step2 / 5.0f;  // 3.1
-    task::yield();
+    process::yield();
     
     float result = step3 - 0.1f;  // 3.0
     
@@ -95,13 +95,13 @@ fn void task_fpu_double_precision() {
     double a = 123.456789;
     double b = 987.654321;
     
-    task::yield();
+    process::yield();
     
     double sum = a + b;  // 1111.11111
-    task::yield();
+    process::yield();
     
     double product = a * b;  // 121932.631112635269
-    task::yield();
+    process::yield();
     
     double quotient = b / a;  // ~8.0
     
@@ -125,18 +125,18 @@ fn void task_fpu_register_persistence() {
     float reg2 = 3.3f;
     float reg3 = 4.4f;
     
-    task::yield();
+    process::yield();
     
     // Somma iniziale
     float checkpoint1 = reg0 + reg1 + reg2 + reg3;  // 10.8
     
-    task::yield();
-    task::yield();
+    process::yield();
+    process::yield();
     
     // Verifica che i valori siano preservati
     float checkpoint2 = reg0 + reg1 + reg2 + reg3;
     
-    task::yield();
+    process::yield();
     
     // Operazioni aggiuntive
     float result = (reg0 * reg1) + (reg2 * reg3);  // 2.2 + 14.52 = 16.72
@@ -159,19 +159,19 @@ fn void task_fpu_advanced_math() {
     float base = 16.0f;
     float exponent = 0.5f;  // Radice quadrata
     
-    task::yield();
+    process::yield();
     
     // Calcolo radice quadrata manuale (iterazioni di Newton)
     float sqrt_result = base;
     for (int i = 0; i < 5; i++) {
         sqrt_result = (sqrt_result + base / sqrt_result) / 2.0f;
-        task::yield();
+        process::yield();
     }
     
     // sqrt(16) = 4.0
     bool sqrt_ok = (sqrt_result > 3.99f && sqrt_result < 4.01f);
     
-    task::yield();
+    process::yield();
     
     // Test potenza quadrata
     float square = sqrt_result * sqrt_result;  // 16.0
@@ -196,7 +196,7 @@ fn void task_fpu_stress() {
         running_total += temp;
         
         if (iteration % 5 == 0) {
-            task::yield();
+            process::yield();
         }
     }
     
@@ -218,12 +218,12 @@ fn void task_fpu_division_chain() {
     float value = 1000.0f;
     float divisor = 2.0f;
     
-    task::yield();
+    process::yield();
     
     // 5 divisioni successive: 1000 / 2 / 2 / 2 / 2 / 2 = 315
     for (int i = 0; i < 5; i++) {
         value = value / divisor;
-        task::yield();
+        process::yield();
     }
     
     float expected = 31.25f;
@@ -240,13 +240,13 @@ fn void task_fpu_interleave_test_a() {
     float value = 100.0f;  // Carica in FPU
     
     logging::printn("[Task A] Step 1: value = %f", value);
-    task::yield();  // ← Context switch QUI, con value nei registri FPU
+    process::yield();  // ← Context switch QUI, con value nei registri FPU
     
     // Se Task B ha usato FPU, 'value' potrebbe essere corrotto qui
     logging::printn("[Task A] Step 2: value = %f (expected 100.0)", value);
     
     value = value * 2.0f;  // Operazione dovrebbe dare 200.0
-    task::yield();
+    process::yield();
     
     logging::printn("[Task A] Step 3: value = %f (expected 200.0)", value);
     
@@ -258,11 +258,11 @@ fn void task_fpu_interleave_test_b() {
     float value = 777.0f;  // Diverso valore per corrompere Task A
     
     logging::printn("[Task B] Step 1: value = %f", value);
-    task::yield();
+    process::yield();
     
     value = value / 7.0f;  // 111.0
     logging::printn("[Task B] Step 2: value = %f", value);
-    task::yield();
+    process::yield();
     
     logging::printn("[Task B] Step 3: value = %f (expected 111.0)", value);
 }
@@ -274,7 +274,7 @@ fn void task_fpu_intensive_loop_1() {
         value /= 2;
         if (i % 50 == 0) {
             logging::printn("Task FPU Intensive Loop 1: iterazione %d, risultato %f", i, value);
-            task::yield();
+            process::yield();
         }
     }
 
@@ -294,7 +294,7 @@ fn void task_fpu_intensive_loop_2() {
 
         if (i % 50 == 0) {
             logging::printn("Task FPU Intensive Loop 2: iterazione %d, risultato %f", i, value);
-            task::yield();
+            process::yield();
         }
     }
 

@@ -1,7 +1,7 @@
 module muon::test;
 
 import muon;
-import scheduler;
+import process;
 
 // Task 1: Simple counter with periodic yield
 fn void task_simple_counter() {
@@ -9,7 +9,7 @@ fn void task_simple_counter() {
     while (counter < 100) {
         logging::printn("Task Simple Counter: %d", counter);
         counter++;
-        task::yield();
+        process::yield();
     }
     logging::printn("Task Simple Counter completed");
 }
@@ -21,7 +21,7 @@ fn void task_intensive_loop() {
         result += i * 2;
         if (i % 50 == 0) {
             logging::printn("Task Intensive Loop: iteration %d, result %d", i, result);
-            task::yield();
+            process::yield();
         }
     }
     logging::printn("Task Intensive Loop completed with result: %d", result);
@@ -35,32 +35,32 @@ fn void task_quick_exit() {
 // Task 4: Spawn child tasks
 fn void task_spawner() {
     logging::printn("Task Spawner: creating 3 child tasks");
-    task::spawn(&task_child_1)!!;
-    task::yield();
-    task::spawn(&task_child_2)!!;
-    task::yield();
-    task::spawn(&task_child_3)!!;
+    process::spawn(&task_child_1)!!;
+    process::yield();
+    process::spawn(&task_child_2)!!;
+    process::yield();
+    process::spawn(&task_child_3)!!;
     logging::printn("Task Spawner: all child tasks created");
 }
 
 fn void task_child_1() {
     for (int i = 0; i < 10; i++) {
         logging::printn("  Child 1: step %d", i);
-        task::yield();
+        process::yield();
     }
 }
 
 fn void task_child_2() {
     for (int i = 0; i < 15; i++) {
         logging::printn("  Child 2: step %d", i);
-        task::yield();
+        process::yield();
     }
 }
 
 fn void task_child_3() {
     for (int i = 0; i < 5; i++) {
         logging::printn("  Child 3: step %d", i);
-        task::yield();
+        process::yield();
     }
 }
 
@@ -84,7 +84,7 @@ fn void task_conditional_logic() {
             state = 0;
         }
         iterations++;
-        task::yield();
+        process::yield();
     }
 }
 
@@ -106,24 +106,24 @@ fn void task_switch_logic() {
             default:
                 logging::printn("Task Switch: UNKNOWN mode [%d]", mode);
         }
-        task::yield();
+        process::yield();
     }
 }
 
 // Task 7: Recursive spawning (stress test)
 fn void task_recursive_spawner() {
     logging::printn("Recursive Spawner: level 0");
-    task::spawn(&task_recursive_level_1)!!;
+    process::spawn(&task_recursive_level_1)!!;
     for (int i = 0; i < 5; i++) {
-        task::yield();
+        process::yield();
     }
 }
 
 fn void task_recursive_level_1() {
     logging::printn("Recursive Spawner: level 1");
-    task::spawn(&task_recursive_level_2)!!;
+    process::spawn(&task_recursive_level_2)!!;
     for (int i = 0; i < 3; i++) {
-        task::yield();
+        process::yield();
     }
 }
 
@@ -131,7 +131,7 @@ fn void task_recursive_level_2() {
     logging::printn("Recursive Spawner: level 2 (leaf)");
     for (int i = 0; i < 5; i++) {
         logging::printn("  Level 2: iteration %d", i);
-        task::yield();
+        process::yield();
     }
 }
 
@@ -139,7 +139,7 @@ fn void task_recursive_level_2() {
 fn void task_yield_stress() {
     for (int i = 0; i < 200; i++) {
         int dummy_work = i * i;
-        task::yield();
+        process::yield();
         if (i % 20 == 0) {
             logging::printn("Task Yield Stress: checkpoint %d", i);
         }
@@ -151,15 +151,15 @@ fn void task_yield_stress() {
 fn void task_coordinator() {
     logging::printn("Coordinator: system startup");
     
-    task::spawn(&task_worker_a)!!;
-    task::yield();
-    task::spawn(&task_worker_b)!!;
-    task::yield();
-    task::spawn(&task_worker_c)!!;
+    process::spawn(&task_worker_a)!!;
+    process::yield();
+    process::spawn(&task_worker_b)!!;
+    process::yield();
+    process::spawn(&task_worker_c)!!;
     
     for (int i = 0; i < 20; i++) {
         logging::printn("Coordinator: checkpoint %d", i);
-        task::yield();
+        process::yield();
     }
     
     logging::printn("Coordinator: system shutdown");
@@ -168,20 +168,20 @@ fn void task_coordinator() {
 fn void task_worker_a() {
     for (int i = 0; i < 8; i++) {
         logging::printn("  Worker A: processing %d", i);
-        task::yield();
+        process::yield();
     }
 }
 
 fn void task_worker_b() {
     for (int i = 0; i < 12; i++) {
         logging::printn("  Worker B: processing %d", i);
-        task::yield();
+        process::yield();
     }
 }
 
 fn void task_worker_c() {
     for (int i = 0; i < 6; i++) {
         logging::printn("  Worker C: processing %d", i);
-        task::yield();
+        process::yield();
     }
 }

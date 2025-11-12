@@ -1,11 +1,12 @@
-module scheduler;
+module process::scheduler;
 
 import arch;
 import dev::timing;
 import std::collections::linkedlist;
 import std::atomic;
 import muon;
-import scheduler::task @public;
+import process::task @public;
+import process::worker;
 
 usz interruptDisableCounter @local = 0;
 LinkedList{Task*} taskQueue @private;
@@ -134,6 +135,14 @@ macro enqueue_task(Task* task) {
 
 <*
     @require task != null
+    @return "true if task is removed from queue"
+*>
+macro bool dequeue_task(Task* task) {
+    return taskQueue.remove(task);
+}
+
+<*
+    @require task != null
 *>
 macro enqueue_terminated_task(Task* task) {
     lock_scheduler();
@@ -147,68 +156,9 @@ macro enqueue_terminated_task(Task* task) {
 <*
     @ensure return != null
 *>
-macro Task* current_task() {
+macro Task* get_current_task() {
     lock_scheduler();
     defer unlock_scheduler();
 
     return currentTask;
-}
-
-<*
-    @require task != null
-*>
-macro resume_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    if (task.state == SUSPENDED) {
-        task.state = READY;
-        enqueue_task(task);
-    }
-}
-
-alias VoidFn = fn void();
-
-fn void yield_task() @naked {
-    lock_scheduler();
-
-    task::prepare_yielding();
-    ((VoidFn)&schedule_rr)();
-    task::complete_yielding();
-
-    unlock_scheduler();
-    task::exit_yielding();
-}
-
-<*
-    @require task != null
-*>
-macro terminate_task(Task* task) {
-    lock_scheduler();
-
-    task.state = TERMINATED;
-    task.handles.remove_all();
-    
-    enqueue_terminated_task(task);
-    resume_task(scheduler::cleanupTask);
-
-    if (taskQueue.remove(task)) logging::debug("removed terminated task from queue");
-
-    bool shouldYield = currentTask == task;
-    unlock_scheduler();
-    
-    if (shouldYield) yield_task();
-}
-
-<*
-    @require task != null
-*>
-macro suspend_task(Task* task) {
-    lock_scheduler();
-    defer unlock_scheduler();
-
-    task.state = SUSPENDED;
-    logging::debug("Sleep task %d", task.id);
-
-    if (currentTask == task) yield_task();
 }

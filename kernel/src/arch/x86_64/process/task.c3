@@ -1,11 +1,11 @@
-module scheduler::task;
+module process::task;
 
 import muon;
 import arch;
 
 fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr stackTop, SpawnInfo* spawnInfo = null) @dynamic {
     // set exit return address
-    *(uptr*)(stackTop-8) = (uptr)&scheduler::task::exit_trampoline;
+    *(uptr*)(stackTop-8) = (uptr)&process::task::exit_trampoline;
     self.cpuContext = (CpuContext*)(stackTop-8-CpuContext.sizeof);
 
     // set initial cpuContext

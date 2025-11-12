@@ -1,6 +1,6 @@
-module scheduler::worker;
+module process::worker;
 
-import scheduler @public;
+import process @public;
 import muon;
 import dev::timing;
 import arch::mem;
@@ -14,7 +14,7 @@ fn void terminated_tasks_cleanup() {
             logging::debug("terminated queue is empty, releasing lock");
             scheduler::unlock_scheduler();
             logging::debug("lock released, going to sleep");
-            task::suspend()!!;
+            process::suspend()!!;
             logging::debug("back from sleep");
             continue;
         }
