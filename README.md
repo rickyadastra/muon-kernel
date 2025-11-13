@@ -44,8 +44,8 @@
    - [x] Task/Thread structure with context and stack
    - [x] Preemptive context switch via timer interrupt
    - [x] FPU context save and restore
-   - [x] Scheduler basics: `spawn()` and `terminate()`
-   - [x] Cooperative task `yield()`
+   - [x] Process functions `create()`, `start()` and `terminate()`/`exit()`
+   - [x] Cooperative task `yield()` function
    - [x] `sleep_ms()` and `suspend()`/`resume()` functions
    - [ ] Basic shell to launch programs
 
