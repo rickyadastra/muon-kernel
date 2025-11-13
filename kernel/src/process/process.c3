@@ -24,8 +24,8 @@ fn Handle? create(EntryPointFn entryPoint) {
 
     // parent is null only for init task, which can do whatever it want
     if (parent != null) {
-        ObjectSlot slot = parent.handles.get(parent.spawnInfo.taskHandle);
-        if (!handle::check_rights(slot, (ObjectRights)task::CAN_CREATE_RIGHTS)) return handle::NO_PERMISSION?;
+        ObjectSlot* slot = parent.handles.get(parent.spawnInfo.taskHandle);
+        if (!handle::check_rights(*slot, (ObjectRights)task::CAN_CREATE_RIGHTS)) return handle::NO_PERMISSION?;
     }
 
     Task* task = task::create(entryPoint, parent: parent)!;
@@ -81,7 +81,7 @@ fn void yield() => task::yield();
 
 <*
     Suspend a task given its handle
-    @param handle : "The handle to the task to terminate"
+    @param handle : "The handle to the task to suspend"
 *>
 fn void? suspend(Handle handle = scheduler::get_current_task().spawnInfo.taskHandle) {
     Task* task = resolve_handle_to_task(scheduler::get_current_task().handles, handle, task::CAN_SUSPEND_RIGHTS)!;
@@ -92,7 +92,7 @@ fn void? suspend(Handle handle = scheduler::get_current_task().spawnInfo.taskHan
 
 <*
     Resume a task given its handle
-    @param handle : "The handle to the task to terminate"
+    @param handle : "The handle to the task to resume"
 *>
 fn void? resume(Handle handle) {
     Task* task = resolve_handle_to_task(scheduler::get_current_task().handles, handle, task::CAN_RESUME_RIGHTS)!;
@@ -111,7 +111,9 @@ fn void? resume_after_sleep(ResumeContext ctx) {
 fn void? sleep_ms(usz ms) => task::sleep_ms(ms);
 
 <*
-    Detach the 
+    Detach a task given its handle from the the current one by
+    revoking the passed handle
+    @param handle : "The handle to the task to detach"
 *>
 fn void? detach(Handle handle) {
     ObjectTable table = scheduler::get_current_task().handles;

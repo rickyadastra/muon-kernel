@@ -31,12 +31,12 @@ fn void? ObjectTable.destroy(&self) {
 <*
     @require handle.index < self.entries.len
 *>
-fn ObjectSlot ObjectTable.get(&self, Handle handle) {
+fn ObjectSlot* ObjectTable.get(&self, Handle handle) {
     self.lock.acquire();
     defer self.lock.release();
 
     usz idx = handle.index;
-    return self.entries[handle.index];
+    return &self.entries[handle.index];
 }
 
 fn Handle? ObjectTable.insert(&self, KernelObject object, ObjectRights rights = {}) {
@@ -56,7 +56,7 @@ fn Handle? ObjectTable.insert(&self, KernelObject object, ObjectRights rights = 
 <*
     @require handle.index < self.entries.len
 *>
-macro KernelObject ObjectTable.remove(&self, Handle handle) {    
+fn KernelObject ObjectTable.remove(&self, Handle handle) {    
     KernelObject obj = self.get(handle).clear();
     obj.drop_ref();
     return obj;
@@ -85,6 +85,9 @@ macro ObjectSlot.set(&self, usz idx, KernelObject object, ushort salt, ObjectRig
     self.rights = rights;
 }
 
+<*
+    @ensure return != null
+*>
 macro KernelObject ObjectSlot.clear(&self) {
     KernelObject object = self.object;
 

@@ -28,7 +28,7 @@ macro void? validate(ObjectSlot entry, Handle handle) {
     if (entry.salt != handle.salt) return handle::SALT_MISMATCH?;
 }
 
-macro KernelObject? resolve(ObjectTable table, Handle handle, ObjectRights rights) {
+fn KernelObject? resolve(ObjectTable table, Handle handle, ObjectRights rights) {
     table.lock.acquire();
     defer table.lock.release();
 
