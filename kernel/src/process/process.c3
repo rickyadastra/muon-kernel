@@ -117,8 +117,10 @@ fn void? sleep_ms(usz ms) => task::sleep_ms(ms);
 *>
 fn void? detach(Handle handle) {
     ObjectTable table = scheduler::get_current_task().handles;
-    // TODO: check handle type == Task
-    // if (table.get(handle).object.type == Task.typeid);
-    
-    authority::revoke(table, handle)!;
+
+    if (table.get(handle).object.type == Task.typeid) {
+        authority::revoke(table, handle)!;
+    } else {
+        return handle::TYPE_MISMATCH?;
+    }
 }
