@@ -29,7 +29,9 @@ struct Task (KernelObject) {
     // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
     void* taskStackBase;
     usz taskStackSize;
+
     TimerEvent* pendingEvent;
+    Task* pendingAwaitor; // TODO: properly implement wait via IPC
     
     ObjectTable handles;
     RefCount refcount;

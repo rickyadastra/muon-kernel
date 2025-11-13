@@ -127,6 +127,9 @@ fn void terminate(Task* task) {
     if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from ready queue");
     task.handles.remove_all();
 
+    // resume awaitor
+    if (task.pendingAwaitor != null) resume(task.pendingAwaitor);
+
     // if current task is not referenced anymore, schedule cleanup
     if (task.get_ref_count() == 0) {
         prepare_cleanup(task);
@@ -153,6 +156,17 @@ macro suspend(Task* task) {
     task.state = SUSPENDED;
 
     if (scheduler::get_current_task() == task) yield();
+}
+
+<*
+    @param[&in] awaitor : "The task suspended until awaited terminates"
+    @param[&inout] awaited : "The task that notifies awaitor when terminated"
+*>
+macro set_waiting_task(Task* awaitor, Task* awaited) {
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
+
+    awaited.pendingAwaitor = awaitor;
 }
 
 fn void? sleep_ms(usz ms) {

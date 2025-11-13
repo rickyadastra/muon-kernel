@@ -2,7 +2,7 @@ module muon;
 
 import arch;
 import boson;
-import scheduler;
+import process;
 
 fn void kmain(BootloaderPayload* payload) {
     logging::init();
@@ -18,32 +18,34 @@ fn void kmain(BootloaderPayload* payload) {
 }
 
 fn void init() {
-    task::spawn((EntryPointFn)&test)!!;
+    Handle handle = process::spawn((EntryPointFn)&test)!!;
+    process::detach(handle)!!;
 
     //// Run tests (remove comments)
     // test::prepare_scheduler();
     // test::prepare_scheduler_fpu();
 
-    // logging::printn("counter: %x, spawner: %x", counterHandle, spawnerHandle);
-
     logging::printn("Muon init complete");
 }
 
-fn void test(SpawnInfo* info) @local {
-    logging::printn("task 2 says hello world! i got info @ %x", info);
-    task::yield();
-    logging::printn("task 2's handle is %x", info.taskHandle);
-    task::spawn(&test2, {info.taskHandle, ResourceType.TASK})!!;
+fn void test(SpawnInfo* info) {
+    logging::printn("task 2 says hello world");
 
-    logging::printn("task 2 says i wont crash no more");
+    Handle child = process::create((EntryPointFn)&test2)!!;
+
+    process::sleep_ms(2000)!!;
+    logging::printn("task 2 will start task 3 and wait for it...");
+    process::start(child)!!;
+    process::wait(child)!!;
+
+    logging::printn("task 2 says goodbye");
 }
 
-fn void test2() @local {
-    logging::printn("task 3 says hello world, again!");
-    task::yield();
-    logging::printn("task 3 will wake up in 3 seconds");
-    task::sleep_ms(3000)!!;
-    logging::printn("task 3 says gm world!");
+fn void test2(SpawnInfo* info) {
+    logging::printn("task 3 greets y'all! i'm gonna take a nap");
+    process::sleep_ms(3000)!!;
+
+    logging::printn("task 3 woke up, gm and goodbye");
 }
 
 fn void idle() @local {

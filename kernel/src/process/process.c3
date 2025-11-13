@@ -65,9 +65,6 @@ fn void exit() => terminate(scheduler::get_current_task().spawnInfo.taskHandle)!
     @param handle : "The handle to the task to terminate"
 *>
 fn void? terminate(Handle handle) {
-    scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
-
     Task* task = resolve_handle_to_task(scheduler::get_current_task().handles, handle, task::CAN_TERMINATE_RIGHTS)!;
     task::terminate(task);
 
@@ -123,4 +120,14 @@ fn void? detach(Handle handle) {
     } else {
         return handle::TYPE_MISMATCH?;
     }
+}
+
+fn void? wait(Handle handle) {
+    Task* curr = scheduler::get_current_task();
+    Task* task = resolve_handle_to_task(curr.handles, handle, {})!;
+    
+    logging::printn("Task #%d will wait for task #%d", curr.id, task.id);
+    
+    task::set_waiting_task(awaitor: curr, awaited: task);
+    task::suspend(curr);
 }
