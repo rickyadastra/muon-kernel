@@ -9,7 +9,7 @@ import muon::authority;
 import lang;
 import muon;
 
-macro Task*? resolve_handle_to_task(ObjectTable table, Handle handle, TaskObjectRights rights = {}) {
+macro Task*? resolve_handle_to_task(ObjectTable table, Handle handle, TaskObjectRights rights = {}) @local {
     KernelObject obj = handle::resolve(table, handle, (ObjectRights)rights)!;
     return anycast(obj, Task);
 }

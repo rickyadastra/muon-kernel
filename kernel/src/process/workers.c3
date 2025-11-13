@@ -10,8 +10,8 @@ fn void terminated_tasks_cleanup() {
         scheduler::lock_scheduler();
         logging::debug("scheduler lock acquired");
 
-        if (scheduler::terminatedQueue.is_empty()) {
-            logging::debug("terminated queue is empty, releasing lock");
+        if (scheduler::cleanupQueue.is_empty()) {
+            logging::debug("cleanup queue is empty, releasing lock");
             scheduler::unlock_scheduler();
             logging::debug("lock released, going to sleep");
             process::suspend()!!;
@@ -19,16 +19,15 @@ fn void terminated_tasks_cleanup() {
             continue;
         }
 
-        logging::printn("removing and destroying task");
-        Task* t = scheduler::terminatedQueue.remove_at(0)!!;
+        Task* t = scheduler::cleanupQueue.remove_at(0)!!;
+        assert(t.get_ref_count() == 0);
 
         // cancel event and free its context
         clear_pending_event(t);
 
-        if (t.get_ref_count() == 0) {
-            object::unregister(t)!!;
-            task::destroy(t)!!;
-        }
+        // unregister object and cleanup resources
+        object::unregister(t)!!;
+        task::destroy(t)!!;
 
         logging::debug("handle table lock released");
         scheduler::unlock_scheduler();

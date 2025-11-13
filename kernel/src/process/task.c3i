@@ -15,7 +15,8 @@ enum TaskState : uint {
     RUNNING,            // is currently running
     WAITING,            // waiting for IO 
     SUSPENDED,          // waiting for a timer event/explicit resume
-    TERMINATED,         // has terminated and is awaiting cleanup
+    TERMINATED,         // is terminated
+    CLEANUP,            // is awaiting cleanup
 }
 
 struct Task (KernelObject) {

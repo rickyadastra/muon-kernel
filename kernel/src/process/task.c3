@@ -110,19 +110,32 @@ fn void yield() @naked {
     exit_yielding();
 }
 
+macro prepare_cleanup(Task* task) {
+    logging::printn("Task #%d is ready for cleanup", task.id);
+
+    task.state = CLEANUP;
+    scheduler::enqueue_awaiting_cleanup_task(task);
+    resume(scheduler::cleanupTask);
+}
+
 <*
     @require task != null
 *>
 fn void terminate(Task* task) {
     scheduler::lock_scheduler();
 
-    task.state = TERMINATED;
+    if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from ready queue");
     task.handles.remove_all();
-    
-    scheduler::enqueue_terminated_task(task);
-    resume(scheduler::cleanupTask);
 
-    if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from queue");
+    // if current task is not referenced anymore, schedule cleanup
+    if (task.get_ref_count() == 0) {
+        prepare_cleanup(task);
+    } else {
+        task.state = TERMINATED;
+        scheduler::enqueue_terminated_task(task);
+    }
+
+    scheduler::check_other_terminated_tasks();
 
     bool shouldYield = scheduler::get_current_task() == task;
     scheduler::unlock_scheduler();

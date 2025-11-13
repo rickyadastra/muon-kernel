@@ -2,15 +2,18 @@ module process::scheduler;
 
 import arch;
 import dev::timing;
-import std::collections::linkedlist;
+import std::collections;
 import std::atomic;
 import muon;
 import process::task @public;
 import process::worker;
 
 usz interruptDisableCounter @local = 0;
-LinkedList{Task*} taskQueue @private;
-LinkedList{Task*} terminatedQueue @private;
+
+LinkedList{Task*} taskQueue @private;           // task that can be run
+LinkedList{Task*} terminatedQueue @private;     // task that are terminated but still referenced
+LinkedList{Task*} cleanupQueue @private;        // task awaiting cleanup
+
 Task* currentTask @private;
 Task* idleTask @private;
 Task* cleanupTask @private;
@@ -39,6 +42,7 @@ fn void? init() {
 
     taskQueue = linkedlist::init{Task*}(mem::get_allocator());
     terminatedQueue = linkedlist::init{Task*}(mem::get_allocator());
+    cleanupQueue = linkedlist::init{Task*}(mem::get_allocator());
 
     // setup bootstrap task
     Task* task = task::create()!;
@@ -151,6 +155,36 @@ macro enqueue_terminated_task(Task* task) {
     logging::debug("enqueue task %d (terminated)", task.id);
 
     terminatedQueue.add(task);
+}
+
+<*
+    @require task != null
+*>
+macro enqueue_awaiting_cleanup_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    logging::debug("enqueue task %d (awaiting cleanup)", task.id);
+
+    cleanupQueue.add(task);
+}
+
+macro check_other_terminated_tasks() {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    if (!terminatedQueue.is_empty()) {
+        MutableIterator{Task*} it = terminatedQueue.mutable_iterator();
+        defer it.destroy();
+
+        while (it.has_next()) {
+            Task* task = it.next()!!;
+            if (task.get_ref_count() == 0) {
+                it.remove();
+                task::prepare_cleanup(task);
+            }
+        }
+    }
 }
 
 <*
