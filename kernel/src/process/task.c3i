@@ -30,6 +30,8 @@ struct Task (KernelObject) {
     void* taskStackBase;
     usz taskStackSize;
 
+    int exitStatus;
+
     TimerEvent* pendingEvent;
     Task* pendingAwaitor; // TODO: properly implement wait via IPC
     

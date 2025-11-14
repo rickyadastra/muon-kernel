@@ -31,14 +31,14 @@ fn void init() {
 fn void test(SpawnInfo* info) {
     logging::printn("task 2 says hello world");
 
-    Handle child = process::create((EntryPointFn)&test2)!!;
+    Handle child = process::create(process::@entry_void_to_int(&test2))!!;
 
     process::sleep_ms(2000)!!;
     logging::printn("task 2 will start task 3 and wait for it...");
     process::start(child)!!;
-    process::wait(child)!!;
+    int st = process::wait(child)!!;
 
-    logging::printn("task 2 says goodbye");
+    logging::printn("task 2 says goodbye (task 3 terminated with code %d)", st);
 }
 
 fn void test2(SpawnInfo* info) {

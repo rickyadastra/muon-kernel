@@ -84,7 +84,8 @@ fn void? destroy(Task* task) @private {
     TODO: move to arch-dependant task.c3
 *>
 fn void exit_trampoline() @naked @private {
-    process::exit();
+    asm { movl $edi, $eax; }; // move return value to first param
+    ((VoidFn)&process::exit)();
 }
 
 <*
@@ -121,7 +122,7 @@ macro prepare_cleanup(Task* task) {
 <*
     @require task != null
 *>
-fn void terminate(Task* task) {
+fn void terminate(Task* task, int ret) {
     scheduler::lock_scheduler();
 
     if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from ready queue");
@@ -135,6 +136,7 @@ fn void terminate(Task* task) {
         prepare_cleanup(task);
     } else {
         task.state = TERMINATED;
+        task.exitStatus = ret;
         scheduler::enqueue_terminated_task(task);
     }
 

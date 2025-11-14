@@ -9,6 +9,13 @@ import muon::authority;
 import lang;
 import muon;
 
+macro @entry_void_to_int($f) {
+    return (EntryPointFn) fn int (SpawnInfo* info) {
+        $f(info);
+        return 0;
+    };
+}
+
 macro Task*? resolve_handle_to_task(ObjectTable table, Handle handle, TaskObjectRights rights = {}) @local {
     KernelObject obj = handle::resolve(table, handle, (ObjectRights)rights)!;
     return anycast(obj, Task);
@@ -58,15 +65,15 @@ macro Handle? spawn(EntryPointFn entryPoint) {
 <*
     Exit the current task
 *>
-fn void exit() => terminate(scheduler::get_current_task().spawnInfo.taskHandle)!!;
+fn void exit(int ret = 0) => terminate(scheduler::get_current_task().spawnInfo.taskHandle, ret: ret)!!;
 
 <*
     Terminate a task given its handle
     @param handle : "The handle to the task to terminate"
 *>
-fn void? terminate(Handle handle) {
+fn void? terminate(Handle handle, int ret = 0) {
     Task* task = resolve_handle_to_task(scheduler::get_current_task().handles, handle, task::CAN_TERMINATE_RIGHTS)!;
-    task::terminate(task);
+    task::terminate(task, ret);
 
     logging::debug("Task #%d terminated", task.id);
 }
@@ -107,14 +114,7 @@ fn void? resume_after_sleep(ResumeContext ctx) {
 *>
 fn void? sleep_ms(usz ms) => task::sleep_ms(ms);
 
-<*
-    Detach a task given its handle from the the current one by
-    revoking the passed handle
-    @param handle : "The handle to the task to detach"
-*>
-fn void? detach(Handle handle) {
-    ObjectTable table = scheduler::get_current_task().handles;
-
+macro void? remove_handle_from(ObjectTable table, Handle handle) @local {
     if (table.get(handle).object.type == Task.typeid) {
         authority::revoke(table, handle)!;
     } else {
@@ -122,7 +122,17 @@ fn void? detach(Handle handle) {
     }
 }
 
-fn void? wait(Handle handle) {
+<*
+    Detach a task given its handle from the the current one by
+    revoking the passed handle
+    @param handle : "The handle to the task to detach"
+*>
+fn void? detach(Handle handle) {
+    ObjectTable table = scheduler::get_current_task().handles;
+    remove_handle_from(table, handle)!;
+}
+
+fn int? wait(Handle handle) {
     Task* curr = scheduler::get_current_task();
     Task* task = resolve_handle_to_task(curr.handles, handle, {})!;
     
@@ -130,4 +140,9 @@ fn void? wait(Handle handle) {
     
     task::set_waiting_task(awaitor: curr, awaited: task);
     task::suspend(curr);
+
+    int code = task.exitStatus;
+    remove_handle_from(curr.handles, handle)!;
+    
+    return code;
 }
