@@ -47,6 +47,7 @@
    - [x] Process functions `create()`, `start()` and `terminate()`/`exit()`
    - [x] Cooperative task `yield()` function
    - [x] `sleep_ms()` and `suspend()`/`resume()` functions
+   - [x] `wait()` and `detach()` functions
    - [ ] Basic shell to launch programs
 
 ## Why C3?
