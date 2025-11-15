@@ -179,17 +179,17 @@ fn void? wait(Task* awaitor, Task* awaited) {
 
     if (awaited.state == TERMINATED) {
         logging::printn("Task #%d will NOT wait for already terminated task #%d", awaitor.id, awaited.id);
-        scheduler::unlock_scheduler();
 
     } else {
         logging::printn("Task #%d will wait for task #%d", awaitor.id, awaited.id);
         
         awaited.pendingAwaitor = awaitor;
         bool shouldYield = do_suspend(awaitor);
-        scheduler::unlock_scheduler();
 
         yield();
     }
+
+    scheduler::unlock_scheduler();
 }
 
 fn void? sleep_ms(usz ms) {
