@@ -9,6 +9,8 @@ const ulong SECONDS_IN_DAY = 86400;
 const ulong SECONDS_IN_HOUR = 3600;
 const ulong SECONDS_IN_MINUTE = 60;
 
+const Datetime EPOCH_DATE = {1970, 1, 1, 0, 0, 0}; 
+
 struct Datetime {
     uint year;
     uint month;

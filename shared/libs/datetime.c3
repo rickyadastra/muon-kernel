@@ -8,6 +8,37 @@ fn Datetime to_datetime(int year, int month, int day, int hour, int minute, int 
     };
 }
 
+fn Datetime epoch_to_datetime(ulong time) {
+    Datetime dt = EPOCH_DATE;
+
+    dt.second = (uint)(time % 60);
+    time /= 60;
+    dt.minute = (uint)(time % 60);
+    time /= 60;
+    dt.hour = (uint)(time % 24);
+    time /= 24;
+
+    ulong days = time;
+
+    while (days >= (@is_leap_year(dt.year) ? LEAP_YEAR_DAYS : NORMAL_YEAR_DAYS)) {
+        days -= @is_leap_year(dt.year) ? LEAP_YEAR_DAYS : NORMAL_YEAR_DAYS;
+        dt.year++;
+    }
+
+    uint[] days_in_month = DAYS_IN_MONTH[..];
+    if (@is_leap_year(dt.year)) days_in_month[2] = 29;
+
+    dt.month = 1;
+    while (days >= days_in_month[dt.month]) {
+        days -= days_in_month[dt.month];
+        dt.month++;
+    }
+
+    dt.day = (uint)(days + 1);
+
+    return dt;
+}
+
 fn ulong? Datetime.seconds_since_epoch(&self) {
     if (self.year < 1970) return INVALID_YEAR?;
 
