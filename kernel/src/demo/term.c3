@@ -7,6 +7,7 @@ import arch::mem;
 import process;
 import muon;
 import lang;
+import muon::sync @public;
 
 faultdef BREAK_SIGNAL;
 
@@ -87,7 +88,7 @@ fn String? Terminal.read_line(&self) {
     usz len = 0;
 
     while LOOP: (true) {
-        char c = self.serial.get();
+        char c = self.serial.get()!!;
         
         switch {
             case c == BREAK_KEY:
@@ -127,6 +128,7 @@ fn Handle? create(SerialPort port) {
     Serial* serial = serial::of(port);
     serial.setup(port);
     serial.set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
+    serial.set_semaphore(semaphore::alloc());
     serial.enable_rx();
 
     // alloc new terminal object
