@@ -22,10 +22,7 @@ fn void init() {
     // Handle handle = process::spawn((EntryPointFn)&test)!!;
     // process::detach(handle)!!;
 
-    Terminal* terminal = term::create(SerialPort.COM3);
-    Handle termHandle = scheduler::get_current_task().handles.insert(terminal, {})!!;
-    terminal.track_ref();
-
+    Handle termHandle = term::create(SerialPort.COM3)!!;
     Handle shellHandle = process::create(process::@entry_void_to_int(&shell::shell_main))!!;
 
     process::set_aux_handle(shellHandle, 0, termHandle)!!;

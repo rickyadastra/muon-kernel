@@ -50,19 +50,6 @@ fn void Terminal.drop_ref(&self) @dynamic {
     logging::printn("Terminal@%x's refcount after drop_ref(): %d", self, v);
 }
 
-fn Terminal* create(SerialPort port) {
-    Serial* serial = serial::of(port);
-    serial.setup(port);
-    serial.set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
-    serial.enable_rx();
-
-    Terminal* term = (Terminal*)mem::alloc(Terminal.sizeof);
-    term.serial = serial;
-    object::register(term);
-
-    return term;
-}
-
 macro Terminal.begin_escape_seq(&self) => self.serial.put(ESCAPE_SEQ);
 macro Terminal.print_newline(&self) => self.serial.write("\r\n");
 macro Terminal.print_backspace(&self) => self.serial.write("\b");
@@ -131,6 +118,28 @@ fn String? Terminal.read_line(&self) {
 macro Terminal*? resolve_handle_to_term(Handle handle, ObjectRights rights = {}) @local {
     KernelObject obj = handle::resolve(scheduler::get_current_task().handles, handle, (ObjectRights)rights)!;
     return anycast(obj, Terminal);
+}
+
+<*
+    @require scheduler::get_current_task() != null
+*>
+fn Handle? create(SerialPort port) {
+    Serial* serial = serial::of(port);
+    serial.setup(port);
+    serial.set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
+    serial.enable_rx();
+
+    // alloc new terminal object
+    Terminal* term = (Terminal*)mem::alloc(Terminal.sizeof);
+    term.serial = serial;
+    
+    // create handle for terminal in current task
+    Handle handle = scheduler::get_current_task().handles.insert(term, {})!;
+    term.track_ref();
+
+    // register object
+    object::register(term);
+    return handle;
 }
 
 fn void? clear(Handle handle) {
