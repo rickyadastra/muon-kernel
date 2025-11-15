@@ -34,10 +34,7 @@ fn int shell_main(SpawnInfo* info) {
                         term::clear(termHandle)!!;
 
                     case "time":
-                        Handle procHandle = process::create((EntryPointFn)&shell_time)!!;
-                        process::set_aux_handle(procHandle, 0, termHandle)!!;
-                        process::start(procHandle)!!;
-                        process::wait(procHandle)!!;
+                        @run_program(shell_time, termHandle);
 
                     default:
                         term::print(termHandle, "Comando sconosciuto: ")!!;
@@ -50,6 +47,13 @@ fn int shell_main(SpawnInfo* info) {
 
     logging::printn("Shell exited");
     return 0;
+}
+
+macro @run_program(#f, #termHandle) {
+    Handle procHandle = process::create((EntryPointFn)&#f)!!;
+    process::set_aux_handle(procHandle, 0, #termHandle)!!;
+    process::start(procHandle)!!;
+    process::wait(procHandle)!!;
 }
 
 fn int shell_time(SpawnInfo* info) {
