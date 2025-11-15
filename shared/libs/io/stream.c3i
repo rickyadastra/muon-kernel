@@ -36,3 +36,5 @@ interface OutStream {
     *>
     fn usz flush();
 }
+
+interface IOStream : InStream, OutStream {}

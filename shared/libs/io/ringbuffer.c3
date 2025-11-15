@@ -8,7 +8,7 @@ import std::io::stream;
 
 macro void @inc_modulo(#v, #amount = 1) @local => #v = (#v + #amount) % SIZE;
 
-struct RingBuffer (InStream, OutStream) {
+struct RingBuffer (IOStream) {
     char[SIZE] buffer;
     usz head;
     usz tail;
