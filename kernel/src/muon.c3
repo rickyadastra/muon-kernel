@@ -3,6 +3,7 @@ module muon;
 import arch;
 import boson;
 import process;
+import dev;
 
 fn void kmain(BootloaderPayload* payload) {
     logging::init();
@@ -18,8 +19,19 @@ fn void kmain(BootloaderPayload* payload) {
 }
 
 fn void init() {
-    Handle handle = process::spawn((EntryPointFn)&test)!!;
-    process::detach(handle)!!;
+    // Handle handle = process::spawn((EntryPointFn)&test)!!;
+    // process::detach(handle)!!;
+
+    Terminal* terminal = term::create(SerialPort.COM3);
+    Handle termHandle = scheduler::get_current_task().handles.insert(terminal, {})!!;
+    terminal.track_ref();
+
+    Handle shellHandle = process::create(process::@entry_void_to_int(&shell::shell_main))!!;
+
+    process::set_aux_handle(shellHandle, 0, termHandle)!!;
+
+    process::start(shellHandle)!!;
+    process::detach(shellHandle)!!;
 
     //// Run tests (remove comments)
     // test::prepare_scheduler();
