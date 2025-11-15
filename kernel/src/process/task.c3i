@@ -13,7 +13,7 @@ const usz MAX_SPAWN_INFO_EXTRA_HANDLE = 16;
 enum TaskState : uint {
     READY,              // can be scheduled
     RUNNING,            // is currently running
-    WAITING,            // waiting for IO 
+    BLOCKED,            // blocked by IO operation 
     SUSPENDED,          // waiting for a timer event/explicit resume
     TERMINATED,         // is terminated
     CLEANUP,            // is awaiting cleanup

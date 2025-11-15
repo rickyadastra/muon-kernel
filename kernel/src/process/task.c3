@@ -227,3 +227,10 @@ fn void? sleep_ms(usz ms) {
     task.pendingEvent = event;
     suspend(task);
 }
+
+fn void block(Task* task) {
+    scheduler::lock_scheduler();
+    defer scheduler::unlock_scheduler();
+    
+    task.state = BLOCKED;
+}
