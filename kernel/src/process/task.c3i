@@ -7,7 +7,7 @@ import muon::authority;
 faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL, INIT_SPAWN_INFO_FAIL, INIT_SELF_HANDLE_FAIL,
     INIT_SPAWN_HANDLES_FAIL;
 
-const usz DEFAULT_KERNEL_STACK_SIZE = 4;
+const usz DEFAULT_KERNEL_STACK_SIZE = 8;
 const usz MAX_SPAWN_INFO_EXTRA_HANDLE = 16;
 
 enum TaskState : uint {
@@ -60,6 +60,7 @@ const TaskObjectRights CAN_RESUME_RIGHTS = {.canResume = true};
 
 struct SpawnInfo {
     Handle taskHandle;
+    Handle[3] auxHandles;
     // argc, argv etc.
 }
 

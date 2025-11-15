@@ -143,3 +143,23 @@ fn int? wait(Handle handle) {
     
     return code;
 }
+
+<*
+    @require id < 3
+*>
+fn void? set_aux_handle(Handle destTaskHandle, usz id, Handle newHandle) {
+    Task* curr = scheduler::get_current_task();
+    Task* task = resolve_handle_to_task(curr.handles, destTaskHandle, {})!;
+
+    ObjectTable table = curr.handles;
+    KernelObject newObj = table.get(newHandle).object;
+
+    if (table.get(destTaskHandle).object.type == Task.typeid) {
+        Handle handle = authority::delegate(table, newHandle, task.handles, {})!;
+        newObj.track_ref();
+        task.spawnInfo.auxHandles[id] = handle;
+        
+    } else {
+        return handle::TYPE_MISMATCH?;
+    }
+}
