@@ -129,7 +129,10 @@ fn void terminate(Task* task, int ret) {
     task.handles.remove_all();
 
     // resume awaitor
-    if (task.pendingAwaitor != null) resume(task.pendingAwaitor);
+    if (task.pendingAwaitor != null) {
+        logging::printn("Resuming awaitor Task #%x", task.pendingAwaitor);
+        resume(task.pendingAwaitor);
+    }
 
     // if current task is not referenced anymore, schedule cleanup
     if (task.get_ref_count() == 0) {
@@ -148,27 +151,45 @@ fn void terminate(Task* task, int ret) {
     if (shouldYield) yield();
 }
 
-<*
-    @require task != null
-*>
-macro suspend(Task* task) {
+macro bool do_suspend(Task* task) @private {
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
-
+    
     task.state = SUSPENDED;
-
-    if (scheduler::get_current_task() == task) yield();
+    return scheduler::get_current_task() == task;
 }
 
 <*
-    @param[&in] awaitor : "The task suspended until awaited terminates"
+    @require task != null
+*>
+fn void suspend(Task* task) {
+    scheduler::lock_scheduler();
+    bool shouldYield = do_suspend(task);
+    scheduler::unlock_scheduler();
+    
+    if (shouldYield) yield();
+}
+
+<*
+    @param[&inout] awaitor : "The task suspended until awaited terminates"
     @param[&inout] awaited : "The task that notifies awaitor when terminated"
 *>
-macro set_waiting_task(Task* awaitor, Task* awaited) {
+fn void? wait(Task* awaitor, Task* awaited) {
     scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
 
-    awaited.pendingAwaitor = awaitor;
+    if (awaited.state == TERMINATED) {
+        logging::printn("Task #%d will NOT wait for already terminated task #%d", awaitor.id, awaited.id);
+        scheduler::unlock_scheduler();
+
+    } else {
+        logging::printn("Task #%d will wait for task #%d", awaitor.id, awaited.id);
+        
+        awaited.pendingAwaitor = awaitor;
+        bool shouldYield = do_suspend(awaitor);
+        scheduler::unlock_scheduler();
+
+        yield();
+    }
 }
 
 fn void? sleep_ms(usz ms) {

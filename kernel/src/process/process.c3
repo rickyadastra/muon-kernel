@@ -103,7 +103,7 @@ fn void? resume(Handle handle) {
     task::resume(task);
 }
 
-fn void? resume_after_sleep(ResumeContext ctx) {
+fn void? resume_after_sleep(ResumeContext ctx) @private {
     Task* task = resolve_handle_to_task(ctx.actor.handles, ctx.resumingHandle, task::CAN_RESUME_RIGHTS)!;
     task::resume(task);
 }
@@ -136,10 +136,7 @@ fn int? wait(Handle handle) {
     Task* curr = scheduler::get_current_task();
     Task* task = resolve_handle_to_task(curr.handles, handle, {})!;
     
-    logging::printn("Task #%d will wait for task #%d", curr.id, task.id);
-    
-    task::set_waiting_task(awaitor: curr, awaited: task);
-    task::suspend(curr);
+    task::wait(awaitor: curr, awaited: task)!;
 
     int code = task.exitStatus;
     remove_handle_from(curr.handles, handle)!;
