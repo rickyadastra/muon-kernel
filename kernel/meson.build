@@ -117,6 +117,9 @@ muon_sources = [
 
     f'src/sync/semaphore.c3',
 
+    f'src/demo/shell.c3',
+    f'src/demo/term.c3',
+
     f'src/entry.c3',
     f'src/logging.c3',
     f'src/muon.c3',
