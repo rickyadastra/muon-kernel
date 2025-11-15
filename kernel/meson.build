@@ -113,6 +113,8 @@ muon_sources = [
     f'src/process/task.c3i',
     f'src/process/workers.c3',
 
+    f'src/sync/semaphore.c3',
+
     f'src/entry.c3',
     f'src/logging.c3',
     f'src/muon.c3',

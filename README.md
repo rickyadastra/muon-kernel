@@ -48,7 +48,17 @@
    - [x] Cooperative task `yield()` function
    - [x] `sleep_ms()` and `suspend()`/`resume()` functions
    - [x] `wait()` and `detach()` functions
+   - [x] Synchronization primitives via Semaphore object
    - [ ] Basic shell to launch programs
+- [ ] 👥 **Milestone 0.5** - Userspace
+   - *TBD*
+- [ ] 🔐 **Milestone 0.6** - Capability System
+   - [x] `Handle` and `ObjectTable` implementations
+   - [ ] Per-Task private capability space
+   - [ ] Kernel-wide capability implementation
+   - *More TBD*
+- [ ] 📁 **Milestone 0.7** - File System basics
+   - *TBD*
 
 ## Why C3?
 [C3](https://c3-lang.org/) is a C evolution aiming to be safer and more powerful while being familiar to the old C. It provides several additions useful to kernel programming like more granular bitstructs, methods, semantic macros and zero-overhead error checks, being fully compatible with the C ABI.
