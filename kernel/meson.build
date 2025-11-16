@@ -119,6 +119,7 @@ muon_sources = [
 
     f'src/demo/shell.c3',
     f'src/demo/term.c3',
+    f'src/demo/programs/random.c3',
     f'src/demo/programs/sleep.c3',
     f'src/demo/programs/time.c3',
 

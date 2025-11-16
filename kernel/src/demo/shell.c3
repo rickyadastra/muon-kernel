@@ -75,16 +75,20 @@ fn int shell_main(SpawnInfo* info) {
                     shutdownPort.out16(0x4004, 0x3400); // virtualbox
                     process::sleep_ms(100)!!;
 
+                case "rand":
+                    @run_program(programs::random, termHandle, line);
+
                 case "help":
                     term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
                         +++ " for " +++ env::ARCH_TYPE.nameof)!!;
                     term::printn(termHandle, "Compiled on " +++ $$DATE +++ " at " +++ $$TIME +++ "\n")!!;
-                    term::printn(termHandle, " clear            Clear the screen")!!;
-                    term::printn(termHandle, " exit             Exit the shell (also Ctrl+C)")!!;
-                    term::printn(termHandle, " help             Display this message")!!;
-                    term::printn(termHandle, " shutdown         Shutdown the computer (only on QEMU and VirtualBox)")!!;
-                    term::printn(termHandle, " sleep <time>     Run a program that sleeps for <time> seconds")!!;
-                    term::printn(termHandle, " time             Run a program that shows current time and uptime")!!;
+                    term::printn(termHandle, " clear                Clear the screen")!!;
+                    term::printn(termHandle, " exit                 Exit the shell (also Ctrl+C)")!!;
+                    term::printn(termHandle, " help                 Display this message")!!;
+                    term::printn(termHandle, " rand [min] [max]     Run a program that returns a random numeric value")!!;
+                    term::printn(termHandle, " shutdown             Shutdown the computer (only on QEMU and VirtualBox)")!!;
+                    term::printn(termHandle, " sleep <time>         Run a program that sleeps for <time> seconds")!!;
+                    term::printn(termHandle, " time                 Run a program that shows current time and uptime")!!;
                     term::printn(termHandle, "")!!;
 
                 default:
