@@ -6,6 +6,9 @@ import string;
 import datetime;
 import dev;
 
+const String[7] WEEKDAY_NAMES = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+const String[12] MONTH_NAMES = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
 fn int time(SpawnInfo* info) {
     Handle termHandle = info.auxHandles[0];
     logging::printn("Time program started");
@@ -13,9 +16,11 @@ fn int time(SpawnInfo* info) {
     ulong time = timing::get_wallclock();
     ulong uptime = timing::get_uptime();
     Datetime dt = datetime::epoch_to_datetime(time);
+    Weekday weekday = dt.weekday();
 
     Formatter formatter;
-    String s = formatter.format("Current datetime is %d-%d-%d %d:%d:%d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)!!;
+    String s = formatter.format("Current datetime is %s %d %s %d, %d:%d:%d UTC", 
+        WEEKDAY_NAMES[weekday.ordinal], dt.day, MONTH_NAMES[dt.month-1], dt.year, dt.hour, dt.minute, dt.second)!!;
     term::printn(termHandle, s)!!;
 
     s = formatter.format("Unix timestamp: %d", time)!!;
