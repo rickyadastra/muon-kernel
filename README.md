@@ -1,7 +1,10 @@
 <p align="center">
   <img src="https://i.imgur.com/bxSeMca.png" height=224/>
-  </br>
-  A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source personal and academic project. 
+  <br><br>
+  A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source personal and academic project.
+  <br><br>
+  <img alt="Language C3" src="https://img.shields.io/badge/Language-C3-3381ff">
+  <img alt="Total lines" src="https://sloc.xyz/github/rickyadastra/muon-kernel"/>
 </p>
 
 # Core Features
