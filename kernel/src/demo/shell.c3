@@ -7,6 +7,7 @@ import string;
 import env;
 
 const String PROMPT = "muon> ";
+const usz MAX_TOKENS = 64;
 
 fn int shell_main(SpawnInfo* info) {
     Handle termHandle = info.auxHandles[0];
@@ -38,9 +39,18 @@ fn int shell_main(SpawnInfo* info) {
             }
 
         } else {
-            if (line.len > 0) {
-                logging::printn("Shell received cmd: %s", line);
-                switch (line) {
+            if (line.len == 0) continue;
+
+            String[MAX_TOKENS] tokens;
+            usz toks = tokenize_line(line, &tokens);
+            String[] cmdTokens = tokens[:toks];
+
+            String cmd = cmdTokens[0];
+
+            if (cmd.len > 0) {
+                logging::printn("Shell received cmd: %s", cmd);
+
+                switch (cmd) {
                     case "clear":
                         term::clear(termHandle)!!;
 
@@ -49,20 +59,20 @@ fn int shell_main(SpawnInfo* info) {
                         process::exit();
 
                     case "time":
-                        @run_program(programs::time, termHandle);
+                        @run_program(programs::time, termHandle, line);
 
-                    case "sleep5":
-                        @run_program(programs::sleep5, termHandle);
+                    case "sleep":
+                        @run_program(programs::sleep, termHandle, line);
 
                     case "help":
                         term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
                             +++ " for " +++ env::ARCH_TYPE.nameof)!!;
                         term::printn(termHandle, "Compiled on " +++ $$DATE +++ " at " +++ $$TIME +++ "\n")!!;
-                        term::printn(termHandle, " clear        Clear the screen")!!;
-                        term::printn(termHandle, " exit         Exit the shell (also Ctrl+C)")!!;
-                        term::printn(termHandle, " help         Display this message")!!;
-                        term::printn(termHandle, " sleep5       Sleep for 5 seconds")!!;
-                        term::printn(termHandle, " time         Display the current time and uptime")!!;
+                        term::printn(termHandle, " clear            Clear the screen")!!;
+                        term::printn(termHandle, " exit             Exit the shell (also Ctrl+C)")!!;
+                        term::printn(termHandle, " help             Display this message")!!;
+                        term::printn(termHandle, " sleep <time>     Run a program that sleeps for <time> seconds")!!;
+                        term::printn(termHandle, " time             Run a program that shows current time and uptime")!!;
                         term::printn(termHandle, "")!!;
 
                     default:
@@ -78,9 +88,38 @@ fn int shell_main(SpawnInfo* info) {
     return 0;
 }
 
-macro @run_program(#f, #termHandle) {
+macro @run_program(#f, #termHandle, #cmdline) {
     Handle procHandle = process::create((EntryPointFn)&#f)!!;
     process::set_aux_handle(procHandle, 0, #termHandle)!!;
+    process::set_command_line(procHandle, #cmdline)!!;
     process::start(procHandle)!!;
-    process::wait(procHandle)!!;
+    int ret = process::wait(procHandle)!!;
+    logging::printn("Program '%s' terminated with exit code: %d", $nameof(#f), ret);
+}
+
+fn usz tokenize_line(String line, String[MAX_TOKENS]* tokens) {
+    usz tok, i, j;
+
+    while (i < line.len && j < line.len && tok < (*tokens).len) {
+        if (line[i] == ' ') {
+            i++;
+            continue;
+        }
+
+        if (line[j] == ' ' && j >= i) {
+            (*tokens)[tok++] = line[i..j-1];
+            i = j+1;
+        }
+
+        j++;
+    }
+
+    if (i < line.len) (*tokens)[tok++] = line[i..^1];
+
+    return tok;
+}
+
+macro String[] @get_args(SpawnInfo* #info, String[MAX_TOKENS] #tokens) {
+    usz toks = shell::tokenize_line(#info.commandLine, &#tokens);
+    return #tokens[:toks];
 }
