@@ -64,6 +64,13 @@ fn int shell_main(SpawnInfo* info) {
                     case "sleep":
                         @run_program(programs::sleep, termHandle, line);
 
+                    case "shutdown":
+                        term::printn(termHandle, "Shutting down...")!!;
+                        term::printn(termHandle, "* This only works on QEMU and VirtualBox. If nothing happens, you know why.")!!;
+                        Port shutdownPort;
+                        shutdownPort.out16(0xb004, 0x2000); // qemu
+                        shutdownPort.out16(0x4004, 0x3400); // virtualbox
+
                     case "help":
                         term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
                             +++ " for " +++ env::ARCH_TYPE.nameof)!!;
@@ -71,6 +78,7 @@ fn int shell_main(SpawnInfo* info) {
                         term::printn(termHandle, " clear            Clear the screen")!!;
                         term::printn(termHandle, " exit             Exit the shell (also Ctrl+C)")!!;
                         term::printn(termHandle, " help             Display this message")!!;
+                        term::printn(termHandle, " shutdown         Shutdown the computer (only on QEMU and VirtualBox)")!!;
                         term::printn(termHandle, " sleep <time>     Run a program that sleeps for <time> seconds")!!;
                         term::printn(termHandle, " time             Run a program that shows current time and uptime")!!;
                         term::printn(termHandle, "")!!;
