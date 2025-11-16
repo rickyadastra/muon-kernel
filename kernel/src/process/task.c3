@@ -8,16 +8,8 @@ import dev::timing;
 import std::lock;
 
 fn usz Task.get_ref_count(&self) @dynamic => self.refcount.load();
-
-fn void Task.track_ref(&self) @dynamic {
-    usz v = self.refcount.increment()+1;
-    logging::printn("Task@%x's refcount after track_ref(): %d", self, v);
-}
-
-fn void Task.drop_ref(&self) @dynamic {
-    usz v = self.refcount.decrement()-1;
-    logging::printn("Task@%x's refcount after drop_ref(): %d", self, v);
-}
+fn void Task.track_ref(&self) @dynamic => self.refcount.increment();
+fn void Task.drop_ref(&self) @dynamic => self.refcount.decrement();
 
 <*
     @param[&in] owner
@@ -130,7 +122,7 @@ fn void terminate(Task* task, int ret) {
 
     // resume awaitor
     if (task.pendingAwaitor != null) {
-        logging::printn("Resuming awaitor Task #%x", task.pendingAwaitor);
+        logging::printn("Resuming awaitor Task #%d", task.pendingAwaitor.id);
         resume(task.pendingAwaitor);
     }
 
