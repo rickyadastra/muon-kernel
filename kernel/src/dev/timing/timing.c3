@@ -6,6 +6,7 @@ import arch::mem;
 import muon;
 
 ulong? wallclock @private = WALLCLOCK_NOT_SET?;
+ulong uptime @private;
 
 // timer subsystem
 Timer timer @private;
@@ -30,7 +31,8 @@ fn TimerEvent*? add_timer_event(TimerEvent event) @private {
     return ev;
 }
 
-fn ulong get_current() => wallclock!!;
+fn ulong get_wallclock() => wallclock!!;
+fn ulong get_uptime() => uptime;
 
 fn void? serve_timer_events(KernelTime currentTime, any ctx) @private {
     while (try e = timerEvents.first() && e.timestamp <= currentTime) {
