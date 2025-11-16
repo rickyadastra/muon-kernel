@@ -18,6 +18,8 @@ const char BACKSPACE_KEY_ALT = 0x7f;
 const char PRINT_KEYS_START = 0x20;
 const char PRINT_KEYS_END = 0x7e;
 
+const usz LINEBUF_SIZE = 128;
+
 const char ESCAPE_SEQ = 0x1b;
 const String CLEAR_SCREEN = "[2J";
 const String BACKSPACE = "[0K";
@@ -25,7 +27,7 @@ const String BACKSPACE = "[0K";
 struct Terminal (KernelObject) {
     Serial* serial;
     RefCount refcount;
-    char[128] linebuf;
+    char[LINEBUF_SIZE] linebuf;
 }
 
 enum Color : char (String fg, String bg) {
