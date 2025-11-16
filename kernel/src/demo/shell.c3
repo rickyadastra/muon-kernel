@@ -49,7 +49,21 @@ fn int shell_main(SpawnInfo* info) {
                         process::exit();
 
                     case "time":
-                        @run_program(shell_time, termHandle);
+                        @run_program(programs::time, termHandle);
+
+                    case "sleep5":
+                        @run_program(programs::sleep5, termHandle);
+
+                    case "help":
+                        term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
+                            +++ " for " +++ env::ARCH_TYPE.nameof)!!;
+                        term::printn(termHandle, "Compiled on " +++ $$DATE +++ " at " +++ $$TIME +++ "\n")!!;
+                        term::printn(termHandle, " clear        Clear the screen")!!;
+                        term::printn(termHandle, " exit         Exit the shell (also Ctrl+C)")!!;
+                        term::printn(termHandle, " help         Display this message")!!;
+                        term::printn(termHandle, " sleep5       Sleep for 5 seconds")!!;
+                        term::printn(termHandle, " time         Display the current time and uptime")!!;
+                        term::printn(termHandle, "")!!;
 
                     default:
                         term::print(termHandle, "Unknown command: ")!!;
@@ -69,17 +83,4 @@ macro @run_program(#f, #termHandle) {
     process::set_aux_handle(procHandle, 0, #termHandle)!!;
     process::start(procHandle)!!;
     process::wait(procHandle)!!;
-}
-
-fn int shell_time(SpawnInfo* info) {
-    Handle termHandle = info.auxHandles[0];
-    logging::printn("Time program started");
-
-    ulong time = timing::get_current();
-    Formatter formatter;
-    String s = formatter.format("Unix time attuale: %d", time)!!;
-    term::printn(termHandle, s)!!;
-
-    logging::printn("Time program exited");
-    return 0;
 }

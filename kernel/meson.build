@@ -119,6 +119,8 @@ muon_sources = [
 
     f'src/demo/shell.c3',
     f'src/demo/term.c3',
+    f'src/demo/programs/sleep.c3',
+    f'src/demo/programs/time.c3',
 
     f'src/entry.c3',
     f'src/logging.c3',
