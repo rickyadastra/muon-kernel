@@ -78,18 +78,21 @@ fn int shell_main(SpawnInfo* info) {
                 case "rand":
                     @run_program(programs::random, termHandle, line);
 
+                case "info":
+                    @print_shell_info(termHandle);
+
                 case "help":
-                    term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
-                        +++ " for " +++ env::ARCH_TYPE.nameof)!!;
-                    term::printn(termHandle, "Compiled on " +++ $$DATE +++ " at " +++ $$TIME +++ "\n")!!;
+                    @print_shell_info(termHandle);
+                    term::print_newline(termHandle)!!;
                     term::printn(termHandle, " clear                Clear the screen")!!;
                     term::printn(termHandle, " exit                 Exit the shell (also Ctrl+C)")!!;
                     term::printn(termHandle, " help                 Display this message")!!;
+                    term::printn(termHandle, " info                 Display info about the kernel")!!;
                     term::printn(termHandle, " rand [min] [max]     Run a program that returns a random numeric value")!!;
                     term::printn(termHandle, " shutdown             Shutdown the computer (only on QEMU and VirtualBox)")!!;
                     term::printn(termHandle, " sleep <time>         Run a program that sleeps for <time> seconds")!!;
                     term::printn(termHandle, " time                 Run a program that shows current time and uptime")!!;
-                    term::printn(termHandle, "")!!;
+                    term::print_newline(termHandle)!!;
 
                 default:
                     term::print(termHandle, "Unknown command: ")!!;
@@ -101,6 +104,11 @@ fn int shell_main(SpawnInfo* info) {
 
     logging::printn("Shell exited");
     return 0;
+}
+
+macro @print_shell_info(#termHandle) {
+    term::printn(#termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION +++ " for " +++ env::ARCH_TYPE.nameof)!!;
+    term::printn(#termHandle, "Build " +++ muon::COMMIT_HASH +++ " @ " +++ $$DATE +++ " " +++ $$TIME)!!;
 }
 
 macro @run_program(#f, #termHandle, #cmdline) {

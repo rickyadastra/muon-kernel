@@ -45,7 +45,7 @@ fn int random(SpawnInfo* info) {
 
     ulong rand = (random::random()!! % max) + min;
     Formatter formatter;
-    String s = formatter.format("Generated random: %d", rand)!!;
+    String s = formatter.format("Generated random: %d\n", rand)!!;
 
     term::printn(termHandle, s)!!;
 
