@@ -63,12 +63,15 @@ macro char Serial.get_char(&this) @local => this.port.in8(SerialPortRegister.REC
 
 fn void Serial.get_char_to_buf(&self) @local {
     SerialBuffer* buf = self.rxBuffer;
-    char c = self.get_char();
 
-    if (catch e = buf.put(c)) {
-        if (e == stream::FULL) buf.flush();
-    } else {
-        self.sem.signal();
+    if (buf != null) {
+        char c = self.get_char();
+
+        if (catch e = buf.put(c)) {
+            if (e == stream::FULL) buf.flush();
+        } else {
+            self.sem.signal();
+        }
     }
 }
  
