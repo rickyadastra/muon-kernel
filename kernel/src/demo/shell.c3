@@ -4,6 +4,7 @@ import muon;
 import process;
 import dev;
 import string;
+import env;
 
 const String PROMPT = "muon> ";
 
@@ -12,6 +13,16 @@ fn int shell_main(SpawnInfo* info) {
     logging::printn("Shell started. Terminal handle is %x", termHandle);
 
     term::clear(termHandle)!!;
+                                            
+    term::printn(termHandle, "                      _                   _ ")!!;
+    term::printn(termHandle, " _____ _ _ ___ ___   | |_ ___ ___ ___ ___| |")!!;
+    term::printn(termHandle, "|     | | | . |   |  | '_| -_|  _|   | -_| |")!!;
+    term::printn(termHandle, "|_|_|_|___|___|_|_|  |_,_|___|_| |_|_|___|_|")!!;
+    term::printn(termHandle, "                                            ")!!;
+    term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION)!!;
+    term::printn(termHandle, "Type 'help' for a list of available commands.\n")!!;
+
+    process::sleep_ms(1500)!!;
 
     while (true) {
         term::print(termHandle, PROMPT, textColor: term::Color.CYAN)!!;
@@ -28,21 +39,25 @@ fn int shell_main(SpawnInfo* info) {
 
         } else {
             if (line.len > 0) {
-                logging::printn("shell received cmd: %s", line);
+                logging::printn("Shell received cmd: %s", line);
                 switch (line) {
                     case "clear":
                         term::clear(termHandle)!!;
+
+                    case "exit":
+                        term::printn(termHandle, "Shell terminated via 'exit' command. Bye bye!")!!;
+                        process::exit();
 
                     case "time":
                         @run_program(shell_time, termHandle);
 
                     default:
-                        term::print(termHandle, "Comando sconosciuto: ")!!;
+                        term::print(termHandle, "Unknown command: ")!!;
                         term::print(termHandle, line)!!;
                         term::print_newline(termHandle)!!;
                 }
             }
-        } 
+        }
     }
 
     logging::printn("Shell exited");
