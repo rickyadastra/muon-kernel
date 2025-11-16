@@ -23,6 +23,7 @@ c3_compile_args = [
     '--single-module=yes',
     '--target', elf_target,
     '--panicfn', 'arch::panicfn',
+    '--trust=full',
 ]
 
 compile_args = [
