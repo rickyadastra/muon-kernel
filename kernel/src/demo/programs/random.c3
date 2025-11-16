@@ -43,9 +43,9 @@ fn int random(SpawnInfo* info) {
     logging::printn("Random program started");
     logging::printn("Generating random number between %d and %d", min, max-1);
 
-    ulong rand = (random::random()!! % max) + min;
+    ulong rand = (random::random()!! % (max - min)) + min;
     Formatter formatter;
-    String s = formatter.format("Generated random: %d\n", rand)!!;
+    String s = formatter.format("Generated random: %d", rand)!!;
 
     term::printn(termHandle, s)!!;
 
