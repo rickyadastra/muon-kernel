@@ -69,8 +69,11 @@ fn int shell_main(SpawnInfo* info) {
                     Port shutdownPort;
                     logging::printn("Trying QEMU/Bochs shutdown port...");
                     shutdownPort.out16(0xb004, 0x2000); // qemu
+                    process::sleep_ms(100)!!;
+
                     logging::printn("Trying VirtualBox shutdown port...");
                     shutdownPort.out16(0x4004, 0x3400); // virtualbox
+                    process::sleep_ms(100)!!;
 
                 case "help":
                     term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
