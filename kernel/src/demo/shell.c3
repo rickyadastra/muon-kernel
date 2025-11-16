@@ -9,6 +9,8 @@ import env;
 const String PROMPT = "muon> ";
 const usz MAX_TOKENS = 64;
 
+String[MAX_TOKENS] tokens;
+
 fn int shell_main(SpawnInfo* info) {
     Handle termHandle = info.auxHandles[0];
     logging::printn("Shell started. Terminal handle is %x", termHandle);
@@ -39,55 +41,53 @@ fn int shell_main(SpawnInfo* info) {
             }
 
         } else {
-            if (line.len == 0) continue;
-
-            String[MAX_TOKENS] tokens;
             usz toks = tokenize_line(line, &tokens);
             String[] cmdTokens = tokens[:toks];
 
+            if (cmdTokens.len == 0) continue;
             String cmd = cmdTokens[0];
 
-            if (cmd.len > 0) {
-                logging::printn("Shell received cmd: %s", cmd);
+            logging::printn("Shell received cmd: %s", cmd);
 
-                switch (cmd) {
-                    case "clear":
-                        term::clear(termHandle)!!;
+            switch (cmd) {
+                case "clear":
+                    term::clear(termHandle)!!;
 
-                    case "exit":
-                        term::printn(termHandle, "Shell terminated via 'exit' command. Bye bye!")!!;
-                        process::exit();
+                case "exit":
+                    term::printn(termHandle, "Shell terminated via 'exit' command. Bye bye!")!!;
+                    process::exit();
 
-                    case "time":
-                        @run_program(programs::time, termHandle, line);
+                case "time":
+                    @run_program(programs::time, termHandle, line);
 
-                    case "sleep":
-                        @run_program(programs::sleep, termHandle, line);
+                case "sleep":
+                    @run_program(programs::sleep, termHandle, line);
 
-                    case "shutdown":
-                        term::printn(termHandle, "Shutting down...")!!;
-                        term::printn(termHandle, "* This only works on QEMU and VirtualBox. If nothing happens, you know why.")!!;
-                        Port shutdownPort;
-                        shutdownPort.out16(0xb004, 0x2000); // qemu
-                        shutdownPort.out16(0x4004, 0x3400); // virtualbox
+                case "shutdown":
+                    term::printn(termHandle, "* This only works on QEMU and VirtualBox. If nothing happens, you know why.")!!;
+                    term::printn(termHandle, "Shutting down...")!!;
+                    Port shutdownPort;
+                    logging::printn("Trying QEMU/Bochs shutdown port...");
+                    shutdownPort.out16(0xb004, 0x2000); // qemu
+                    logging::printn("Trying VirtualBox shutdown port...");
+                    shutdownPort.out16(0x4004, 0x3400); // virtualbox
 
-                    case "help":
-                        term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
-                            +++ " for " +++ env::ARCH_TYPE.nameof)!!;
-                        term::printn(termHandle, "Compiled on " +++ $$DATE +++ " at " +++ $$TIME +++ "\n")!!;
-                        term::printn(termHandle, " clear            Clear the screen")!!;
-                        term::printn(termHandle, " exit             Exit the shell (also Ctrl+C)")!!;
-                        term::printn(termHandle, " help             Display this message")!!;
-                        term::printn(termHandle, " shutdown         Shutdown the computer (only on QEMU and VirtualBox)")!!;
-                        term::printn(termHandle, " sleep <time>     Run a program that sleeps for <time> seconds")!!;
-                        term::printn(termHandle, " time             Run a program that shows current time and uptime")!!;
-                        term::printn(termHandle, "")!!;
+                case "help":
+                    term::printn(termHandle, "muon kernel shell (mush) - Version " +++ muon::VERSION
+                        +++ " for " +++ env::ARCH_TYPE.nameof)!!;
+                    term::printn(termHandle, "Compiled on " +++ $$DATE +++ " at " +++ $$TIME +++ "\n")!!;
+                    term::printn(termHandle, " clear            Clear the screen")!!;
+                    term::printn(termHandle, " exit             Exit the shell (also Ctrl+C)")!!;
+                    term::printn(termHandle, " help             Display this message")!!;
+                    term::printn(termHandle, " shutdown         Shutdown the computer (only on QEMU and VirtualBox)")!!;
+                    term::printn(termHandle, " sleep <time>     Run a program that sleeps for <time> seconds")!!;
+                    term::printn(termHandle, " time             Run a program that shows current time and uptime")!!;
+                    term::printn(termHandle, "")!!;
 
-                    default:
-                        term::print(termHandle, "Unknown command: ")!!;
-                        term::print(termHandle, line)!!;
-                        term::print_newline(termHandle)!!;
-                }
+                default:
+                    term::print(termHandle, "Unknown command: ")!!;
+                    term::print(termHandle, cmd)!!;
+                    term::print_newline(termHandle)!!;
             }
         }
     }
