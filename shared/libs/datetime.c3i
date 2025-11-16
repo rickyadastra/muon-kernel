@@ -19,3 +19,19 @@ struct Datetime {
     uint minute;
     uint second;
 }
+
+// Table of month offsets for the Gauss's weekday algorithm
+const char[12][2] MONTH_OFFSET = {
+    {0, 3, 3, 6, 1, 4, 6, 2, 5, 0, 3, 5},   // common year offsets
+    {0, 3, 4, 0, 2, 5, 0, 3, 6, 1, 4, 6},   // leap year offsets
+};
+
+enum Weekday : char {
+    SUNDAY,
+    MONDAY,
+    TUESDAY,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY,
+}
