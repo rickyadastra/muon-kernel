@@ -62,6 +62,8 @@ fn void? destroy(Task* task) @private {
         mem::free_pages((uptr)task.taskStackBase, task.taskStackSize)!;
     }
 
+    if (task.spawnInfo.commandLine.ptr != null) mem::free(task.spawnInfo.commandLine.ptr);
+
     task.handles.destroy()!;
     mem::free(task);
 
@@ -225,4 +227,12 @@ fn void block(Task* task) {
     defer scheduler::unlock_scheduler();
     
     task.state = BLOCKED;
+}
+
+<*
+    @require cmdline.len > 0
+*>
+macro set_command_line(Task* task, String cmdline) {
+    task.spawnInfo.commandLine = (String)((char*)mem::alloc(char.sizeof*cmdline.len))[:cmdline.len];
+    task.spawnInfo.commandLine[..] = cmdline[..];
 }

@@ -163,3 +163,10 @@ fn void? set_aux_handle(Handle destTaskHandle, usz id, Handle newHandle) {
         return handle::TYPE_MISMATCH?;
     }
 }
+
+fn void? set_command_line(Handle handle, String cmdline) {
+    if (cmdline.len > 0) {
+        Task* task = resolve_handle_to_task(scheduler::get_current_task().handles, handle, {})!;
+        task::set_command_line(task, cmdline);
+    }
+}

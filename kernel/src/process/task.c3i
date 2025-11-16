@@ -61,7 +61,9 @@ const TaskObjectRights CAN_RESUME_RIGHTS = {.canResume = true};
 struct SpawnInfo {
     Handle taskHandle;
     Handle[3] auxHandles;
-    // argc, argv etc.
+    
+    String commandLine;
+    // String[] args;
 }
 
 struct ResumeContext {
