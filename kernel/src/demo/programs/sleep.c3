@@ -18,10 +18,11 @@ fn int sleep(SpawnInfo* info) {
         return -1;
     }
 
-    usz? seconds = parse_time_to_ms(args[1])*1000;
+    usz? seconds = parse_time_to_ms(args[1]);
 
     if (try seconds) {
-        process::sleep_ms(seconds)!!;
+        logging::printn("Sleeping for %d seconds", seconds);
+        process::sleep_ms(seconds*1000)!!;
 
     } else {
         term::print(termHandle, "Invalid argument '")!!;

@@ -22,6 +22,7 @@ fn int time(SpawnInfo* info) {
     term::printn(termHandle, s)!!;
 
     term::printn(termHandle, @format_uptime(formatter, uptime))!!;
+    term::print_newline(termHandle)!!;
 
     logging::printn("Time program exited");
     return 0;
