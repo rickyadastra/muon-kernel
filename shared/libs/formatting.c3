@@ -12,6 +12,7 @@ faultdef BAD_VALUE, FORMAT_BUFFER_EXCEEDED, INTERNAL_BUFFER_EXCEEDED, MISSING_AR
 struct Formatter {
     char[INTERNAL_BUFFER_SIZE] buffer;
     usz base;
+    usz zeropad;
 }
 
 <*
@@ -119,7 +120,7 @@ fn double? any_to_float(any arg, typeid* type) {
     @param [inout] buf
     @require base > 1, base <= 16
 *>
-fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10) {
+fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 0) {
     bool negative = false;
     typeid actualType = ulong.typeid;
     char[INTERNAL_FORMAT_BUFFER_SIZE] fmtBuf @noinit;
@@ -141,7 +142,12 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10) {
         value /= base;
     } while (value != 0);
 
-    if (base == 16) {
+    if (zeropad > 0) {
+        while (fmtLen < zeropad) {
+            fmtBuf[fmtLen++] = '0';
+        }
+
+    } else if (base == 16) {
         while (fmtLen < (actualType.sizeof*2)) {
             fmtBuf[fmtLen++] = '0';
         }
@@ -460,6 +466,7 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
     for (usz i = 0; i < format.len; i++) {
         char c = format[i];
         self.base = 10;
+        self.zeropad = 0;
         
         if (c != '%') {
             self.buffer[len++] = c;
@@ -471,6 +478,16 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
         if (c == '%') {
             self.buffer[len++] = c;
             continue;
+        }
+
+        // parse zero padding
+        if (c == '0') {
+            c = format[++i];
+            while (c >= '0' && c <= '9') {
+                self.zeropad *= 10;
+                self.zeropad += (usz)(c-'0');
+                c = format[++i];
+            }
         }
 
         switch (c) {
@@ -485,7 +502,7 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
                 self.base = 16;
                 nextcase 'd';
             case 'd':
-                len += format_any_to_decimal(@get_arg(args, va_i), self.buffer[len..], base: self.base)!;
+                len += format_any_to_decimal(@get_arg(args, va_i), self.buffer[len..], base: self.base, zeropad: self.zeropad)!;
             case 'f':
                 len += format_any_to_float(@get_arg(args, va_i), self.buffer[len..])!;
             case 'c':
