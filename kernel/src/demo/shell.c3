@@ -81,6 +81,9 @@ fn int shell_main(SpawnInfo* info) {
                 case "info":
                     @print_shell_info(termHandle);
 
+                case "spawner":
+                    @run_program(programs::spawner, termHandle, line);
+
                 case "help":
                     @print_shell_info(termHandle);
                     term::print_newline(termHandle)!!;
@@ -91,6 +94,7 @@ fn int shell_main(SpawnInfo* info) {
                     term::printn(termHandle, " rand [min] [max]     Run a program that returns a random numeric value")!!;
                     term::printn(termHandle, " shutdown             Shutdown the computer (only on QEMU and VirtualBox)")!!;
                     term::printn(termHandle, " sleep <time>         Run a program that sleeps for <time> seconds")!!;
+                    term::printn(termHandle, " spawner <count>      Run a program that spawns <count> child processes")!!;
                     term::printn(termHandle, " time                 Run a program that shows current time and uptime")!!;
                     term::print_newline(termHandle)!!;
 
