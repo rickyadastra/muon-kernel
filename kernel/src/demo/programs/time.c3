@@ -19,7 +19,7 @@ fn int time(SpawnInfo* info) {
     Weekday weekday = dt.weekday();
 
     Formatter formatter;
-    String s = formatter.format("Current datetime is %s %d %s %d, %d:%d:%d UTC", 
+    String s = formatter.format("Current datetime is %s %d %s %d, %02d:%02d:%02d UTC", 
         WEEKDAY_NAMES[weekday.ordinal], dt.day, MONTH_NAMES[dt.month-1], dt.year, dt.hour, dt.minute, dt.second)!!;
     term::printn(termHandle, s)!!;
 
