@@ -24,7 +24,8 @@ GDB_FLAGS 		= -ex "target remote localhost:1234" \
 				  -ex "set disassembly-flavor att" \
 				  -ex "focus cmd" \
 				  -ex "set confirm off" \
-				  -ex "symbol-file ${MUON_TARGET}"
+				  -ex "symbol-file ${MUON_TARGET}" \
+				  -ex "hbr arch.panic"
 
 all: boson muon
 

@@ -51,7 +51,7 @@ fn void init(BootloaderPayload* payload) {
     logging::printn("Timer calibration complete");
 }
 
-macro void panic() {
+fn void panic() {
     cpu::disable_interrupts();
     cpu::idle();
 }
