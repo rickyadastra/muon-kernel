@@ -23,27 +23,13 @@
    - Modern set of syscalls
 
 # Milestones
+The full milestone breakdown is available [here](MILESTONES.md).
+
 - [x] 🚀 **Milestone 0** – Bootloader
-   - [x] Boson UEFI loader and ELF loading
-   - [x] Setup kernel page tables (identity + higher-half mapping)
-   - [x] Setup kernel stack and call C entry point
 - [x] 🏗️ **Milestone 0.1** – Foundations
-   - [x] UART serial logging driver (output)
-   - [x] Global Descriptor Table
-   - [x] Interrupt Descriptor Table
-   - [x] Exception handlers (page fault, GPF, etc.)
 - [x] 📗 **Milestone 0.2** – Memory Management
-   - [x] Physical frame allocator (bitmap allocator)
-   - [x] Virtual memory mapping (paging interface)
-   - [x] Kernel heap allocator (buddy allocator)
-   - [x] Page Fault verbose handler
 - [x] 🕹️ **Milestone 0.3** – Interrupts and Timing
-   - [x] Interrupt Routing (PIC disable, local APIC configuration)
-   - [x] IOAPIC configuration (VMM mapping and MMIO setup)
-   - [x] UART serial interrupt-based driver (input)
-   - [x] HPET timer for LAPIC timer calibration
-   - [x] Local APIC timer for event scheduling
-- [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler (cooperative round-robin)
+- [x] 🐎 **Milestone 0.4** – Kernel mode scheduler (cooperative round-robin)
    - [x] Task/Thread structure with context and stack
    - [x] Preemptive context switch via timer interrupt
    - [x] FPU context save and restore
@@ -52,7 +38,7 @@
    - [x] `sleep_ms()` and `suspend()`/`resume()` functions
    - [x] `wait()` and `detach()` functions
    - [x] Synchronization primitives via Semaphore object
-   - [ ] Basic shell to launch programs
+   - [x] **Basic shell to launch programs**
 - [ ] 👥 **Milestone 0.5** - Userspace
    - *TBD*
 - [ ] 🔐 **Milestone 0.6** - Capability System
@@ -63,7 +49,25 @@
 - [ ] 📁 **Milestone 0.7** - File System basics
    - *TBD*
 
-## Why C3?
+# Milestone 0.4 Highlights
+<video controls src="assets/videos/0.4_-_muon_kernel_shell_demo.mp4" title="Milestone 0.4 - muon kernel shell"></video>
+
+The video above shows muon kernel shell (mush) running on serial port COM3 on QEMU. The port is linked to PTY and available for minicom (or any other terminal emulator) on `/dev/pts/X` where X is chosen by QEMU based on available pseudo-terminal endpoints. 
+
+The shell itself is an independent process and recognizes many commands such as `clear`, `help`, `time`, `sleep` and more as shown in the `help` command output. Most notable commands are: 
+- `time` that demonstrates the internal wallclock being updated every second
+- `rand` that generates a [hardware-backed random number](https://en.wikipedia.org/wiki/Hardware_random_number_generator) via the `rdrand` instruction
+- `spawner` that creates up to 4 child processes that prints "Hello world" to the terminal output
+
+After the shell starts a program (one of `sleep`, `spawner` or `time`) it waits for the new task to terminate and return before resuming execution, ensuring no time slices are assigned to it.
+
+> [!NOTE]
+> While the shell is supposed to shutdown VirtualBox, it is not yet fully compatible with the kernel.
+
+You can explore the shell code [here](https://github.com/rickyadastra/muon-kernel/tree/demo/kernel-shell/kernel/src/demo).
+
+
+# Why C3?
 [C3](https://c3-lang.org/) is a C evolution aiming to be safer and more powerful while being familiar to the old C. It provides several additions useful to kernel programming like more granular bitstructs, methods, semantic macros and zero-overhead error checks, being fully compatible with the C ABI.
 
 A quick overview of the main differences from C development:
