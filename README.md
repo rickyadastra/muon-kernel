@@ -49,7 +49,7 @@ The full milestone breakdown is available [here](MILESTONES.md).
 - [ ] 📁 **Milestone 0.7** - File System basics
    - *TBD*
 
-# Milestone 0.4 Highlights
+## Milestone 0.4 Highlights
 [Milestone 0.4 - muon kernel shell](https://github.com/user-attachments/assets/808684f5-9305-41c7-af35-20fffe0cb870)
 
 The video above shows muon kernel shell (mush) running on serial port COM3 on QEMU. The port is linked to PTY and available for minicom (or any other terminal emulator) on `/dev/pts/X` where X is chosen by QEMU based on available pseudo-terminal endpoints. 
