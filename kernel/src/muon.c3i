@@ -2,5 +2,6 @@ module muon;
 
 faultdef NOT_YET_IMPLEMENTED;
 
-const bool DEBUG = true;
-// const bool DEBUG = false;
+const bool DEBUG = false;
+const String VERSION = "0.4";
+$exec("echo", {"\"const String COMMIT_HASH = \\\"$(git rev-parse --short HEAD)\\\";\""});

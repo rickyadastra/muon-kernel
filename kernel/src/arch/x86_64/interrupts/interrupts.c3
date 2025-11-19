@@ -73,11 +73,11 @@ fn void init() {
     // LEGACY PIT: mask interrupts
     set_interrupt_mask(KnownInterrupt.LEGACY_PIT, true, cancelPending: true);
 
-    // SERIAL COM1: enable rx interrupts, set rx buffer and add interrupt
-    serial::of(SerialPort.COM1).set_rx_buffer((SerialBuffer*)mem::alloc(SerialBuffer.sizeof));
-    serial::of(SerialPort.COM1).enable_rx();
+    // SERIAL PORTS: add interrupts
     set_interrupt_routing(KnownInterrupt.SERIAL_COM1_COM3, apic::LEVEL_HIGH);
+    set_interrupt_routing(KnownInterrupt.SERIAL_COM2_COM4, apic::LEVEL_HIGH);
     set_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, @handler_wrapper(&serial::interrupt_handler));
+    set_interrupt_handler(KnownInterrupt.SERIAL_COM2_COM4, @handler_wrapper(&serial::interrupt_handler));
 
     // RTC: enable update interrupt and set wallclock callback
     rtc::enable_update_interrupt();

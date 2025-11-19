@@ -1,14 +1,12 @@
 import arch;
-import muon::logging;
-
+import muon;
 import boson;
 import lang;
 
 fn void kstart(BootloaderPayload* payload) @export("kstart") {
     lang::init_runtime();
 
-    logging::init();
-    arch::init(payload);
+    muon::kmain(payload);
     
-    while (true) arch::cpu::idle();
+    muon::panic("muon::kmain() returned");
 }

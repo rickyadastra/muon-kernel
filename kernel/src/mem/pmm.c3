@@ -147,7 +147,7 @@ fn PhysAddr? alloc(usz frames = 1) {
     @require frames >= 1
 *>
 fn void? free(PhysAddr addr, usz frames = 1) {
-    logging::printn("freeing %x %d", (uptr)addr, frames);
+    // logging::printn("freeing %x %d", (uptr)addr, frames);
     usz frame = @frame_of(addr);
 
     for (usz i=0; i<frames; i++) {

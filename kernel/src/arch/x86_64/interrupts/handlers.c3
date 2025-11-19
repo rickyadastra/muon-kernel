@@ -2,7 +2,7 @@ module arch::interrupts;
 
 import muon::logging;
 import arch::mem @public;
-import arch::cpu::gdt;
+import arch::cpu;
 import dev::interrupts::apic;
 
 InterruptHandlerFn[IRQS] handlers @private;
@@ -31,12 +31,16 @@ fn InterruptStack* exception_handler(InterruptStack* stack) @private {
     KnownInterrupt intr = KnownInterrupt.from_ordinal(stack.irq);
     
     logging::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.nameof, intr.mnmem, intr.name);
-    
-    if (intr == KnownInterrupt.PAGE_FAULT) {
-        stack = mem::pagefault_handler(stack, intr);
-    } else {
-        @print_stack(stack, intr);
-        arch::panic();
+
+    switch (intr) {
+        case KnownInterrupt.PAGE_FAULT:
+            stack = mem::pagefault_handler(stack, intr);
+        case KnownInterrupt.SIMD_FP_EXC:
+            stack = sse::exception_handler(stack);
+            arch::panic();
+        default:
+            @print_stack(stack, intr);
+            arch::panic();
     }
 
     return stack;

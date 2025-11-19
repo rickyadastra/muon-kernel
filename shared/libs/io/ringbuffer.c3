@@ -8,7 +8,7 @@ import std::io::stream;
 
 macro void @inc_modulo(#v, #amount = 1) @local => #v = (#v + #amount) % SIZE;
 
-struct RingBuffer (InStream, OutStream) {
+struct RingBuffer (IOStream) {
     char[SIZE] buffer;
     usz head;
     usz tail;
@@ -49,9 +49,10 @@ fn char? RingBuffer.get(&self) @dynamic {
     if (self.is_empty()) return stream::EMPTY?;
 
     self.count--;
+    char c = self.buffer[self.tail];
     @inc_modulo(self.tail);
 
-    return self.buffer[self.tail];
+    return c;
 }
 
 <*
@@ -62,9 +63,10 @@ fn char[]? RingBuffer.read(&self, usz len) @dynamic {
 
     usz actualLen = math::min(len, self.count);
     self.count -= actualLen;
+    char[] cc = self.buffer[self.tail:actualLen];
     @inc_modulo(self.tail, actualLen);
 
-    return self.buffer[self.tail:actualLen];
+    return cc;
 }
 
 fn char? RingBuffer.peek(&self) {

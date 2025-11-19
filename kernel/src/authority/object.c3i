@@ -1,0 +1,34 @@
+module muon::authority::object;
+
+import std::atomic;
+import std::collections;
+import std::lock;
+import muon::authority::handle;
+import process::task;
+import arch::mem;
+
+faultdef STILL_REFERENCED;
+
+alias RefCount = Atomic{usz};
+alias ObjectRights = ushort;
+
+interface KernelObject {
+    fn void track_ref();
+    fn void drop_ref();
+    fn usz get_ref_count();
+}
+
+struct ObjectSlot {
+    KernelObject object;
+    uint generation;
+    ushort salt;
+    ObjectRights rights;
+}
+
+struct ObjectTable {
+    ObjectSlot[] entries;
+    BitMap bitmap;
+    Spinlock lock;
+}
+
+const usz MAX_TABLE_SIZE = mem::page_size() / ObjectSlot.sizeof;

@@ -1,0 +1,14 @@
+module process::task;
+
+import arch;
+import mem;
+
+typedef CpuContext = inline interrupts::InterruptStack;
+typedef FpuContext = inline char[sse::FPU_CONTEXT_SIZE];
+
+typedef TaskSpace = inline AddressSpace;
+
+struct TaskContext (RestorableContext) {
+    CpuContext* cpuContext;
+    FpuContext fpuContext @align(16);
+}

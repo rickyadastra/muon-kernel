@@ -2,7 +2,7 @@ module dev::timing;
 
 faultdef WALLCLOCK_NOT_SET, TIMER_UNSUPPORTED;
 
-alias TimerCallbackFn = fn void(Timer*);
+alias TimerCallbackFn = fn void(TimerEvent*);
 alias KernelTime = ulong;
 
 interface Timer {
@@ -16,4 +16,8 @@ interface Timer {
 struct TimerEvent {
     KernelTime timestamp;
     TimerCallbackFn callback;
+    any context;
+    bitstruct : char {
+        bool isCancelled : 0;
+    }
 }

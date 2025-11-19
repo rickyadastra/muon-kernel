@@ -1,5 +1,9 @@
 module dev::serial;
 
+import std::io::stream;
+import arch::interrupts;
+import muon::sync;
+
 Serial[SerialPort.values.len] serials @local;
 
 fn Serial* of(SerialPort port) {
@@ -35,8 +39,9 @@ fn void Serial.write(Serial* this, char[] s) {
     for (usz i = 0; i < s.len; i++) this.put(s[i]);
 }
 
-fn char Serial.get(Serial* this) {
-    return this.port.in8(SerialPortRegister.RECEIVE_BUFFER.offset);
+fn char? Serial.get(Serial* self) {
+    if (self.sem != null) self.sem.wait();
+    return self.rxBuffer.get()!;
 }
 
 fn void Serial.enable_rx(Serial* this) {
@@ -50,24 +55,24 @@ fn void Serial.set_rx_buffer(Serial* this, SerialBuffer* buf) {
     this.rxBuffer = buf;
 }
 
-import std::io::stream;
-import muon::logging;
-import arch::interrupts;
+fn void Serial.set_semaphore(&self, Semaphore* sem) {
+    self.sem = sem;
+}
+
+macro char Serial.get_char(&this) @local => this.port.in8(SerialPortRegister.RECEIVE_BUFFER.offset);
 
 fn void Serial.get_char_to_buf(&self) @local {
     SerialBuffer* buf = self.rxBuffer;
-    char c = self.get();
 
-    // TODO: remove logging
-    if (catch e = buf.put(c)) {
-        if (e == stream::FULL) {
-            logging::printn("flushing... %s", buf.buffer[..]);
-            buf.flush();
+    if (buf != null) {
+        char c = self.get_char();
+
+        if (catch e = buf.put(c)) {
+            if (e == stream::FULL) buf.flush();
+        } else {
+            self.sem.signal();
         }
-        buf.put(c)!!;
     }
-
-    logging::printn("got %c, buffer is: '%s' (%d)", c, buf.buffer[..], buf.available());
 }
  
 fn void interrupt_handler(ulong irq) {

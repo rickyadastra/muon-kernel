@@ -2,6 +2,7 @@ module dev::serial;
 
 import dev::port;
 import std::io::ringbuffer;
+import muon::sync;
 
 alias SerialBuffer = RingBuffer{256};
 
@@ -52,4 +53,5 @@ bitstruct InterruptEnableRegister : char {
 struct Serial {
     Port port;
     SerialBuffer* rxBuffer;
+    Semaphore* sem;
 }

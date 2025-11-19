@@ -15,8 +15,17 @@ fn void get_wallclock_callback(ulong irq) {
         wallclock = utime;
     }
 
+    timing::schedule_milli(1000, &increment_time_sources);
+
     rtc::acknoledge_interrupt();
     rtc::disable_update_interrupt();
+}
+
+fn void increment_time_sources(TimerEvent* event) @local {
+    if (try wallclock) logging::debug("Wallclock updated to %d", (ulong)++wallclock);
+    uptime++;
+
+    timing::schedule_milli(1000, &increment_time_sources);
 }
 
 fn double get_tsc_frequency_with_hpet() @local {
@@ -39,11 +48,11 @@ fn void setup_tsc_deadline_timer(double frequency) {
     APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer.sizeof);
     apicTimer.frequency = frequency;
     timer = (Timer)apicTimer;
-    timerEvents = linkedlist::init{TimerEvent}(mem::get_allocator());
+    timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());
 }
 
 fn void? calibrate() {   
-    if (!cpuid::query_tsc_deadline_support()!) return TIMER_UNSUPPORTED?;
+    if (!cpuid::query_feature(CPUFeature.TSC_DEADLINE_SUPPORT)!) return TIMER_UNSUPPORTED?;
 
     double tscFrequency = get_tsc_frequency_with_hpet();
     logging::debug("TSC frequency: %f GHz", tscFrequency / 1e9);
@@ -55,8 +64,9 @@ fn InterruptStack* timer_fired(InterruptStack* stack) @private {
     KernelTime curTime = timer.get_current();
     logging::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
 
-    serve_timer_events(curTime)!!;
+    InterruptStack** stackPtr = &stack;
+    serve_timer_events(curTime, stackPtr)!!;
     if (try event = timerEvents.first() && event.timestamp > curTime) timer.set(event.timestamp); 
 
-    return stack;
+    return *stackPtr;
 }

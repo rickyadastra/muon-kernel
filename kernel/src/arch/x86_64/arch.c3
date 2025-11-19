@@ -1,7 +1,7 @@
 module arch;
 
 import boson;
-import muon::logging;
+import muon;
 import mem;
 import dev;
 
@@ -23,33 +23,35 @@ fn void init(BootloaderPayload* payload) {
     idt::install();
     logging::printn("IDT install complete");
 
-    cpu::cpuid::enable()!!;
+    muon::@wrap_panic(cpu::cpuid::enable());
     logging::printn("CPUID enabled");
 
+    muon::@wrap_panic(cpu::sse::enable());
+    logging::printn("SSE enabled");
+
     // Memory Management
-    mem::init(payload)!!;
+    muon::@wrap_panic(mem::init(payload));
     logging::printn("Memory manager init complete");
 
     // Interrupts and Timing
     timing::pit::disable();
 
-    acpi::init(rsdpAddr)!!;
+    muon::@wrap_panic(acpi::init(rsdpAddr));
     logging::printn("ACPI init complete");
 
-    apic::init()!!;
+    muon::@wrap_panic(apic::init());
     logging::printn("APIC init complete");
 
-    timing::hpet::init()!!;
+    muon::@wrap_panic(timing::hpet::init());
 
     interrupts::init();
     logging::printn("Interrupts init complete");
 
-    timing::calibrate()!!;
+    muon::@wrap_panic(timing::calibrate());
     logging::printn("Timer calibration complete");
-
 }
 
-macro void panic() {
+fn void panic() {
     cpu::disable_interrupts();
     cpu::idle();
 }

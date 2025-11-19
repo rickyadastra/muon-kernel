@@ -1,0 +1,80 @@
+module process::task;
+
+import arch::mem;
+import dev::timing;
+import muon::authority;
+
+faultdef INIT_STACK_FAIL, INIT_STACK_TOO_SMALL, INIT_SPAWN_INFO_FAIL, INIT_SELF_HANDLE_FAIL,
+    INIT_SPAWN_HANDLES_FAIL;
+
+const usz DEFAULT_KERNEL_STACK_SIZE = 8;
+const usz MAX_SPAWN_INFO_EXTRA_HANDLE = 16;
+
+enum TaskState : uint {
+    READY,              // can be scheduled
+    RUNNING,            // is currently running
+    BLOCKED,            // blocked by IO operation 
+    SUSPENDED,          // waiting for a timer event/explicit resume
+    TERMINATED,         // is terminated
+    CLEANUP,            // is awaiting cleanup
+}
+
+struct Task (KernelObject) {
+    ulong id;
+    SpawnInfo* spawnInfo;
+
+    TaskState state;
+    TaskContext context;
+    // TaskSpace* space;  TODO: implement user-mode and distinct spaces (#16)
+    // void* kernelStack; TODO: implement stack to use when doing a syscall from a user-mode task (#16)
+    void* taskStackBase;
+    usz taskStackSize;
+
+    int exitStatus;
+
+    TimerEvent* pendingEvent;
+    Task* pendingAwaitor; // TODO: properly implement wait via IPC
+    
+    ObjectTable handles;
+    RefCount refcount;
+}
+
+bitstruct TaskObjectRights : ObjectRights {
+    bool canTerminate : 0;
+    bool canCreate : 1;
+    bool canSuspend : 2;
+    bool canResume : 3;
+}
+
+const TaskObjectRights DEFAULT_SELF = {
+    .canTerminate = true,
+    .canCreate = true,
+    .canSuspend = true,
+    .canResume = true,
+};
+
+const TaskObjectRights CAN_TERMINATE_RIGHTS = {.canTerminate = true};
+const TaskObjectRights CAN_CREATE_RIGHTS = {.canCreate = true};
+const TaskObjectRights CAN_SUSPEND_RIGHTS = {.canSuspend = true};
+const TaskObjectRights CAN_RESUME_RIGHTS = {.canResume = true};
+
+struct SpawnInfo {
+    Handle taskHandle;
+    Handle[3] auxHandles;
+    
+    String commandLine;
+    // String[] args;
+}
+
+struct ResumeContext {
+    Task* actor;
+    Handle resumingHandle;
+}
+
+alias EntryPointFn = fn void();
+
+interface RestorableContext {
+    fn void init(EntryPointFn entryPoint, uptr stackBase, uptr stackTop, SpawnInfo* spawnInfo);
+    fn void save_from(CpuContext* context);
+    fn void load_to(CpuContext** context);
+}

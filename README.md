@@ -1,7 +1,10 @@
 <p align="center">
   <img src="https://i.imgur.com/bxSeMca.png" height=224/>
-  </br>
-  A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source personal and academic project. 
+  <br><br>
+  A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source personal and academic project.
+  <br><br>
+  <a href="https://c3-lang.org/"><img alt="Language C3" src="https://img.shields.io/badge/Language-C3-3381ff"></a>
+  <a href="https://github.com/boyter/scc"><img alt="Total lines" src="https://sloc.xyz/github/rickyadastra/muon-kernel"/></a>
 </p>
 
 # Core Features
@@ -34,17 +37,31 @@
    - [x] Virtual memory mapping (paging interface)
    - [x] Kernel heap allocator (buddy allocator)
    - [x] Page Fault verbose handler
-- [ ] 🕹️ **Milestone 0.3** – Interrupts and Timing
+- [x] 🕹️ **Milestone 0.3** – Interrupts and Timing
    - [x] Interrupt Routing (PIC disable, local APIC configuration)
    - [x] IOAPIC configuration (VMM mapping and MMIO setup)
    - [x] UART serial interrupt-based driver (input)
    - [x] HPET timer for LAPIC timer calibration
    - [x] Local APIC timer for event scheduling
-- [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler
-   - [ ] Task/Thread structure with context and stack
-   - [ ] Cooperative `yield()` function and `sleep()` function
-   - [ ] Preemptive context switch via timer interrupt
+- [ ] 🐎 **Milestone 0.4** – Kernel mode scheduler (cooperative round-robin)
+   - [x] Task/Thread structure with context and stack
+   - [x] Preemptive context switch via timer interrupt
+   - [x] FPU context save and restore
+   - [x] Process functions `create()`, `start()` and `terminate()`/`exit()`
+   - [x] Cooperative task `yield()` function
+   - [x] `sleep_ms()` and `suspend()`/`resume()` functions
+   - [x] `wait()` and `detach()` functions
+   - [x] Synchronization primitives via Semaphore object
    - [ ] Basic shell to launch programs
+- [ ] 👥 **Milestone 0.5** - Userspace
+   - *TBD*
+- [ ] 🔐 **Milestone 0.6** - Capability System
+   - [x] `Handle` and `ObjectTable` implementations
+   - [ ] Per-Task private capability space
+   - [ ] Kernel-wide capability implementation
+   - *More TBD*
+- [ ] 📁 **Milestone 0.7** - File System basics
+   - *TBD*
 
 ## Why C3?
 [C3](https://c3-lang.org/) is a C evolution aiming to be safer and more powerful while being familiar to the old C. It provides several additions useful to kernel programming like more granular bitstructs, methods, semantic macros and zero-overhead error checks, being fully compatible with the C ABI.
