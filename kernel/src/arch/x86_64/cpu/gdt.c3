@@ -2,8 +2,6 @@ module arch::cpu::gdt;
 
 import arch::cpu::tss;
 
-extern fn void gdt_load(GDTRegister*);
-
 const usz GDT_ENTRIES = 5;
 GlobalDescriptorTable gdt @private;
 
@@ -96,6 +94,22 @@ fn void setup(uptr kernelStack) {
         segment_access_of(writable: true, privilege_level: USER, present: true),
         SegmentType.DATA_64
     );
+}
+
+fn void gdt_load(GDTRegister* reg) @naked {
+    asm("cli");
+    asm("lgdt (%rdi)");
+
+    asm("movl $$0x10, %eax");
+    asm("movw %ax, %ds");
+    asm("movw %ax, %es");
+    asm("movw %ax, %ss");
+
+    asm("pushq $$0x08");
+    asm("leaq 3(%rip), %rax");
+    asm("pushq %rax");
+    asm("lretq");
+    asm("ret");
 }
 
 fn void install() {
