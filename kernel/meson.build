@@ -59,6 +59,8 @@ muon_sources = [
     f'src/arch/@arch@/cpu/tss.c3',
     f'src/arch/@arch@/cpu/tss.c3i',
 
+    f'src/arch/@arch@/dev/port.c3',
+
     f'src/arch/@arch@/dev/acpi/acpi.c3',
     f'src/arch/@arch@/dev/acpi/acpi.c3i',
 
