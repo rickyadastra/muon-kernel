@@ -41,23 +41,14 @@ fn void? execute_raw(Register* a, Register* b, Register* c, Register* d) {
     asm {
         movq $rax, _a;
         movq $rcx, _c;
+        
+        cpuid;
+        
+        movq [a], $rax;
+        movq [b], $rbx;
+        movq [c], $rcx;
+        movq [d], $rdx;
     }
-    asm("cpuid");
-    asm {
-        pushq $rax;
-        pushq $rbx;
-        pushq $rcx;
-        pushq $rdx;
-        popq _d;
-        popq _c;
-        popq _b;
-        popq _a;
-    }
-
-    *a = _a;
-    *b = _b;
-    *c = _c;
-    *d = _d;
 }
 
 fn void? query_leaf(CPUIDLeaf leaf, Register* a, Register* b, Register* c, Register* d) @inline {
