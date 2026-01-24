@@ -4,24 +4,24 @@ macro out8(ushort port, char data) @private {
     asm {
         movw $dx, port;
         movb $al, data;
+        out $dx, $al;
     }
-    asm("out %al, %dx");
 }
 
 macro out16(ushort port, ushort data) @private {
     asm {
         movw $dx, port;
         movw $ax, data;
+        out $dx, $ax;
     }
-    asm("out %ax, %dx");
 }
 
 macro out32(ushort port, uint data) @private {
     asm {
         movw $dx, port;
         movl $eax, data;
+        out $dx, $eax;
     }
-    asm("out %eax, %dx");
 }
 
 macro char in8(ushort port) @private {
