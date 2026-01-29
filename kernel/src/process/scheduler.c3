@@ -115,6 +115,7 @@ fn void schedule_rr(CpuContext** ctx) {
 
 <*
     Timer event handler for preemption
+	@ensure interruptDisableCounter == 0
 *>
 fn void preempt_handler(TimerEvent* timer) @private {
     lock_scheduler();
