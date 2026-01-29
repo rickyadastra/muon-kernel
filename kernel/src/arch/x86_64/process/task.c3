@@ -85,11 +85,6 @@ macro complete_yielding() {
         popq $r9;
         popq $r8;
         popq $rbp;
-    };
-}
-
-macro exit_yielding() {
-    asm { 
         popq $rdi;
         popq $rsi;
         popq $rdx;

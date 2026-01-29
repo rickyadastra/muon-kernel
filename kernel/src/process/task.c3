@@ -95,14 +95,9 @@ macro resume(Task* task) {
 alias VoidFn = fn void();
 
 fn void yield() @naked {
-    scheduler::lock_scheduler();
-
     prepare_yielding();
     ((VoidFn)&scheduler::schedule_rr)();
     complete_yielding();
-
-    scheduler::unlock_scheduler();
-    exit_yielding();
 }
 
 macro prepare_cleanup(Task* task) {
@@ -173,6 +168,7 @@ fn void? wait(Task* awaitor, Task* awaited) {
 
     if (awaited.state == TERMINATED) {
         logging::printn("Task #%d will NOT wait for already terminated task #%d", awaitor.id, awaited.id);
+    	scheduler::unlock_scheduler();
 
     } else {
         logging::printn("Task #%d will wait for task #%d", awaitor.id, awaited.id);
@@ -180,15 +176,13 @@ fn void? wait(Task* awaitor, Task* awaited) {
         awaited.pendingAwaitor = awaitor;
         bool shouldYield = do_suspend(awaitor);
 
+    	scheduler::unlock_scheduler();
         yield();
     }
-
-    scheduler::unlock_scheduler();
 }
 
 fn void? sleep_ms(usz ms) {
     scheduler::lock_scheduler();
-    defer scheduler::unlock_scheduler();
 
     Task* task = scheduler::get_current_task();
     ResumeContext* resCtx = mem::alloc(ResumeContext.sizeof);
@@ -219,6 +213,7 @@ fn void? sleep_ms(usz ms) {
     }, (any)resCtx);
 
     task.pendingEvent = event;
+	scheduler::unlock_scheduler();
     suspend(task);
 }
 
