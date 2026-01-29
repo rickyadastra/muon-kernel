@@ -95,13 +95,9 @@ macro resume(Task* task) {
 alias VoidFn = fn void();
 
 fn void yield() @naked {
-    scheduler::lock_scheduler();
-
     prepare_yielding();
     ((VoidFn)&scheduler::schedule_rr)();
     complete_yielding();
-
-    scheduler::unlock_scheduler();
     exit_yielding();
 }
 
