@@ -62,6 +62,7 @@ fn void? init() {
     Start preemption by scheduling next timer event
 *>
 fn void start() {
+	idleTask.timeOfLastSchedule = timing::get_ticks();
     schedule_next_preempt_event();
 }
 
