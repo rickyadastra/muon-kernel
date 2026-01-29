@@ -26,6 +26,7 @@ fn int spawner(SpawnInfo* info) {
         logging::printn("Spawning %d programs", count);
 
         Handle[MAX_COUNT] handles;
+	    TaskAccountingLog[MAX_COUNT] logs;
 
         for (usz i=0; i<count; i++) {
             Handle procHandle = process::create((EntryPointFn)&spawner_child)!!;
@@ -37,7 +38,10 @@ fn int spawner(SpawnInfo* info) {
         }
 
         for (usz i=0; i<count; i++) {
-            process::wait(handles[i])!!;
+            process::wait(handles[i], &logs[i])!!;
+
+			logging::printn("Child #%d terminated. Stats: turnaround=%fms, response=%fms, wait=%fms, burst=%fms", 
+							i, logs[i].turnaroundTime, logs[i].responseTime, logs[i].waitTime, logs[i].turnaroundTime-logs[i].waitTime);
         }
 
     } else {

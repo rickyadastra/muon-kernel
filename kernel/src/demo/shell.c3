@@ -119,9 +119,15 @@ macro @run_program(#f, #termHandle, #cmdline) {
     Handle procHandle = process::create((EntryPointFn)&#f)!!;
     process::set_aux_handle(procHandle, 0, #termHandle)!!;
     process::set_command_line(procHandle, #cmdline)!!;
+
+    TaskAccountingLog log;
+
     process::start(procHandle)!!;
-    int ret = process::wait(procHandle)!!;
-    logging::printn("Program '%s' terminated with exit code: %d", $nameof(#f), ret);
+    int ret = process::wait(procHandle, &log)!!;
+
+    logging::printn("Program '%s' terminated with exit code: %d. "
+                    "Stats: turnaround=%fms, response=%fms, wait=%fms, burst=%fms", 
+                    $nameof(#f), ret, log.turnaroundTime, log.responseTime, log.waitTime, log.turnaroundTime-log.waitTime);
 }
 
 fn usz tokenize_line(String line, String[MAX_TOKENS]* tokens) {
