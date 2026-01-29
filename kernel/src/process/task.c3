@@ -98,7 +98,6 @@ fn void yield() @naked {
     prepare_yielding();
     ((VoidFn)&scheduler::schedule_rr)();
     complete_yielding();
-    exit_yielding();
 }
 
 macro prepare_cleanup(Task* task) {
