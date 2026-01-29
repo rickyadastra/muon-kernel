@@ -14,6 +14,7 @@ struct TaskAccountingLog {
 	double turnaroundTime;
 	double responseTime;
 	double waitTime;
+	double burstTime;
 }
 
 macro @entry_void_to_int($f) {
@@ -147,6 +148,7 @@ fn int? wait(Handle handle, TaskAccountingLog* accountingLog = null) {
 
 	if (accountingLog != null) {
 		ulong elapsed = task.timeOfCompletition-task.timeOfArrival;
+		accountingLog.burstTime = timing::ticks_to_milli(task.timeTotalBurst);
 		accountingLog.turnaroundTime = timing::ticks_to_milli(elapsed);
 		accountingLog.responseTime = timing::ticks_to_milli(task.timeOfFirstRun-task.timeOfArrival);
 		accountingLog.waitTime = accountingLog.turnaroundTime - timing::ticks_to_milli(task.timeTotalBurst);
