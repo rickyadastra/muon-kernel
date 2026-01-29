@@ -103,7 +103,7 @@ fn int shell_main(SpawnInfo* info) {
                     term::printn(termHandle, " shutdown             Shutdown the computer (only on QEMU and VirtualBox)")!!;
                     term::printn(termHandle, " sleep <time>         Run a program that sleeps for <time> seconds")!!;
                     term::printn(termHandle, " spawner <count>      Run a program that spawns <count> child processes")!!;
-                    term::printn(termHandle, " spin                 Run a program that consumes 100 time slices")!!;
+                    term::printn(termHandle, " spin                 Run a program that consumes 100 time slices in background")!!;
                     term::printn(termHandle, " time                 Run a program that shows current time and uptime")!!;
                     term::print_newline(termHandle)!!;
 
