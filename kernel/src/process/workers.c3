@@ -26,6 +26,7 @@ fn void terminated_tasks_cleanup() {
         clear_pending_event(t);
 
         // unregister object and cleanup resources
+    	scheduler::drop_task(t);
         object::unregister(t)!!;
         task::destroy(t)!!;
 

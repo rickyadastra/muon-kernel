@@ -10,6 +10,7 @@ import process::worker;
 
 usz interruptDisableCounter @local = 0;
 
+LinkedList{Task*} allTasks @private;            // all tracked tasks
 LinkedList{Task*} taskQueue @private;           // task that can be run
 LinkedList{Task*} terminatedQueue @private;     // task that are terminated but still referenced
 LinkedList{Task*} cleanupQueue @private;        // task awaiting cleanup
@@ -40,6 +41,7 @@ fn void? init() {
     lock_scheduler();
     defer unlock_scheduler();
 
+    allTasks = linkedlist::init{Task*}(mem::get_allocator());
     taskQueue = linkedlist::init{Task*}(mem::get_allocator());
     terminatedQueue = linkedlist::init{Task*}(mem::get_allocator());
     cleanupQueue = linkedlist::init{Task*}(mem::get_allocator());
@@ -199,4 +201,24 @@ macro Task* get_current_task() {
     defer unlock_scheduler();
 
     return currentTask;
+}
+
+<*
+    @require task != null
+*>
+macro track_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    allTasks.add(task);
+}
+
+<*
+    @require task != null
+*>
+macro drop_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    allTasks.remove(task);
 }

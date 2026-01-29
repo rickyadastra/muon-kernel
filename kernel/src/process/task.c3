@@ -55,6 +55,8 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     logging::debug("Task #%d created, stack %x-%x", task.id, stackBase, stackBase+stackSize*mem::page_size())!;
 
     object::register(task);
+    scheduler::track_task(task);
+
     return task;
 }
 
