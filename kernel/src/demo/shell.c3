@@ -13,6 +13,7 @@ String[MAX_TOKENS] tokens;
 
 fn int shell_main(SpawnInfo* info) {
     Handle termHandle = info.auxHandles[0];
+    Handle monitorHandle = info.auxHandles[1];
     logging::printn("Shell started. Terminal handle is %x", termHandle);
 
     term::clear(termHandle)!!;
@@ -57,6 +58,9 @@ fn int shell_main(SpawnInfo* info) {
                     term::printn(termHandle, "Shell terminated via 'exit' command. Bye bye!")!!;
                     process::exit();
 
+                case "monitor":
+                    @run_program(programs::monitor, termHandle, line, #aux1: monitorHandle);
+
                 case "time":
                     @run_program(programs::time, termHandle, line);
 
@@ -94,6 +98,7 @@ fn int shell_main(SpawnInfo* info) {
                     term::printn(termHandle, " exit                 Exit the shell (also Ctrl+C)")!!;
                     term::printn(termHandle, " help                 Display this message")!!;
                     term::printn(termHandle, " info                 Display info about the kernel")!!;
+                    term::printn(termHandle, " monitor              Run a program that displays scheduler stats")!!;
                     term::printn(termHandle, " rand [min] [max]     Run a program that returns a random numeric value")!!;
                     term::printn(termHandle, " shutdown             Shutdown the computer (only on QEMU and VirtualBox)")!!;
                     term::printn(termHandle, " sleep <time>         Run a program that sleeps for <time> seconds")!!;

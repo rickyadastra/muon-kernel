@@ -23,9 +23,11 @@ fn void init() {
     // process::detach(handle)!!;
 
     Handle termHandle = term::create(SerialPort.COM3)!!;
+	Handle monitorHandle = monitor::create()!!;
     Handle shellHandle = process::create(process::@entry_void_to_int(&shell::shell_main))!!;
 
     process::set_aux_handle(shellHandle, 0, termHandle)!!;
+    process::set_aux_handle(shellHandle, 1, monitorHandle)!!;
 
     process::start(shellHandle)!!;
     process::detach(shellHandle)!!;
