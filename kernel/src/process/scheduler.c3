@@ -73,11 +73,12 @@ fn Task* pick_next_ready_task() @private {
     lock_scheduler();
     defer unlock_scheduler();
 
+	currentTask.timeTotalBurst += (timing::get_ticks() - currentTask.timeOfLastSchedule);
+
     // set current state and add to queue if needed
-    if (currentTask != idleTask && currentTask.state == RUNNING) {
+    if (currentTask.state == RUNNING) {
         currentTask.state = READY;
-		currentTask.timeTotalBurst += (timing::get_ticks() - currentTask.timeOfLastSchedule);
-        enqueue_task(currentTask);
+        if (currentTask != idleTask) enqueue_task(currentTask);
     }
 
     // pick next task
@@ -91,17 +92,12 @@ fn Task* pick_next_ready_task() @private {
         nextTask = idleTask;
     }
 
-    // no context load if it's the same
-    if (nextTask == currentTask) {
-        nextTask.state = RUNNING;
-        return currentTask;
-    }
-
-    // change state, current and load context
-    nextTask.state = RUNNING;
 	nextTask.timeOfLastSchedule = timing::get_ticks();
 	if (nextTask.timeOfFirstRun == 0) nextTask.timeOfFirstRun = nextTask.timeOfLastSchedule;
-    currentTask = nextTask;
+	nextTask.state = RUNNING;
+
+    // change task if different
+    if (nextTask != currentTask) currentTask = nextTask;
 
     return nextTask;
 }
