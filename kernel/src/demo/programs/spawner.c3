@@ -5,6 +5,7 @@ import process;
 import string;
 
 const usz MAX_COUNT = 4;
+const usz ITERATIONS = 1_000_000_000;
 
 String[shell::MAX_TOKENS] tokens @local;
 
@@ -52,6 +53,10 @@ fn int spawner(SpawnInfo* info) {
 
 fn int spawner_child(SpawnInfo* info) {
     Handle termHandle = info.auxHandles[0];
-    term::printn(termHandle, "Hello world")!!;
+    term::printn(termHandle, "Child started")!!;
+
+	for (usz i=0; i<ITERATIONS; i++) {}
+
+    term::printn(termHandle, "Child ended")!!;
     return 0;
 }
