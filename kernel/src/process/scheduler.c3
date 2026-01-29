@@ -10,6 +10,7 @@ import process::worker;
 
 usz interruptDisableCounter @local = 0;
 
+LinkedList{Task*} allTasks @private;            // all tracked tasks
 LinkedList{Task*} taskQueue @private;           // task that can be run
 LinkedList{Task*} terminatedQueue @private;     // task that are terminated but still referenced
 LinkedList{Task*} cleanupQueue @private;        // task awaiting cleanup
@@ -40,6 +41,7 @@ fn void? init() {
     lock_scheduler();
     defer unlock_scheduler();
 
+    allTasks = linkedlist::init{Task*}(mem::get_allocator());
     taskQueue = linkedlist::init{Task*}(mem::get_allocator());
     terminatedQueue = linkedlist::init{Task*}(mem::get_allocator());
     cleanupQueue = linkedlist::init{Task*}(mem::get_allocator());
@@ -60,6 +62,7 @@ fn void? init() {
     Start preemption by scheduling next timer event
 *>
 fn void start() {
+	idleTask.timeOfLastSchedule = timing::get_ticks();
     schedule_next_preempt_event();
 }
 
@@ -70,10 +73,12 @@ fn Task* pick_next_ready_task() @private {
     lock_scheduler();
     defer unlock_scheduler();
 
+	currentTask.timeTotalBurst += (timing::get_ticks() - currentTask.timeOfLastSchedule);
+
     // set current state and add to queue if needed
-    if (currentTask != idleTask && currentTask.state == RUNNING) {
+    if (currentTask.state == RUNNING) {
         currentTask.state = READY;
-        enqueue_task(currentTask);
+        if (currentTask != idleTask) enqueue_task(currentTask);
     }
 
     // pick next task
@@ -87,15 +92,12 @@ fn Task* pick_next_ready_task() @private {
         nextTask = idleTask;
     }
 
-    // no context load if it's the same
-    if (nextTask == currentTask) {
-        nextTask.state = RUNNING;
-        return currentTask;
-    }
+	nextTask.timeOfLastSchedule = timing::get_ticks();
+	if (nextTask.timeOfFirstRun == 0) nextTask.timeOfFirstRun = nextTask.timeOfLastSchedule;
+	nextTask.state = RUNNING;
 
-    // change state, current and load context
-    nextTask.state = RUNNING;
-    currentTask = nextTask;
+    // change task if different
+    if (nextTask != currentTask) currentTask = nextTask;
 
     return nextTask;
 }
@@ -196,4 +198,24 @@ macro Task* get_current_task() {
     defer unlock_scheduler();
 
     return currentTask;
+}
+
+<*
+    @require task != null
+*>
+macro track_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    allTasks.add(task);
+}
+
+<*
+    @require task != null
+*>
+macro drop_task(Task* task) {
+    lock_scheduler();
+    defer unlock_scheduler();
+
+    allTasks.remove(task);
 }

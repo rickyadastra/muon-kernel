@@ -31,6 +31,11 @@ struct Task (KernelObject) {
     usz taskStackSize;
 
     int exitStatus;
+	ulong timeOfArrival;
+	ulong timeOfCompletition;
+	ulong timeOfFirstRun;
+	ulong timeTotalBurst;
+	ulong timeOfLastSchedule;
 
     TimerEvent* pendingEvent;
     Task* pendingAwaitor; // TODO: properly implement wait via IPC

@@ -108,6 +108,7 @@ muon_sources = [
     f'src/dev/timing/timing.c3',
     f'src/dev/timing/timing.c3i',
 
+    f'src/process/monitor.c3',
     f'src/process/process.c3',
     f'src/process/scheduler.c3',
     f'src/process/task.c3',

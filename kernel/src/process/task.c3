@@ -33,6 +33,7 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     task.id = scheduler::nextTaskId.add(1);
     task.state = state;
     task.handles.init(object::MAX_TABLE_SIZE)!;
+	task.timeOfArrival = timing::get_ticks();
 
     // create self handle
     Handle? selfHandle = create_handle(task, task, DEFAULT_SELF); 
@@ -54,6 +55,8 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     logging::debug("Task #%d created, stack %x-%x", task.id, stackBase, stackBase+stackSize*mem::page_size())!;
 
     object::register(task);
+    scheduler::track_task(task);
+
     return task;
 }
 
@@ -113,6 +116,7 @@ macro prepare_cleanup(Task* task) {
 *>
 fn void terminate(Task* task, int ret) {
     scheduler::lock_scheduler();
+	task.timeOfCompletition = timing::get_ticks();
 
     if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from ready queue");
     task.handles.remove_all();
