@@ -31,8 +31,8 @@ fn void Semaphore.wait(&self) @private {
     Task* curr = scheduler::get_current_task();
     task::block(curr);
     self.queue.add(curr);
-    task::yield();
     scheduler::unlock_scheduler();
+    task::yield();
 }
 
 fn void Semaphore.signal(&self) @private {
