@@ -33,6 +33,12 @@ fn TimerEvent*? add_timer_event(TimerEvent event) @private {
 
 fn ulong get_wallclock() => wallclock!!;
 fn ulong get_uptime() => uptime;
+macro ulong get_ticks() => timer.get_current();
+
+macro @ticks_convert(ulong #ticks, double scale) @local => #ticks / (timer.get_frequency() / scale);
+macro ticks_to_nano(ulong ticks) => @ticks_convert(ticks, 1e9);
+macro ticks_to_micro(ulong ticks) => @ticks_convert(ticks, 1e6);
+macro ticks_to_milli(ulong ticks) => @ticks_convert(ticks, 1e3);
 
 fn void? serve_timer_events(KernelTime currentTime, any ctx) @private {
     while (try e = timerEvents.first() && e.timestamp <= currentTime) {
