@@ -5,9 +5,16 @@ module process;
 
 import process::task @public;
 import process::scheduler @public;
+import dev::timing;
 import muon::authority;
 import lang;
 import muon;
+
+struct TaskAccountingLog {
+	double turnaroundTime;
+	double responseTime;
+	double waitTime;
+}
 
 macro @entry_void_to_int($f) {
     return (EntryPointFn) fn int (SpawnInfo* info) {
@@ -132,11 +139,18 @@ fn void? detach(Handle handle) {
     remove_handle_from(table, handle)!;
 }
 
-fn int? wait(Handle handle) {
+fn int? wait(Handle handle, TaskAccountingLog* accountingLog = null) {
     Task* curr = scheduler::get_current_task();
     Task* task = resolve_handle_to_task(curr.handles, handle, {})!;
     
     task::wait(awaitor: curr, awaited: task)!;
+
+	if (accountingLog != null) {
+		ulong elapsed = task.timeOfCompletition-task.timeOfArrival;
+		accountingLog.turnaroundTime = timing::ticks_to_milli(elapsed);
+		accountingLog.responseTime = timing::ticks_to_milli(task.timeOfFirstRun-task.timeOfArrival);
+		accountingLog.waitTime = accountingLog.turnaroundTime - timing::ticks_to_milli(task.timeTotalBurst);
+	}
 
     int code = task.exitStatus;
     remove_handle_from(curr.handles, handle)!;

@@ -73,6 +73,7 @@ fn Task* pick_next_ready_task() @private {
     // set current state and add to queue if needed
     if (currentTask != idleTask && currentTask.state == RUNNING) {
         currentTask.state = READY;
+		currentTask.timeTotalBurst += (timing::get_ticks() - currentTask.timeOfLastSchedule);
         enqueue_task(currentTask);
     }
 
@@ -95,6 +96,8 @@ fn Task* pick_next_ready_task() @private {
 
     // change state, current and load context
     nextTask.state = RUNNING;
+	nextTask.timeOfLastSchedule = timing::get_ticks();
+	if (nextTask.timeOfFirstRun == 0) nextTask.timeOfFirstRun = nextTask.timeOfLastSchedule;
     currentTask = nextTask;
 
     return nextTask;
