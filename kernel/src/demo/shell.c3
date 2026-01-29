@@ -115,19 +115,25 @@ macro @print_shell_info(#termHandle) {
     term::printn(#termHandle, "Build " +++ muon::COMMIT_HASH +++ " @ " +++ $$DATE +++ " " +++ $$TIME)!!;
 }
 
-macro @run_program(#f, #termHandle, #cmdline) {
+macro @run_program(#f, #termHandle, #cmdline, Handle #aux1 = (Handle)0, bool #wait = true) {
     Handle procHandle = process::create((EntryPointFn)&#f)!!;
     process::set_aux_handle(procHandle, 0, #termHandle)!!;
     process::set_command_line(procHandle, #cmdline)!!;
 
+	if (#aux1 != (Handle)0) process::set_aux_handle(procHandle, 1, #aux1)!!;
+
     TaskAccountingLog log;
 
     process::start(procHandle)!!;
-    int ret = process::wait(procHandle, &log)!!;
+	if (#wait) {
+		int ret = process::wait(procHandle, &log)!!;
 
-    logging::printn("Program '%s' terminated with exit code: %d. "
-                    "Stats: turnaround=%fms, response=%fms, wait=%fms, burst=%fms", 
-                    $nameof(#f), ret, log.turnaroundTime, log.responseTime, log.waitTime, log.turnaroundTime-log.waitTime);
+		logging::printn("Program '%s' terminated with exit code: %d. "
+						"Stats: turnaround=%fms, response=%fms, wait=%fms, burst=%fms", 
+						$nameof(#f), ret, log.turnaroundTime, log.responseTime, log.waitTime, log.burstTime);
+	} else {
+		process::detach(procHandle)!!;
+	}
 }
 
 fn usz tokenize_line(String line, String[MAX_TOKENS]* tokens) {
