@@ -4,7 +4,7 @@ import muon;
 import process;
 import string;
 
-const usz MAX_COUNT = 4;
+const usz MAX_COUNT = 50;
 const usz ITERATIONS = 1_000_000_000;
 
 String[shell::MAX_TOKENS] tokens @local;
