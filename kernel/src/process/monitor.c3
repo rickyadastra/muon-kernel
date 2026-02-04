@@ -13,7 +13,7 @@ struct TaskSnapshot {
 	
 	int exitStatus;
 	ulong timeOfArrival;
-	ulong timeOfCompletition;
+	ulong timeOfCompletion;
 	ulong timeOfFirstRun;
 	ulong timeTotalBurst;
 	ulong timeOfLastSchedule;
@@ -76,7 +76,7 @@ fn TaskSnapshot[]? fetch(Handle handle, TaskSnapshot[]* snapshots) {
 
 		snapshot.exitStatus = task.exitStatus;
 		snapshot.timeOfArrival = task.timeOfArrival;
-		snapshot.timeOfCompletition = task.timeOfCompletition;
+		snapshot.timeOfCompletion = task.timeOfCompletion;
 		snapshot.timeOfFirstRun = task.timeOfFirstRun;
 		snapshot.timeTotalBurst = task.timeTotalBurst;
 		snapshot.timeOfLastSchedule = task.timeOfLastSchedule;

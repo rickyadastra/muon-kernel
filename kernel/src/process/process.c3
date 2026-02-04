@@ -147,7 +147,7 @@ fn int? wait(Handle handle, TaskAccountingLog* accountingLog = null) {
     task::wait(awaitor: curr, awaited: task)!;
 
 	if (accountingLog != null) {
-		ulong elapsed = task.timeOfCompletition-task.timeOfArrival;
+		ulong elapsed = task.timeOfCompletion-task.timeOfArrival;
 		accountingLog.burstTime = timing::ticks_to_milli(task.timeTotalBurst);
 		accountingLog.turnaroundTime = timing::ticks_to_milli(elapsed);
 		accountingLog.responseTime = timing::ticks_to_milli(task.timeOfFirstRun-task.timeOfArrival);

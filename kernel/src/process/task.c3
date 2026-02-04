@@ -116,7 +116,7 @@ macro prepare_cleanup(Task* task) {
 *>
 fn void terminate(Task* task, int ret) {
     scheduler::lock_scheduler();
-	task.timeOfCompletition = timing::get_ticks();
+	task.timeOfCompletion = timing::get_ticks();
 
     if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from ready queue");
     task.handles.remove_all();

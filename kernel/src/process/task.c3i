@@ -32,7 +32,7 @@ struct Task (KernelObject) {
 
     int exitStatus;
 	ulong timeOfArrival;
-	ulong timeOfCompletition;
+	ulong timeOfCompletion;
 	ulong timeOfFirstRun;
 	ulong timeTotalBurst;
 	ulong timeOfLastSchedule;
