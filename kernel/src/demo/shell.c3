@@ -47,6 +47,7 @@ fn int shell_main(SpawnInfo* info) {
 
             if (cmdTokens.len == 0) continue;
             String cmd = cmdTokens[0];
+			bool shouldWait = cmdTokens[^1] != "&";
 
             logging::printn("Shell received cmd: %s", cmd);
 
@@ -59,16 +60,16 @@ fn int shell_main(SpawnInfo* info) {
                     process::exit();
 
                 case "monitor":
-                    @run_program(programs::monitor, termHandle, line, #aux1: monitorHandle);
+                    @run_program(programs::monitor, termHandle, line, #aux1: monitorHandle, #wait: shouldWait);
 
                 case "time":
-                    @run_program(programs::time, termHandle, line);
+                    @run_program(programs::time, termHandle, line, #wait: shouldWait);
 
                 case "spin":
                     @run_program(programs::spinner, termHandle, line, #wait: false);
 
                 case "sleep":
-                    @run_program(programs::sleep, termHandle, line);
+                    @run_program(programs::sleep, termHandle, line, #wait: shouldWait);
 
                 case "shutdown":
                     term::printn(termHandle, "* This only works on QEMU and VirtualBox. If nothing happens, you know why.")!!;
@@ -83,13 +84,13 @@ fn int shell_main(SpawnInfo* info) {
                     process::sleep_ms(100)!!;
 
                 case "rand":
-                    @run_program(programs::random, termHandle, line);
+                    @run_program(programs::random, termHandle, line, #wait: shouldWait);
 
                 case "info":
                     @print_shell_info(termHandle);
 
                 case "spawner":
-                    @run_program(programs::spawner, termHandle, line);
+                    @run_program(programs::spawner, termHandle, line, #wait: shouldWait);
 
                 case "help":
                     @print_shell_info(termHandle);
