@@ -83,8 +83,12 @@ fn void? init(BootloaderPayload* payload) {
 macro usz page_size() => pmm::FRAME_SIZE;
 macro usz pages(bytes) => vmm::@pages(bytes);
 
-fn uptr? alloc_pages(usz pages) {
-    return vmm::@phys((uptr)pmm::alloc(pages)!);
+fn uptr? alloc_pages(usz pages, bool clear = false) {
+
+	uptr addr = vmm::@phys((uptr)pmm::alloc(pages)!);
+
+	if (clear) $$memset((char*)addr, (char)0, pages*pmm::FRAME_SIZE, false, (usz)1);
+	return addr;
 }
 
 fn void? free_pages(uptr addr, usz pages) {
