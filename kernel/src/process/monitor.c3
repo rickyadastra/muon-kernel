@@ -6,6 +6,7 @@ import process::scheduler @public;
 import process::task;
 import lang;
 import std::collections;
+import std::math;
 
 struct TaskSnapshot {
     ulong id;
@@ -87,5 +88,5 @@ fn TaskSnapshot[]? fetch(Handle handle, TaskSnapshot[]* snapshots) {
 		snapshot.command = task.spawnInfo.commandLine;
 	}
 
-	return (*snapshots)[:scheduler::allTasks.size];
+	return (*snapshots)[:math::min(scheduler::allTasks.size, snapshots.len)];
 }
