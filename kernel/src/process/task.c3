@@ -20,7 +20,10 @@ macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights rights = {
 fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_STACK_SIZE, TaskState state = READY,
                 Task* parent = scheduler::get_current_task()) @private {
     if (stackSize < DEFAULT_KERNEL_STACK_SIZE) return INIT_STACK_TOO_SMALL?;
-    
+
+	scheduler::lock_scheduler();
+	defer scheduler::unlock_scheduler();
+
     uptr? stackBase;
     if (entryPoint != null && stackSize > 0) {
         // TODO: move stack setup in TaskSpace.init

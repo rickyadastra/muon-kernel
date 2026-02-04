@@ -11,7 +11,7 @@ const uptr LEGACY_BIOS_BASE = 0x0;
 const uptr LEGACY_BIOS_LIMIT = 0xfffff;
 
 BuddyAllocator kAllocator @local;
-Spinlock lock @local;
+Spinlock lock, plock @local;
 fn Allocator get_allocator() => &kAllocator;
 
 faultdef MEMORY_UNAVAILABLE;
@@ -83,11 +83,19 @@ fn void? init(BootloaderPayload* payload) {
 macro usz page_size() => pmm::FRAME_SIZE;
 macro usz pages(bytes) => vmm::@pages(bytes);
 
-fn uptr? alloc_pages(usz pages) {
-    return vmm::@phys((uptr)pmm::alloc(pages)!);
+fn uptr? alloc_pages(usz pages, bool clear = false) {
+	plock.acquire();
+    defer plock.release();
+
+	uptr addr = vmm::@phys((uptr)pmm::alloc(pages)!);
+
+	if (clear) $$memset((char*)addr, (char)0, pages*pmm::FRAME_SIZE, false, (usz)1);
+	return addr;
 }
 
 fn void? free_pages(uptr addr, usz pages) {
+	plock.acquire();
+    defer plock.release();
     pmm::free((PhysAddr)(addr - vmm::@phys(0)), pages)!;
 }
 

@@ -6,7 +6,7 @@ const float FREE_THRESHOLD = 0.25f;
 const usz SYS_BLOCK_SIZE = 0x1000;
 const usz SYS_REQUEST_BLOCKS = allocator::@order_size(MAX_ORDER) / SYS_BLOCK_SIZE; 
 
-alias AllocPageFn = fn uptr?(usz pages);
+alias AllocPageFn = fn uptr?(usz pages, bool clear = false);
 alias FreePageFn = fn void?(uptr ptr, usz pages);
 
 struct BuddyBlockHeader {
