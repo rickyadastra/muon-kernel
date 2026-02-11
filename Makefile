@@ -10,6 +10,7 @@ MUON_TARGET 	:= $(BUILD_DIR)/muon/kernel/muon.elf
 
 QEMU			:= qemu-system-x86_64
 QEMU_FLAGS		:= -bios /usr/share/OVMF/OVMF_CODE.fd \
+					-rtc base="2026-02-02T10:56:00" \
 				   -net none -m 1G -enable-kvm -cpu host \
 				   -chardev pty,id=COM2 -serial chardev:COM2 \
 				   -chardev pty,id=COM3 -serial chardev:COM3 #-cpu qemu64,+popcnt,+tsc,+tsc-deadline
