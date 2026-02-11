@@ -93,3 +93,21 @@ fn void init_runtime() {
         func();
     }
 }
+
+module lang::types;
+
+macro bool is_int($Type) @const => $Type.kindof == TypeKind.SIGNED_INT.ordinal || $Type.kindof == TypeKind.UNSIGNED_INT.ordinal;
+
+module lang::values;
+
+import lang;
+
+macro bool @is_int(#value) @const => types::is_int($typeof(#value));
+
+macro promote_int(x) {
+	$if @is_int(x):
+		return (double)x;
+	$else
+		return x;
+	$endif
+}

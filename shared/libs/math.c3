@@ -130,3 +130,5 @@ fn float _frexpf(float x, int* e) {
 			return bitcast(i, float);
 	}
 }
+
+macro sqrt(x) => $$sqrt(values::promote_int(x));
