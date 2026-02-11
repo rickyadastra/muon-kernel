@@ -4,7 +4,7 @@ import muon;
 import process;
 import arch;
 
-const usz SPINS = 500;
+const usz SPINS = 1000;
 
 fn int spinner(SpawnInfo* info) {
     logging::printn("Spinner program started");
