@@ -3,6 +3,7 @@ module muon::demo::programs;
 import muon;
 import process;
 import string;
+import std::math;
 
 const usz MAX_COUNT = 50;
 const usz ITERATIONS = 1_000_000_000;
@@ -21,6 +22,7 @@ fn int spawner(SpawnInfo* info) {
     }
 
     ulong? count = parse_integer(args[1]);
+	double sumTurnaround, sumWait, sumResponse, sumBurst;
 
     if (try count && count > 0 && count <= MAX_COUNT) {
         logging::printn("Spawning %d programs", count);
@@ -40,9 +42,43 @@ fn int spawner(SpawnInfo* info) {
         for (usz i=0; i<count; i++) {
             process::wait(handles[i], &logs[i])!!;
 
+			sumTurnaround += logs[i].turnaroundTime;
+			sumResponse += logs[i].responseTime;
+			sumWait += logs[i].waitTime;
+			sumBurst += logs[i].turnaroundTime-logs[i].waitTime;
+
 			logging::printn("Child #%d terminated. Stats: turnaround=%fms, response=%fms, wait=%fms, burst=%fms", 
 							i, logs[i].turnaroundTime, logs[i].responseTime, logs[i].waitTime, logs[i].turnaroundTime-logs[i].waitTime);
         }
+
+		double avgTurnaround = sumTurnaround / count;
+		double avgResponse = sumResponse / count;
+		double avgWait = sumWait / count;
+		double avgBurst = sumBurst / count;
+
+		double sumBurstSquares;
+		double ssdTurnaround, ssdWait, ssdResponse, ssdBurst;
+
+		foreach (TaskAccountingLog log : logs[:count]) {
+			double burstTime = (log.turnaroundTime - log.waitTime);
+
+			ssdTurnaround += @pow2(log.turnaroundTime - avgTurnaround);
+			ssdWait += @pow2(log.waitTime - avgWait);
+			ssdResponse += @pow2(log.responseTime - avgResponse);
+			ssdBurst += @pow2(burstTime - avgBurst);
+			sumBurstSquares += @pow2(burstTime);
+		}
+
+		double jainIndex = @pow2(sumBurst) / (count*sumBurstSquares);
+
+		term::print_newline(termHandle)!!;
+		term::printn(termHandle, "Spawner program complete.")!!;
+
+		@print_average(termHandle, "turnaround time", avgTurnaround, @sd(ssdTurnaround, count));
+		@print_average(termHandle, "response time", avgResponse, @sd(ssdResponse, count));
+		@print_average(termHandle, "wait time", avgWait, @sd(ssdWait, count));
+		@print_average(termHandle, "burst time", avgBurst, @sd(ssdBurst, count));
+		@printf(termHandle, "Jain's fairness index: %f", jainIndex);
 
     } else {
         term::print(termHandle, "Invalid argument '")!!;
@@ -53,6 +89,20 @@ fn int spawner(SpawnInfo* info) {
 
     logging::printn("Spawner program exited");
     return 0;
+}
+
+macro @pow2(#val) @local => (#val)*(#val);
+macro @sd(#ssd, #n) @local => math::sqrt(#ssd / (double)(#n-1));
+macro @se(#ssd, #n) @local => math::sqrt(#ssd / (double)(#n*(#n-1)));
+
+macro @printf(#termHandle, String #format, args...) {
+	Formatter formatter;
+	String s = formatter.format(#format, ...args)!!;
+	term::printn(#termHandle, s)!!;
+}
+
+macro @print_average(#termHandle, String #text, double #avg, double #se) {
+	@printf(#termHandle, "Average %s: %fms +/- %fms", #text, #avg, #se);
 }
 
 fn int spawner_child(SpawnInfo* info) {
