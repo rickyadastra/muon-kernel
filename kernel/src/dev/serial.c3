@@ -3,6 +3,7 @@ module dev::serial;
 import std::io::stream;
 import arch::interrupts;
 import muon::sync;
+import dev::timing;
 
 Serial[SerialPort.values.len] serials @local;
 
@@ -39,8 +40,10 @@ fn void Serial.write(Serial* this, char[] s) {
     for (usz i = 0; i < s.len; i++) this.put(s[i]);
 }
 
-fn char? Serial.get(Serial* self) {
+fn char? Serial.get(Serial* self, KernelTime* latency = null) {
     if (self.sem != null) self.sem.wait();
+	
+	if (latency != null) *latency = timing::get_ticks() - self.lastRx;
     return self.rxBuffer.get()!;
 }
 
@@ -66,6 +69,7 @@ fn void Serial.get_char_to_buf(&self) @local {
 
     if (buf != null) {
         char c = self.get_char();
+		self.lastRx = timing::get_ticks();
 
         if (catch e = buf.put(c)) {
             if (e == stream::FULL) buf.flush();
