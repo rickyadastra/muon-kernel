@@ -58,6 +58,9 @@ fn int shell_main(SpawnInfo* info) {
                 case "exit":
                     term::printn(termHandle, "Shell terminated via 'exit' command. Bye bye!")!!;
                     process::exit();
+				
+				case "forge":
+                    @run_program(programs::forge, termHandle, line, #wait: shouldWait);
 
                 case "monitor":
                     @run_program(programs::monitor, termHandle, line, #aux1: monitorHandle, #wait: shouldWait);
@@ -97,6 +100,7 @@ fn int shell_main(SpawnInfo* info) {
                     term::print_newline(termHandle)!!;
                     term::printn(termHandle, " clear                Clear the screen")!!;
                     term::printn(termHandle, " exit                 Exit the shell (also Ctrl+C)")!!;
+                    term::printn(termHandle, " forge <id> <gen>     Run a program that attempts using a forged handle")!!;
                     term::printn(termHandle, " help                 Display this message")!!;
                     term::printn(termHandle, " info                 Display info about the kernel")!!;
                     term::printn(termHandle, " monitor              Run a program that displays scheduler stats")!!;
