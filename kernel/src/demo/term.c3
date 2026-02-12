@@ -2,7 +2,7 @@ module muon::demo::term;
 
 import std::io;
 import muon::authority;
-import dev::serial;
+import dev;
 import arch::mem;
 import process;
 import muon;
@@ -88,9 +88,17 @@ fn void Terminal.print(&self, String str, Color textColor, Color backgroundColor
 
 fn String? Terminal.read_line(&self) {
     usz len = 0;
+    usz latencySum, latencyPoints;
+
+	defer {
+        if (latencyPoints > 0) logging::printn("Average service latency: %fms", timing::ticks_to_milli(latencySum/latencyPoints));
+    } 
 
     while LOOP: (true) {
-        char c = self.serial.get()!!;
+		ulong latency;
+        char c = self.serial.get(latency: &latency)!!;
+        latencySum += latency;
+        latencyPoints++;
         
         switch {
             case c == BREAK_KEY:
