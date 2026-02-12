@@ -20,30 +20,15 @@ c3_compile_args = [
     '--use-stdlib=no',
     '--x86cpu=baseline',        # TODO: add AVX support
     '--build-dir', 'kernel/',
-    '--single-module=yes',
     '--target', elf_target,
     '--panicfn', 'arch::panicfn',
     '--trust=full',
-]
-
-compile_args = [
-    '-g',
-    '-Wall',
-    '-Wl,-Wunknown-pragmas',
-    '-ffreestanding',
-    '-fno-stack-protector',
-	'-mno-red-zone',
-    '-fms-extensions',
-    '-mcmodel=kernel',
-    '-DSYSV_ABI',
-]
-
-link_args = [
-    '-T', 'kernel/'+linker_file,
-    '-nostdlib',
-    '-zmax-page-size=0x1000',
-    '-static',
-    '-ztext',
+    '--no-entry',
+    '--linker=builtin',
+    '-z', '-Tkernel/'+linker_file,
+    '-z', '-zmax-page-size=0x1000',
+    '-z', '-static',
+    '-z', '-ztext',
 ]
 
 muon_sources = [
@@ -57,6 +42,8 @@ muon_sources = [
     f'src/arch/@arch@/cpu/sse.c3i',
     f'src/arch/@arch@/cpu/tss.c3',
     f'src/arch/@arch@/cpu/tss.c3i',
+
+    f'src/arch/@arch@/dev/port.c3',
 
     f'src/arch/@arch@/dev/acpi/acpi.c3',
     f'src/arch/@arch@/dev/acpi/acpi.c3i',
@@ -127,28 +114,13 @@ muon_sources = [
     f'test/scheduler_fpu.c3t',
 ]
 
-muon_sources_asm = files(
-    f'src/arch/@arch@/dev/port.s',
-    f'src/arch/@arch@/cpu/gdt.s',
-)
-
-c3_objs = []
-c3_objs += custom_target(
+custom_target(
     input: files(muon_sources) + libsharedc3_sources,
-    output: 'muon_c3.o',
+    output: 'muon.elf',
     command: [
-        muon_c3c, 'compile-only',
+        muon_c3c, 'compile',
         '@INPUT@',
         '-o', '@OUTPUT@',
     ] + c3_compile_args,
     build_by_default: true
-)
-
-executable(
-    'muon.elf',
-    muon_sources_asm,
-    objects: c3_objs,
-    c_args: compile_args,
-    link_args: link_args,
-    install: false
 )

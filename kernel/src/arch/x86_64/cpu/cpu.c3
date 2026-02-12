@@ -32,17 +32,15 @@ fn void write_msr(ModelSpecificRegister reg, ulong value) @export {
         movl $eax, ((uint)(value & 0xffffffff));
         movl $edx, ((uint)(value >> 32));
         movl $ecx, reg;
+        wrmsr;
     }
-    asm("wrmsr");
 }
 
 fn ulong read_msr(ModelSpecificRegister reg) @export {
     uint dataLow, dataHigh;
     asm {
         movl $ecx, reg;
-    }
-    asm("rdmsr");
-    asm {
+        rdmsr;
         movl dataLow, $eax;
         movl dataHigh, $edx;
     }
@@ -72,8 +70,8 @@ bitstruct RFLAGSRegister : ulong {
 
 fn RFLAGSRegister read_rflags() {
     ulong data;
-    asm("pushf");
     asm {
+        pushf;
         popq data;
     }
 
@@ -83,22 +81,20 @@ fn RFLAGSRegister read_rflags() {
 fn void write_rflags(RFLAGSRegister reg) {
     asm {
         pushq ((ulong)reg);
+        popf;
     }
-    asm("popf");
 }
 
 fn void write_cr3(uptr pageTablePtr) {
     asm {
-        movq $rax, ((ulong) pageTablePtr);
+        movq $cr3, ((ulong) pageTablePtr);
     }
-    asm("mov %rax, %cr3");
 }
 
 fn uptr read_cr3() {
     ulong reg;
-    asm("mov %cr3, %rax");
     asm {
-        movq reg, $rax;
+        movq reg, $cr3;
     }
 
     return (uptr)reg;
@@ -106,9 +102,8 @@ fn uptr read_cr3() {
 
 fn uptr read_cr2() {
     ulong reg;
-    asm("mov %cr2, %rax");
     asm {
-        movq reg, $rax;
+        movq reg, $cr2;
     }
 
     return (uptr)reg;
@@ -116,9 +111,8 @@ fn uptr read_cr2() {
 
 fn Register read_cr0() {
     ulong reg;
-    asm("mov %cr0, %rax");
     asm {
-        movq reg, $rax;
+        movq reg, $cr0;
     }
 
     return (uptr)reg;
@@ -126,16 +120,14 @@ fn Register read_cr0() {
 
 fn void write_cr0(Register reg) {
     asm {
-        movq $rax, ((ulong) reg);
+        movq $cr0, ((ulong) reg);
     }
-    asm("mov %rax, %cr0");
 }
 
 fn Register read_cr4() {
     ulong reg;
-    asm("mov %cr4, %rax");
     asm {
-        movq reg, $rax;
+        movq reg, $cr4;
     }
 
     return (uptr)reg;
@@ -143,15 +135,14 @@ fn Register read_cr4() {
 
 fn void write_cr4(Register reg) {
     asm {
-        movq $rax, ((ulong) reg);
+        movq $cr4, ((ulong) reg);
     }
-    asm("mov %rax, %cr4");
 }
 
 fn ulong read_tsc() {
     uint dataLow, dataHigh;
-    asm("rdtsc");
     asm {
+        rdtsc;
         movl dataLow, $eax;
         movl dataHigh, $edx;
     }
