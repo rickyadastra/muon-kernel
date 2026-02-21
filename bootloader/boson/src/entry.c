@@ -67,10 +67,14 @@ EfiStatus efi_main(EfiHandle handle, EfiSystemTable* systemTable) {
         IBootloader.prepare_kernel_programs(&bootloader);
         IConsole.log(&console, L"Kernel programs loaded and mapped");
 
+        if (bootloader.kernelUnwindInfo.unwindTableBase != 0) 
+            IConsole.logf(&console, "Kernel unwind table loaded @ %x, size: %d B", bootloader.kernelUnwindInfo.unwindTableBase, bootloader.kernelUnwindInfo.unwindTableSize);
+
         BootloaderPayload* payload = (BootloaderPayload*) IMemoryManager.alloc_pages(&memManager, sizeof(BootloaderPayload), true);
         IMemoryManager.virtual_map(&memManager, bootloader.kernelPageTable, (UPtr)payload, (UPtr)payload, EFI_SIZE_TO_PAGES(sizeof(BootloaderPayload)));
         payload->stack = bootloader.kernelStack;
         payload->pageTablePaddr = (UPtr)bootloader.kernelPageTable;
+        payload->unwindInfo = bootloader.kernelUnwindInfo;
 
         // ? Find ACPI table address
         for (Size i = 0; i < systemTable->NumberOfTableEntries; i++) {

@@ -18,6 +18,11 @@ typedef struct _Bootloader_Kernel_Stack_struct {
     UPtr end;
 } BootloaderKernelStack;
 
+typedef struct _Kernel_Unwind_Info_struct {
+    UPtr unwindTableBase;
+    Size unwindTableSize;
+} KernelUnwindInfo;
+
 typedef struct _Memory_Region_struct {
     MemoryRegionType type;
     UPtr base;
@@ -28,6 +33,7 @@ typedef struct _Memory_Region_struct {
 typedef struct _Bootloader_Payload_struct {
     UPtr pageTablePaddr;
     BootloaderKernelStack stack;
+    KernelUnwindInfo unwindInfo;
     MemoryRegion* memoryRegionMap;
     Size memoryRegionEntries;
     BigSize totalMemoryBytes;

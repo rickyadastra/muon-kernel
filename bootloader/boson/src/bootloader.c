@@ -6,6 +6,7 @@
 #include "efi/memory.h"
 #include "elf/elf.h"
 #include "elf/program.h"
+#include "elf/section.h"
 #include "file.h"
 #include "lepton/exception/exception.h"
 #include "memory_manager.h"
@@ -116,6 +117,9 @@ void Bootloader_prepare_kernel_programs(Bootloader *self) {
         THROW_EXCEPTION(BootloaderException, "Kernel file not loaded");
     }
 
+    self->kernelUnwindInfo.unwindTableBase = 0;
+    self->kernelUnwindInfo.unwindTableSize = 0;
+
     Elf64ProgramHeader* programHeader = (Elf64ProgramHeader*)((UPtr)elfHeader + elfHeader->program_offset);
 
     for (Size i=0; i < elfHeader->programs_count; i++) {
@@ -134,6 +138,20 @@ void Bootloader_prepare_kernel_programs(Bootloader *self) {
         
         IMemoryManager.virtual_map(self->memoryManager, self->kernelPageTable, paddr, programHeader->vaddr, EFI_SIZE_TO_PAGES(programHeader->mem_size));
         programHeader = (Elf64ProgramHeader*)((UPtr)programHeader + elfHeader->programs_size);
+    }
+
+    Elf64SectionHeader* sectionHeader = (Elf64SectionHeader*)((UPtr)elfHeader + elfHeader->sections_offset);
+    Elf64SectionHeader* sectionStringTableHeader = &sectionHeader[elfHeader->strings_section_index];
+    char* sectionStringTable = (char*)((UPtr)elfHeader + sectionStringTableHeader->file_offset);
+
+    for (Size i = 0; i < elfHeader->sections_count; i++) {
+        Elf64SectionHeader* section = &sectionHeader[i];
+        const char* name = sectionStringTable + section->name;
+        if (memcmp(name, ".eh_frame", 9) == 0) {
+            self->kernelUnwindInfo.unwindTableBase = section->vaddr;
+            self->kernelUnwindInfo.unwindTableSize = section->file_size;
+            break;
+        }
     }
 }
 

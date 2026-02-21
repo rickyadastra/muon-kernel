@@ -16,6 +16,11 @@ struct BootloaderKernelStack {
     uptr end;
 }
 
+struct UnwindInfo {
+	uptr base;
+	usz size;
+}
+
 struct MemoryRegion {
     MemoryRegionType type;
     uptr base;
@@ -26,6 +31,7 @@ struct MemoryRegion {
 struct BootloaderPayload {
     uptr pageTablePtr;
     BootloaderKernelStack stack;
+	UnwindInfo unwindInfo;
     MemoryRegion* memoryRegionMap;
     uint memoryRegionEntries;
     ulong totalMemoryBytes;

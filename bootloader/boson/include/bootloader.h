@@ -36,6 +36,7 @@ CLASSDEF(Bootloader, MemoryConsumer, BOOTLOADER_METHODS)
     File kernel;
     PageTable kernelPageTable;
     BootloaderKernelStack kernelStack;
+    KernelUnwindInfo kernelUnwindInfo;
 
     MemoryRegion* regions;
     Size regionEntries;
