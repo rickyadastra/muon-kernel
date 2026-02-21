@@ -12,7 +12,7 @@ trampolineStart:
     # r9:  payload -> rdi
 
     movq %rcx, %rsp
-    movq %rcx, %rbp
+    xorq %rbp, %rbp
 
     movq %rdx, %cr3
     cli
