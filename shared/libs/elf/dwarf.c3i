@@ -1,0 +1,86 @@
+module elf::dwarf;
+
+const char CODE_ALIGN @private = 1;
+const ichar DATA_ALIGN @private = -8;
+const RegId RETURN_ADDR @private = RegId.RIP;
+const String AUGS @private = "zR";
+const ushort AUG_DATA @private = 0x011b;
+
+const usz MAX_DWARF_REG = 17;
+
+faultdef UNWIND_FAIL;
+
+enum RegId : const inline char {
+    RBP = 6,
+    RSP = 7,
+    RIP = 16,
+}
+
+struct Unwinder {
+    uptr table;
+    usz tableSize;
+}
+
+struct Header @packed {
+    uint length;
+    union {
+        uint cieId;
+        uint cieOffset;
+    }
+}
+
+struct CommonInfoEntry @packed {
+    inline Header header;
+    char version;
+    char[*] augmentation;
+}
+
+struct FrameDescriptionEntry @packed {
+    inline Header header;
+    uint initialLocation;
+    uint addrRange;
+    char augLen;
+} 
+
+enum RegRuleKind : const char {
+    UNDEFINED,
+    SAME_VALUE,
+    OFFSET,     // valore del caller è *(CFA + offset)
+}
+
+struct RegRule {
+    RegRuleKind kind;
+    int offset;      // byte offset da CFA, valido se kind == OFFSET
+}
+
+struct CfaRule {
+    RegId reg;         // numero DWARF (es. RSP, RBP)
+    ulong offset;     // byte offset
+}
+
+struct UnwindState {
+    bool initialised;
+    uptr loc;          // PC logico corrente (indirizzo nel codice)
+    CfaRule cfa;
+    RegRule[MAX_DWARF_REG] regs;
+}
+
+struct UnwindedFrame {
+    ulong ip;
+    ulong sp;
+}
+
+bitstruct OpCode : char {
+    char low : 0..5;
+    char primary : 6..7;
+}
+
+enum Instruction : char (OpCode opcode) {
+    NO_OP               = (OpCode)0x00,
+    CFA_ADVANCE_LOC1    = (OpCode)0x02,
+    CFA_ADVANCE_LOC2    = (OpCode)0x03,
+    DEF_CFA             = (OpCode)0x0c,
+    DEF_CFA_OFFSET      = (OpCode)0x0e,
+    CFA_ADVANCE_LOC     = (OpCode)0x40,
+    CFA_OFFSET          = (OpCode)0x80,
+}
