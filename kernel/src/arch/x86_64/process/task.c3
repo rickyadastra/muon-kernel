@@ -12,7 +12,7 @@ fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr st
     *self.cpuContext = {
         .rip = (uptr)entryPoint,
         .rsp = stackTop-8,
-        .rbp = stackTop,
+        .rbp = 0,
         .rflags = 0x202,
         .cs = gdt::@segment_selector_of(gdt::KnownDescriptor.KERNEL_CODE.ordinal),
         .ss = gdt::@segment_selector_of(gdt::KnownDescriptor.KERNEL_DATA.ordinal),
