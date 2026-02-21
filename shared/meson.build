@@ -44,4 +44,8 @@ libsharedc3_sources = files(
     f'libs/collections/bitmap.c3',
     f'libs/collections/iterator.c3i',
     f'libs/collections/linkedlist.c3',
+
+    f'libs/elf/leb.c3',
+    f'libs/elf/dwarf.c3i',
+    f'libs/elf/dwarf.c3',
 )
