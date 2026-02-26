@@ -59,6 +59,8 @@ muon_sources = [
     f'src/arch/@arch@/cpu/tss.c3',
     f'src/arch/@arch@/cpu/tss.c3i',
 
+    f'src/arch/@arch@/debug/dwarf.c3',
+
     f'src/arch/@arch@/dev/acpi/acpi.c3',
     f'src/arch/@arch@/dev/acpi/acpi.c3i',
 
@@ -94,6 +96,11 @@ muon_sources = [
     f'src/mem/pmm.c3',
     f'src/mem/vmm.c3',
     f'src/mem/vmm.c3i',
+
+    f'src/debug/dwarf/dwarf.c3i',
+    f'src/debug/dwarf/interpreter.c3',
+    f'src/debug/dwarf/parser.c3',
+    f'src/debug/debug.c3',
 
     f'src/dev/mmio.c3',
     f'src/dev/port.c3',
