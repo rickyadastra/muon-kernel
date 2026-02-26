@@ -17,7 +17,7 @@ struct BootloaderKernelStack {
 }
 
 struct UnwindInfo {
-	uptr base;
+	char* base;
 	usz size;
 }
 
