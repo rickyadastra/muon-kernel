@@ -5,3 +5,25 @@ faultdef NOT_YET_IMPLEMENTED;
 const bool DEBUG = false;
 const String VERSION = "0.4";
 $exec("echo", {"\"const String COMMIT_HASH = \\\"$(git rev-parse --short HEAD)\\\";\""});
+
+module muon::symbols;
+
+struct SymbolEntry {
+	uptr addr;
+	String name;
+}
+
+struct SymbolResult {
+	String name;
+	usz offset;
+}
+
+const SymbolResult GENERIC_SYMBOL @local = {"(symbol)", 0xfeaf};
+
+macro SymbolResult resolve(uptr addr) {
+	$if $defined(SYMBOLS_INCLUDED):
+		return resolve_internal(addr);
+	$else
+		return GENERIC_SYMBOL;
+	$endif
+}

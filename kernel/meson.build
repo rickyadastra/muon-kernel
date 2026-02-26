@@ -1,4 +1,5 @@
 muon_c3c = find_program('c3c', required: true, version: '>=0.7.7')
+python = find_program('python3')
 arch = host_machine.cpu()
 
 linker_file = '@0@.ld'.format(arch)
@@ -132,9 +133,40 @@ muon_sources_asm = files(
     f'src/arch/@arch@/cpu/gdt.s',
 )
 
-c3_objs = []
-c3_objs += custom_target(
+c3_objs_tmp = custom_target(
     input: files(muon_sources) + libsharedc3_sources,
+    output: 'muon_c3_tmp.o',
+    command: [
+        muon_c3c, 'compile-only',
+        '@INPUT@',
+        '-o', '@OUTPUT@',
+    ] + c3_compile_args,
+    build_by_default: true
+)
+
+kernel_tmp = executable(
+    'muon_tmp.elf',
+    muon_sources_asm,
+    objects: c3_objs_tmp,
+    c_args: compile_args,
+    link_args: link_args,
+    install: false
+)
+
+symbols_src = custom_target(
+    'gen_symbols_c3',
+    input: kernel_tmp,
+    output: 'symbols.c3',
+    command: [
+        python, 
+        files('symbol_extractor.py'), 
+        '@INPUT@', 
+        '@OUTPUT@'
+    ]
+)
+
+c3_objs = custom_target(
+    input: files(muon_sources) + symbols_src + libsharedc3_sources,
     output: 'muon_c3.o',
     command: [
         muon_c3c, 'compile-only',
