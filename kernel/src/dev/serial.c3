@@ -59,9 +59,9 @@ fn void Serial.set_semaphore(&self, Semaphore* sem) {
     self.sem = sem;
 }
 
-macro char Serial.get_char(&this) @local => this.port.in8(SerialPortRegister.RECEIVE_BUFFER.offset);
+macro char Serial.get_char(&this) => this.port.in8(SerialPortRegister.RECEIVE_BUFFER.offset);
 
-fn void Serial.get_char_to_buf(&self) @local {
+fn void Serial.get_char_to_buf(&self) {
     SerialBuffer* buf = self.rxBuffer;
 
     if (buf != null) {
