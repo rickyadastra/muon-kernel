@@ -1,5 +1,0 @@
-#include <exception/bootloader_exception.h>
-
-INHERITCLASS(BootloaderException, _BOOTLOADER_EXCEPTION_METHODS, EXCEPTION_METHODS)
-
-PACKAGECLASS(BootloaderException, Exception, _BOOTLOADER_EXCEPTION_METHODS, EXCEPTION_METHODS)
