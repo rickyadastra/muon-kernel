@@ -40,7 +40,7 @@ macro @row_first_free(#row) => $$ctz(~#row);
   @ensure frameFree >= 0
 *>
 macro update_stats(FrameState newState, usz amount) {
-    frameFree += ((newState == USED) ? -1 : 1) * amount;
+    frameFree += (ulong)((newState == USED) ? -1 : 1) * amount;
 }
 
 fn FrameState? get(usz frameId) @inline {
@@ -87,7 +87,7 @@ fn void? mark_region_free(uptr base, usz size) @inline => mark_region(base, size
 
 fn PhysAddr? alloc_single() @local {
     for (usz i=allocHint; i<allocHint+pmap.len; i++) {
-        usz rowIdx = i % pmap.len;
+        usz rowIdx = i % (usz)pmap.len;
 
         BitmapRow row = pmap[rowIdx];
         if (row == ulong::max) continue;

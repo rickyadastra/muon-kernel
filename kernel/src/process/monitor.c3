@@ -88,5 +88,5 @@ fn TaskSnapshot[]? fetch(Handle handle, TaskSnapshot[]* snapshots) {
 		snapshot.command = task.spawnInfo.commandLine;
 	}
 
-	return (*snapshots)[:math::min(scheduler::allTasks.size, snapshots.len)];
+	return (*snapshots)[:math::min(scheduler::allTasks.size, (usz)snapshots.len)];
 }

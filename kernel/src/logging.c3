@@ -8,7 +8,7 @@ const SerialPort LOG_PORT = SerialPort.COM1;
 
 macro void @throw_excuse(#excuse, #msg) @private {
     serial.write("Fault ");
-    serial.write(#excuse.nameof);
+    serial.write(#excuse.description);
     serial.write("!: \"");
     serial.write(#msg);
     serial.write("\"\n");

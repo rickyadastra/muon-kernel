@@ -292,7 +292,7 @@ fn usz? unmap(PageTable table, uptr vaddr) @private {
     PagingPath path = @addr_path(vaddr);
     logging::debug("unmapping vaddr: %x (%d %d %d %d)", vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
-    PhysAddr physFrameAddr = 0;
+    PhysAddr physFrameAddr;
     usz bytes = 0;
 
     if (cpu::read_cr3() == (uptr)table.ptr) {

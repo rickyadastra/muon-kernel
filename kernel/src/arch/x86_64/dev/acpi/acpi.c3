@@ -24,7 +24,7 @@ fn void? init(uptr ptr) {
 
     // parse XSDT
     xsdt = (XSDTable*)vmm::@acpi(tablePtr.xsdtAddr); 
-    entries = (xsdt.length - $sizeof(xsdt.header)) / 8;
+    entries = (xsdt.length - $reflect(xsdt.header).size) / 8;
 
     initComplete = true;
 }

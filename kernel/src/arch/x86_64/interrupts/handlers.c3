@@ -21,8 +21,8 @@ macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
     logging::newline();
     logging::print(" IRQ %d (%x)", #stack.irq, (uint)#stack.irq, terminator: intr.has_error_code ? ' ' : '\n');
     if (intr.has_error_code) logging::printn("with error code: %x", #stack.error_code);
-    logging::print(" rip: %x  cs:  %x (%s) ", #stack.rip, (ushort)#stack.cs, gdt::@descriptor_of(#stack.cs).nameof);
-    logging::printn(" ss:  %x (%s)", (ushort)#stack.ss, gdt::@descriptor_of(#stack.ss).nameof);
+    logging::print(" rip: %x  cs:  %x (%s) ", #stack.rip, (ushort)#stack.cs, gdt::@descriptor_of(#stack.cs).description);
+    logging::printn(" ss:  %x (%s)", (ushort)#stack.ss, gdt::@descriptor_of(#stack.ss).description);
     logging::printn(" rflags: %x", #stack.rflags);
     logging::printn("—————————————————————————————————— END OF INTERRUPT STACK DUMP —————————————————————————————————————");
 }
@@ -30,7 +30,7 @@ macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
 fn InterruptStack* exception_handler(InterruptStack* stack) @private {
     KnownInterrupt intr = KnownInterrupt::from_ordinal(stack.irq);
     
-    logging::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.nameof, intr.mnmem, intr.name);
+    logging::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.description, intr.mnmem, intr.name);
 
     switch (intr) {
         case KnownInterrupt.PAGE_FAULT:

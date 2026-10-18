@@ -123,7 +123,7 @@ fn void? resume_after_sleep(ResumeContext ctx) @private {
 fn void? sleep_ms(usz ms) => task::sleep_ms(ms);
 
 macro void? remove_handle_from(ObjectTable table, Handle handle) @local {
-    if (table.get(handle).object.type == Task.typeid) {
+    if (table.get(handle).object.type == Task) {
         authority::revoke(table, handle)!;
     } else {
         return handle::TYPE_MISMATCH~;
@@ -170,7 +170,7 @@ fn void? set_aux_handle(Handle destTaskHandle, usz id, Handle newHandle) {
     ObjectTable table = curr.handles;
     KernelObject newObj = table.get(newHandle).object;
 
-    if (table.get(destTaskHandle).object.type == Task.typeid) {
+    if (table.get(destTaskHandle).object.type == Task) {
         Handle handle = authority::delegate(table, newHandle, task.handles, {})!;
         newObj.track_ref();
         task.spawnInfo.auxHandles[id] = handle;

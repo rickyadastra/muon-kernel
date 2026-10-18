@@ -200,7 +200,7 @@ fn void? sleep_ms(usz ms) {
         ResumeContext*? resumeCtx = anycast(e.context, ResumeContext);
 
         if (catch ex = resumeCtx) {
-            logging::printn("error after sleep: %s", ex.nameof);
+            logging::printn("error after sleep: %s", ex.description);
 
         } else {
             // clear pending event
@@ -209,7 +209,7 @@ fn void? sleep_ms(usz ms) {
             // resume task if is suspended
             if (resumeCtx.actor.state == TaskState.SUSPENDED) {
                 if (catch exx = process::resume_after_sleep(*resumeCtx)) {
-                    logging::printn("error after sleep: %s", exx.nameof);
+                    logging::printn("error after sleep: %s", exx.description);
                 }
             }
         }

@@ -56,7 +56,7 @@ macro panic(String message) => arch::log_and_panic(message, $$FILE, $$FUNC, $$LI
 
 macro @wrap_panic(#func) {
     if (catch excuse = #func) {
-        logging::printn("Got fault %s during %s. Cannot continue, goodbye, world.", excuse.nameof, $$FUNC);
+        logging::printn("Got fault %s during %s. Cannot continue, goodbye, world.", excuse.description, $$FUNC);
         panic("Init failed");
     }
 }
