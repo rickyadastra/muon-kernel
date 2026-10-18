@@ -9,7 +9,7 @@ MUON_BUILDDIR	:= $(BUILD_DIR)/muon
 MUON_TARGET 	:= $(BUILD_DIR)/muon/kernel/muon.elf
 
 QEMU			:= qemu-system-x86_64
-QEMU_FLAGS		:= -bios /usr/share/OVMF/OVMF_CODE.fd \
+QEMU_FLAGS		:= -bios /usr/share/ovmf/OVMF.fd \
 				   -net none -m 1G -enable-kvm -cpu host \
 				   -chardev pty,id=COM2 -serial chardev:COM2 \
 				   -chardev pty,id=COM3 -serial chardev:COM3 #-cpu qemu64,+popcnt,+tsc,+tsc-deadline
