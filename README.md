@@ -7,6 +7,10 @@
   <a href="https://github.com/boyter/scc"><img alt="Total lines" src="https://sloc.xyz/github/rickyadastra/muon-kernel"/></a>
 </p>
 
+> [!NOTE]
+> This branch is frozen; it contains the original Boson Bootloader written in C together with the Lepton framework and the Meson build system, removed at the start of **Milestone 0.5**.
+> No new features nor bugfixes will be merged onto this branch, ever.
+
 # Core Features
 1. **Boson** – UEFI bootloader
    - Loads and parses ELF kernel binaries
