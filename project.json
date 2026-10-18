@@ -27,7 +27,7 @@
             "x86cpu": "baseline",
             "linker": "builtin",
             "link-args": [
-                "-Tscripts/linkerscripts/x86_64.ld",
+                "-Tscripts/x86_64.ld",
                 "-zmax-page-size=0x1000",
                 "-static",
                 "-ztext"
