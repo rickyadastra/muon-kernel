@@ -77,7 +77,7 @@ fn void interrupt_routine() @IntRoutine @private @export @cname("interrupt_routi
 }
 
 macro @irq_body(char #num, $exc) @local {
-    $if (#num >= KnownInterrupt.len) ||| !(KnownInterrupt.from_ordinal(#num).has_error_code):
+    $if (#num >= KnownInterrupt.len) ||| !(KnownInterrupt::from_ordinal(#num).has_error_code):
         asm { push 0xff; } // push dummy error code if interrupt has none
     $endif
     

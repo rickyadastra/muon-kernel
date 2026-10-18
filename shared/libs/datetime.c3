@@ -71,5 +71,5 @@ fn Weekday Datetime.weekday(&self) {
     uint offset = MONTH_OFFSET[(char)@is_leap_year(self.year)][self.month-1];
     uint weekday = (self.day + offset + 5*((self.year-1)%4) + 4*((self.year-1)%100) + 6*((self.year-1)%400))%7;
 
-    return Weekday.values[weekday];
+    return Weekday::values[weekday];
 }

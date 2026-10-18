@@ -7,7 +7,7 @@ extern fn void gdt_load(GDTRegister*);
 const usz GDT_ENTRIES = 5;
 GlobalDescriptorTable gdt @private;
 
-macro KnownDescriptor @descriptor_of(#segment) => KnownDescriptor.from_ordinal(#segment / SegmentDescriptor::size);
+macro KnownDescriptor @descriptor_of(#segment) => KnownDescriptor::from_ordinal(#segment / SegmentDescriptor::size);
 macro @segment_selector_of(#i) => #i * SegmentDescriptor::size;
 
 /*

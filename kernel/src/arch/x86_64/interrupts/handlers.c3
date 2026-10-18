@@ -28,7 +28,7 @@ macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
 }
 
 fn InterruptStack* exception_handler(InterruptStack* stack) @private {
-    KnownInterrupt intr = KnownInterrupt.from_ordinal(stack.irq);
+    KnownInterrupt intr = KnownInterrupt::from_ordinal(stack.irq);
     
     logging::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.nameof, intr.mnmem, intr.name);
 

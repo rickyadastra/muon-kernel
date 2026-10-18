@@ -55,7 +55,7 @@ enum ArchType {
 	XTENSA,       // Xtensa
 }
 
-const ArchType ARCH_TYPE = ArchType.from_ordinal($$ARCH_TYPE);
+const ArchType ARCH_TYPE = ArchType::from_ordinal($$ARCH_TYPE);
 const bool ARCH_32_BIT = $$REGISTER_SIZE == 32;
 const bool ARCH_64_BIT = $$REGISTER_SIZE == 64;
 const REGISTER_SIZE = $$REGISTER_SIZE;

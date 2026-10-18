@@ -4,7 +4,7 @@ import std::io::stream;
 import arch::interrupts;
 import muon::sync;
 
-Serial[SerialPort.values.len] serials @local;
+Serial[SerialPort::values.len] serials @local;
 
 fn Serial* of(SerialPort port) {
     return &(serials[port.ordinal]);
