@@ -8,11 +8,11 @@ const DOUBLE_EPSILON = 2.22044604925031308085e-16;
 
 macro max(x, y, ...)
 {
-	$if $vacount == 0:
+	$if $vaarg.len == 0:
 		return $$max(x, y);
 	$else
 		var m = $$max(x, y);
-		$for var $i = 0; $i < $vacount; $i++:
+		$for var $i = 0; $i < $vaarg.len; $i++:
 			m = $$max(m, $vaarg[$i]);
 		$endfor
 		return m;
@@ -21,11 +21,11 @@ macro max(x, y, ...)
 
 macro min(x, y, ...)
 {
-	$if $vacount == 0:
+	$if $vaarg.len == 0:
 		return $$min(x, y);
 	$else
 		var m = $$min(x, y);
-		$for var $i = 0; $i < $vacount; $i++:
+		$for var $i = 0; $i < $vaarg.len; $i++:
 			m = $$min(m, $vaarg[$i]);
 		$endfor
 		return m;
