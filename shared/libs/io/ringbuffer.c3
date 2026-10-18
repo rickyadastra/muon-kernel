@@ -33,7 +33,7 @@ fn void? RingBuffer.put(&self, char c) @dynamic {
 fn usz? RingBuffer.write(&self, char[] data) @dynamic {
     if (self.is_full()) return stream::FULL~;
 
-    usz actualLen = math::min(data.len, (usz)SIZE - self.count);
+    usz actualLen = (usz)math::min(data.len, (sz)(SIZE - self.count));
     self.buffer[self.head:actualLen] = data[:actualLen];
 
     @inc_modulo(self.head, actualLen);

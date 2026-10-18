@@ -62,7 +62,7 @@ fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) {
     return { first, second };
 }
 
-fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) {
+fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, usz idx) {
     BuddyBlockHeader*[2] splits;
 
     if (idx >= self.freelist.len) {      // get a new block from alloc
@@ -91,7 +91,7 @@ fn void*? BuddyAllocator.acquire(&self, usz size) @dynamic {
     if (size > allocator::@order_size(MAX_ORDER) - BuddyBlockHeader::size) return allocator::INVALID_ALLOC_SIZE~;
 
     usz order = $$max(allocator::@order_of(size+BuddyBlockHeader::size), MIN_ORDER);
-    int idx = (int)order - MIN_ORDER;
+    usz idx = order - MIN_ORDER;
 
     BuddyBlockHeader* block;
 
@@ -117,7 +117,7 @@ fn void? BuddyAllocator.release(&self, void* ptr) @dynamic {
 
     usz order = allocator::@order_of(header.size);
     usz size = header.size;
-    int idx = (int)order - MIN_ORDER;
+    usz idx = order - MIN_ORDER;
 
     self.usedMemory -= size;
 

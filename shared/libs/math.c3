@@ -108,7 +108,7 @@ fn double _frexp(double x, int* e) {
 
 fn float _frexpf(float x, int* e) {
 	uint i = bitcast(x, uint);
-	int ee = (i >> 23) & 0xff;
+	int ee = (int)(i >> 23) & 0xff;
 
 	switch
 	{

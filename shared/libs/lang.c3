@@ -33,7 +33,7 @@ macro any.as_inner(&self) {
 }
 
 macro anycast(any v, $Type) @builtin {
-	if (v.type != $Type.typeid) return TYPE_MISMATCH~;
+	if (v.type != $Type) return TYPE_MISMATCH~;
 	return ($Type*)v.ptr;
 }
 
@@ -67,15 +67,15 @@ fn CInt memcmp(void* buf1, void* buf2, usz count) @cname("memcmp") @nostrip {
  @param expr : "the expression to cast"
  @param $Type : "the type to cast to"
 
- @require $sizeof(expr) == $Type::size : "Cannot bitcast between types of different size."
+ @require $reflect(expr).size == $Type::size : "Cannot bitcast between types of different size."
  @ensure $Typeof(return) == $Type*
 *>
 macro bitcast(expr, $Type) @builtin {
-	$if $Type.alignof <= $alignof(expr):
+	$if $Type::alignment <= $reflect(expr).alignment:
 		return *($Type*)&expr;
 	$else
 		$Type x @noinit;
-		$$memcpy(&x, &expr, $sizeof(expr), false, $Type.alignof, $alignof(expr));
+		$$memcpy(&x, &expr, $reflect(expr).size, false, $Type::alignment, $reflect(expr).alignment);
 		return x;
 	$endif
 }

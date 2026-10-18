@@ -70,7 +70,7 @@ fn bool* BitMap.get_ptr(BitMap* self, usz i) @operator(&[]) {
 
 fn usz? BitMap.find_free(BitMap* self) {
     for (usz i=self.hint; i<self.hint + self.data.len; i++) {
-        usz rowIdx = i % self.data.len;
+        usz rowIdx = i % (usz)self.data.len;
         ulong row = self.data[rowIdx];
         if (row == ulong::max) continue; // skip row if all bits are set
 

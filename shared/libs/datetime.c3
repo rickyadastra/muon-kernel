@@ -2,7 +2,7 @@ module datetime;
 
 macro bool @is_leap_year(#year) => (#year % 4 == 0 && #year % 100 != 0) || (#year % 400 == 0);
 
-fn Datetime to_datetime(int year, int month, int day, int hour, int minute, int second) {
+fn Datetime to_datetime(uint year, uint month, uint day, uint hour, uint minute, uint second) {
     return {
         year, month, day, hour, minute, second
     };

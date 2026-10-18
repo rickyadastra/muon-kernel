@@ -24,7 +24,7 @@ fn ulong? any_to_decimal(any arg, bool* negative, typeid* type) {
     ulong value = 0;
     *negative = false;
 
-    switch (arg.type.kindof) {
+    switch (arg.type.kind) {
         case TypeKind.FUNC.ordinal:
         case TypeKind.POINTER.ordinal:
             return (ulong)(uptr)*(void**)arg.ptr;
@@ -37,22 +37,22 @@ fn ulong? any_to_decimal(any arg, bool* negative, typeid* type) {
                 case bool: 
                     value = (ulong)*(bool*)arg;
                 case ichar: 
-                    value = *(ichar*)arg;
+                    value = (ulong)*(ichar*)arg;
                     *negative = (ichar)value < 0;
                 case char: 
                     value = *(char*)arg;
                 case short: 
-                    value = *(short*)arg;
+                    value = (ulong)*(short*)arg;
                     *negative = (short)value < 0;
                 case ushort: 
                     value = *(ushort*)arg;
                 case int: 
-                    value = *(int*)arg;
+                    value = (ulong)*(int*)arg;
                     *negative = (int)value < 0;
                 case uint: 
                     value = *(uint*)arg;
                 case long: 
-                    value = *(long*)arg;
+                    value = (ulong)*(long*)arg;
                     *negative = (long)value < 0;
                 case ulong: 
                     value = *(ulong*)arg;
@@ -78,7 +78,7 @@ fn ulong? any_to_decimal(any arg, bool* negative, typeid* type) {
 fn double? any_to_float(any arg, typeid* type) {
     double value = 0;
 
-    switch (arg.type.kindof) {
+    switch (arg.type.kind) {
         case TypeKind.DISTINCT.ordinal:
         case TypeKind.CONST_ENUM.ordinal: 
             return any_to_float(arg.as_inner(), type)!;
@@ -122,15 +122,15 @@ fn double? any_to_float(any arg, typeid* type) {
 *>
 fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 0) {
     bool negative = false;
-    typeid actualType = ulong.typeid;
+    typeid actualType = ulong;
     char[INTERNAL_FORMAT_BUFFER_SIZE] fmtBuf @noinit;
     ulong value = any_to_decimal(arg, &negative, &actualType)!;
     usz fmtLen = 0;
 
     if (negative) {
-        if (arg.type == float.typeid) {
+        if (arg.type == float) {
             value = (ulong)-((float)value);
-        } else if (arg.type == double.typeid) {
+        } else if (arg.type == double) {
             value = (ulong)-((double)value);
         } else {
             value = (~(ulong)value) + 1;
@@ -148,12 +148,12 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 
         }
 
     } else if (base == 16) {
-        while (fmtLen < (actualType::size*2)) {
+        while (fmtLen < ((ulong)actualType.size*2)) {
             fmtBuf[fmtLen++] = '0';
         }
     }
 
-    usz totalBufLen = fmtLen + (base != 10 ? 2 : 0) + (negative ? 1 : 0);
+    usz totalBufLen = fmtLen + (ulong)(base != 10 ? 2 : 0) + (ulong)(negative ? 1 : 0);
     if (totalBufLen > buf.len) return FORMAT_BUFFER_EXCEEDED~;
 
     usz j = 0;
@@ -194,7 +194,7 @@ enum FloatFormatting @local {
 
 fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = ADAPTIVE) {
     bool negative = false;
-    typeid actualType = ulong.typeid;
+    typeid actualType = ulong;
     const BUF_SIZE = (math::DOUBLE_MANT_DIG + 28) / 29 + 1 + (math::DOUBLE_MAX_EXP + math::DOUBLE_MANT_DIG + 28 + 8) / 9;
     uint[BUF_SIZE] big;
     double value = any_to_float(arg, &actualType)!;
@@ -288,7 +288,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
     // compute decimal exponent
     int exponent;
     if (a < z) {
-        for (int i = 10, exponent = (int)(9 * (r - a)); *a >= i; i *= 10, exponent++);
+        for (int i = 10, exponent = (int)(9 * (r - a)); *a >= (uint)i; i *= 10, exponent++);
     }
 
     // pick best formatting
@@ -314,21 +314,21 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
         j %= 9;
         int i;
         for (i = 10, j++; j < 9; i *= 10, j++);
-        x = *d % i;
+        x = *d % (uint)i;
 
         // are there any significant digits past j?
         if (x || (d + 1) != z) {
             double round = 2 / math::DOUBLE_EPSILON;
             double small;
 
-            if (((*d / i) & 1) || (i == 1000000000 && d > a && (d[-1] & 1))) {
+            if (((*d / (uint)i) & 1) || (i == 1000000000 && d > a && (d[-1] & 1))) {
                 round += 2;
             }
 
             switch {
-                case x < i / 2:
+                case x < (uint)i / 2:
                     small = 0x0.8p0;
-                case x == i / 2 && d + 1 == z:
+                case x == (uint)i / 2 && d + 1 == z:
                     small = 0x1.0p0;
                 default:
                     small = 0x1.8p0;
@@ -342,7 +342,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
 
             // decide whether to round by probing round+small
             if (round + small != round) {
-                *d = *d + i;
+                *d = *d + (uint)i;
 
                 while (*d > 999999999) {
                     *d-- = 0;
@@ -350,7 +350,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
                     (*d)++;
                 }
 
-                for (i = 10, exponent = (int)(9 * (r - a)); *a >= i; i *= 10, exponent++);
+                for (i = 10, exponent = (int)(9 * (r - a)); *a >= (uint)i; i *= 10, exponent++);
             }
         }
 
@@ -362,7 +362,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
 
     // Count trailing zeros in last place
     if (z > a && z[-1]) {
-        for (int i = 10, j = 0; z[-1] % i == 0; i *= 10, j++);
+        for (int i = 10, j = 0; z[-1] % (usz)i == 0; i *= 10, j++);
     } else {
         j = 9;
     }
@@ -408,7 +408,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
                     *--s = '0';
             }
 
-            usz tlen = mbufPtr + 9 - s;
+            usz tlen = (usz)(mbufPtr + 9 - s);
             buf[len:tlen] = s[:tlen];
             len += tlen;
         }
@@ -419,7 +419,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
             char* s = fmt_u(*d, mbufPtr + 9);
             while (s > mbufPtr) *--s = '0';
             
-            usz tlen = math::min((sz)9, precision);
+            usz tlen = (usz)math::min((sz)9, precision);
             buf[len:tlen] = s[:tlen];
             len += tlen;
         }
@@ -437,14 +437,14 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
                 if (precision > 0) buf[len++] = '.';
             }
 
-            usz dlen = math::min(mbufPtr + 9 - s, precision);
+            usz dlen = (usz)math::min(mbufPtr + 9 - s, precision);
             buf[len:dlen] = s[:dlen];
             len += dlen;
             
             precision -= mbufPtr + 9 - s;
         }
 
-        usz elen = ebufPtr - estr;
+        usz elen = (usz)(ebufPtr - estr);
         buf[len:elen] = estr[:elen];
         len += elen;
     }
