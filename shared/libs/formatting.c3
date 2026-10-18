@@ -221,7 +221,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
     }
 
     int exponent2;
-    isz precision = 6;
+    sz precision = 6;
     double mantix = math::frexp(value, &exponent2) * 2;
 
     if (mantix) exponent2--;
@@ -296,7 +296,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
         if (!precision) precision++;
         if (precision > exponent && exponent >= -4) {
             formatting = FLOAT;
-            precision -= (isz)exponent + 1;
+            precision -= (sz)exponent + 1;
         
         } else {
             formatting = EXPONENTIAL;
@@ -305,7 +305,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
     }
 
     // round algorithm 
-    int j = (int)(precision - (isz)(formatting == FLOAT ? 0 : exponent));
+    int j = (int)(precision - (sz)(formatting == FLOAT ? 0 : exponent));
     if (j < 9 * (z - r - 1)) {
         uint x;
         // avoid C's broken division of negative numbers
@@ -368,13 +368,13 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
     }
 
     if (formatting == FLOAT) {
-        precision = math::min(precision, math::max((isz)0, 9 * (z - r - 1) - j));
+        precision = math::min(precision, math::max((sz)0, 9 * (z - r - 1) - j));
     } else {
-        precision = math::min(precision, math::max((isz)0, 9 * (z - r - 1) + exponent - j));
+        precision = math::min(precision, math::max((sz)0, 9 * (z - r - 1) + exponent - j));
     }
     
-    if (precision > int.max - 1 - (isz)(precision ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
-    int l = (int)(1 + precision + (isz)(precision ? 1 : 0));
+    if (precision > int.max - 1 - (sz)(precision ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
+    int l = (int)(1 + precision + (sz)(precision ? 1 : 0));
     char* estr @noinit;
 
     if (formatting == FLOAT) {
@@ -387,7 +387,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
         if (exponent < 0) *--estr = '-';
         *--estr = 'e';
         
-        if (ebufPtr - estr > (isz)int.max - l) return INTERNAL_BUFFER_EXCEEDED~;
+        if (ebufPtr - estr > (sz)int.max - l) return INTERNAL_BUFFER_EXCEEDED~;
         l += (int)(ebufPtr - estr);
     }
 
@@ -419,7 +419,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
             char* s = fmt_u(*d, mbufPtr + 9);
             while (s > mbufPtr) *--s = '0';
             
-            usz tlen = math::min((isz)9, precision);
+            usz tlen = math::min((sz)9, precision);
             buf[len:tlen] = s[:tlen];
             len += tlen;
         }
