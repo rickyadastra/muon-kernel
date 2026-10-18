@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://i.imgur.com/bxSeMca.png" height=224/>
-  <br><br>
+  <img src="assets/logo.png" height=180/>
+  <br>
   A minimalist, capability-based, <b>C3 x86-64 kernel</b> with a <b>C UEFI bootloader</b>, pre-emptive multitasking and soon-to-come modern features. Also an open-source personal and academic project.
   <br><br>
   <a href="https://c3-lang.org/"><img alt="Language C3" src="https://img.shields.io/badge/Language-C3-3381ff"></a>
