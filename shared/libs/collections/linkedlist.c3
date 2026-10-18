@@ -41,11 +41,11 @@ fn LinkedList init(Allocator alloc) {
     };
 }
 
-macro Node* LinkedList.alloc_node(&self) @private {
+macro Node* LinkedList.alloc_node(&self) {
     return allocator::alloc(self.allocator, Node);
 } 
 
-macro void LinkedList.free_node(&self, Node* node) @private {
+macro void LinkedList.free_node(&self, Node* node) {
     allocator::free(self.allocator, (void*)node);
 }
 
@@ -97,7 +97,7 @@ fn void? LinkedList.insert_at(&self, usz index, Type data) {
     self.size++;
 }
 
-macro LinkedList.remove_node(&self, Node* cur) @local {
+macro LinkedList.remove_node(&self, Node* cur) {
     if (cur.next == null) { // end of list
         if (cur.prev != null) {
             cur.prev.next = null;
