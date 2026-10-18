@@ -20,7 +20,7 @@ fn void? init(uptr ptr) {
     
     // only ACPI version 2 is supported
     if (tablePtr.revision != 2) return UNSUPPORTED_VERSION~;
-    if (!checksum((uptr)tablePtr, XSDPointer.sizeof)) return CHECKSUM_FAIL~;
+    if (!checksum((uptr)tablePtr, XSDPointer::size)) return CHECKSUM_FAIL~;
 
     // parse XSDT
     xsdt = (XSDTable*)vmm::@acpi(tablePtr.xsdtAddr); 

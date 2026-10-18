@@ -17,7 +17,7 @@ enum PageProperties : usz (bool present, bool readWrite, bool user, bool writeTh
     MMIO                { true, true, false, true, true },
 }
 
-const usz TABLE_ENTRIES = PAGE_SIZE / TableEntry.sizeof;
+const usz TABLE_ENTRIES = PAGE_SIZE / TableEntry::size;
 const usz ENTRY_ADDRESS_LSB = 12;
 const ulong ENTRY_ADDRESS_MASK = 0xffff_ffff_ffff_f000;
 

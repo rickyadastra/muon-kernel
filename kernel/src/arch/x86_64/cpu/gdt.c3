@@ -7,8 +7,8 @@ extern fn void gdt_load(GDTRegister*);
 const usz GDT_ENTRIES = 5;
 GlobalDescriptorTable gdt @private;
 
-macro KnownDescriptor @descriptor_of(#segment) => KnownDescriptor.from_ordinal(#segment / SegmentDescriptor.sizeof);
-macro @segment_selector_of(#i) => #i * SegmentDescriptor.sizeof;
+macro KnownDescriptor @descriptor_of(#segment) => KnownDescriptor.from_ordinal(#segment / SegmentDescriptor::size);
+macro @segment_selector_of(#i) => #i * SegmentDescriptor::size;
 
 /*
     Default segment access is: 0 00 1 0 0 0 0
@@ -101,7 +101,7 @@ fn void setup(uptr kernelStack) {
 fn void install() {
     GDTRegister gdtr = {
         .offset = &gdt,
-        .size = GlobalDescriptorTable.sizeof - 1
+        .size = GlobalDescriptorTable::size - 1
     };
 
     gdt_load(&gdtr);

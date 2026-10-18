@@ -12,8 +12,8 @@ import lang;
     @param entriesSize : "number of entries in the table"
 *>
 fn void? ObjectTable.init(&self, usz entriesSize) {
-    ObjectSlot[] entries = ((ObjectSlot*)mem::alloc_pages(mem::pages(ObjectSlot.sizeof * entriesSize), clear: true)!)[:entriesSize];
-    void* bitmap = mem::alloc(entriesSize / ulong.sizeof);
+    ObjectSlot[] entries = ((ObjectSlot*)mem::alloc_pages(mem::pages(ObjectSlot::size * entriesSize), clear: true)!)[:entriesSize];
+    void* bitmap = mem::alloc(entriesSize / ulong::size);
 
     self.entries = entries;
     self.bitmap = bitmap::init(bitmap, entriesSize);
@@ -25,7 +25,7 @@ fn void? ObjectTable.init(&self, usz entriesSize) {
 fn void? ObjectTable.destroy(&self) {
     usz entriesSize = self.bitmap.size;
     mem::free((void*)self.bitmap.data.ptr);
-    mem::free_pages((uptr)self.entries.ptr, mem::pages(ObjectSlot.sizeof * entriesSize))!;
+    mem::free_pages((uptr)self.entries.ptr, mem::pages(ObjectSlot::size * entriesSize))!;
 }
 
 <*

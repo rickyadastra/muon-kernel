@@ -46,7 +46,7 @@ fn void setup() {
 fn void install() {
     IDTRegister idtr = {
         .offset = &idt,
-        .size = (GateDescriptor.sizeof * IDT_ENTRIES) - 1
+        .size = (GateDescriptor::size * IDT_ENTRIES) - 1
     };
 
     idt_load(&idtr);

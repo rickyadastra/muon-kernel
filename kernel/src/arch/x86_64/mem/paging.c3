@@ -22,7 +22,7 @@ fn TableEntry PageTable.get(PageTable* self, usz i) => (*self)[i];
 fn void PageTable.clear(PageTable* self, usz i) => (*self)[i] = (TableEntry){};
 
 macro PageTable @as_table(uptr #ptr) => (PageTable)((TableEntry*)#ptr)[:TABLE_ENTRIES];
-macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.sizeof * 8) - vmm::virtual_address_length())) >> ((ulong.sizeof * 8) - vmm::virtual_address_length()));
+macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong::size * 8) - vmm::virtual_address_length())) >> ((ulong::size * 8) - vmm::virtual_address_length()));
 macro uptr @mask_addr(#addr, #bits) @private => #addr & ~((1ul << (#bits)) - 1);
 
 macro @assert_entry(TableEntry #entry) @local {

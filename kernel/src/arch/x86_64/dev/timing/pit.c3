@@ -16,6 +16,6 @@ Port pit = PIT_PORT;
 
 macro void disable() {
     pit.out8(PortOffset.MODE_COMMAND, LOHI_SWSTROBE);
-    pit.out8(PortOffset.CHANNEL_0, char.max);
+    pit.out8(PortOffset.CHANNEL_0, char::max);
     pit.in8(PortOffset.CHANNEL_0);
 }

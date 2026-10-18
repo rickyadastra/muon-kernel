@@ -67,8 +67,8 @@ fn CInt memcmp(void* buf1, void* buf2, usz count) @cname("memcmp") @nostrip {
  @param expr : "the expression to cast"
  @param $Type : "the type to cast to"
 
- @require $sizeof(expr) == $Type.sizeof : "Cannot bitcast between types of different size."
- @ensure $typeof(return) == $Type*
+ @require $sizeof(expr) == $Type::size : "Cannot bitcast between types of different size."
+ @ensure $Typeof(return) == $Type*
 *>
 macro bitcast(expr, $Type) @builtin {
 	$if $Type.alignof <= $alignof(expr):
@@ -86,7 +86,7 @@ extern char[] __init_array_end;
 alias DynamicRegisterFn = fn void();
 
 fn void init_runtime() {
-    usz count = ((ulong)&__init_array_end - (ulong)&__init_array_start) / DynamicRegisterFn.sizeof;
+    usz count = ((ulong)&__init_array_end - (ulong)&__init_array_start) / DynamicRegisterFn::size;
     DynamicRegisterFn[] initArray = ((DynamicRegisterFn*)&__init_array_start)[:count];
 
     foreach (DynamicRegisterFn func : initArray) {
@@ -102,7 +102,7 @@ module lang::values;
 
 import lang;
 
-macro bool @is_int(#value) @const => types::is_int($typeof(#value));
+macro bool @is_int(#value) @const => types::is_int($Typeof(#value));
 
 macro promote_int(x) {
 	$if @is_int(x):

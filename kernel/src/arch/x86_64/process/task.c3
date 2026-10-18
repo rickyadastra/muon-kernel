@@ -6,7 +6,7 @@ import arch;
 fn void TaskContext.init(&self, EntryPointFn entryPoint, uptr stackBase, uptr stackTop, SpawnInfo* spawnInfo = null) @dynamic {
     // set exit return address
     *(uptr*)(stackTop-8) = (uptr)&process::task::exit_trampoline;
-    self.cpuContext = (CpuContext*)(stackTop-8-CpuContext.sizeof);
+    self.cpuContext = (CpuContext*)(stackTop-8-CpuContext::size);
 
     // set initial cpuContext
     *self.cpuContext = {

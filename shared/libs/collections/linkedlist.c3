@@ -4,7 +4,7 @@ faultdef OUT_OF_BOUNDS;
 
 module std::collections::linkedlist<Type>;
 
-const IS_EQUATABLE = Type.is_eq;
+const IS_EQUATABLE = Type::has_equals;
 
 import mem::allocator;
 import std::collections::iterator;

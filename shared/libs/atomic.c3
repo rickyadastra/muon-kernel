@@ -12,14 +12,14 @@ enum AtomicOrdering : int {
 
 macro fetch_add(ptr, y, AtomicOrdering $ordering = SEQ_CONSISTENT, bool $volatile = false, usz $alignment = 0) {
     $if $alignment == 0:
-        $alignment = $typeof(*ptr).sizeof;
+        $alignment = $Typeof(*ptr)::size;
     $endif
     return $$atomic_fetch_add(ptr, y, $volatile, $ordering.ordinal, $alignment); 
 }
 
 macro fetch_sub(ptr, y, AtomicOrdering $ordering = SEQ_CONSISTENT, bool $volatile = false, usz $alignment = 0) {
     $if $alignment == 0:
-        $alignment = $typeof(*ptr).sizeof;
+        $alignment = $Typeof(*ptr)::size;
     $endif
     return $$atomic_fetch_sub(ptr, y, $volatile, $ordering.ordinal, $alignment); 
 }

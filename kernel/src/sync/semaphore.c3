@@ -50,7 +50,7 @@ fn void Semaphore.signal(&self) {
 }
 
 fn Semaphore* alloc() @private {
-    Semaphore* s = (Semaphore*)mem::alloc(Semaphore.sizeof);
+    Semaphore* s = (Semaphore*)mem::alloc(Semaphore::size);
     s.queue = linkedlist::init{Task*}(mem::get_allocator());
     return s;
 }

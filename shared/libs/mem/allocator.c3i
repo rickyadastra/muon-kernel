@@ -32,5 +32,5 @@ macro usz @order_of(usz #size) {
     return order;
 }
 
-macro alloc(Allocator allocator, $Type) => ($Type*)allocator.acquire($Type.sizeof)!!;
+macro alloc(Allocator allocator, $Type) => ($Type*)allocator.acquire($Type::size)!!;
 macro free(Allocator allocator, void* ptr) => allocator.release(ptr)!!;

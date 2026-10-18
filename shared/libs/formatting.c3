@@ -148,7 +148,7 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 
         }
 
     } else if (base == 16) {
-        while (fmtLen < (actualType.sizeof*2)) {
+        while (fmtLen < (actualType::size*2)) {
             fmtBuf[fmtLen++] = '0';
         }
     }
@@ -181,7 +181,7 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 
 }
 
 fn char* fmt_u(ulong x, char* s) {
-    for (; x > ulong.max; x /= 10) *--s = '0' + (char)(x % 10);
+    for (; x > ulong::max; x /= 10) *--s = '0' + (char)(x % 10);
     for (ulong y = (ulong)x; y; y /= 10) *--s = '0' + (char)(y % 10);
     return s;
 }
@@ -373,12 +373,12 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
         precision = math::min(precision, math::max((sz)0, 9 * (z - r - 1) + exponent - j));
     }
     
-    if (precision > int.max - 1 - (sz)(precision ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
+    if (precision > int::max - 1 - (sz)(precision ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
     int l = (int)(1 + precision + (sz)(precision ? 1 : 0));
     char* estr @noinit;
 
     if (formatting == FLOAT) {
-        if (exponent > int.max - l) return INTERNAL_BUFFER_EXCEEDED~;
+        if (exponent > int::max - l) return INTERNAL_BUFFER_EXCEEDED~;
         if (exponent > 0) l += exponent;
     } else {
         estr = fmt_u((ulong)(exponent < 0 ? -exponent : exponent), ebufPtr);
@@ -387,11 +387,11 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
         if (exponent < 0) *--estr = '-';
         *--estr = 'e';
         
-        if (ebufPtr - estr > (sz)int.max - l) return INTERNAL_BUFFER_EXCEEDED~;
+        if (ebufPtr - estr > (sz)int::max - l) return INTERNAL_BUFFER_EXCEEDED~;
         l += (int)(ebufPtr - estr);
     }
 
-    if (l > int.max - (negative ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
+    if (l > int::max - (negative ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
     usz len = 0;
     
     if (negative) buf[len++] = '-';

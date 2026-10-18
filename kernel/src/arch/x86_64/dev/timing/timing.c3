@@ -45,7 +45,7 @@ fn void setup_tsc_deadline_timer(double frequency) {
     apic::timer_enable(APICTimerMode.TSC_DEADLINE);
 
     // set timer interface
-    APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer.sizeof);
+    APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer::size);
     apicTimer.frequency = frequency;
     timer = (Timer)apicTimer;
     timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());

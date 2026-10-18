@@ -31,7 +31,7 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
         if (catch stackBase) return task::INIT_STACK_FAIL~;
     }
     
-    Task* task = mem::alloc(Task.sizeof);
+    Task* task = mem::alloc(Task::size);
 
     task.id = scheduler::nextTaskId.add(1);
     task.state = state;
@@ -43,7 +43,7 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     if (catch selfHandle) return INIT_SELF_HANDLE_FAIL~;
     task.track_ref();
 
-    task.spawnInfo = (SpawnInfo*)mem::alloc(SpawnInfo.sizeof); // TODO: map to read only page in userspace
+    task.spawnInfo = (SpawnInfo*)mem::alloc(SpawnInfo::size); // TODO: map to read only page in userspace
     task.spawnInfo.taskHandle = selfHandle;
 
     // parent will receive a handle to the new task, track it
@@ -192,7 +192,7 @@ fn void? sleep_ms(usz ms) {
     scheduler::lock_scheduler();
 
     Task* task = scheduler::get_current_task();
-    ResumeContext* resCtx = mem::alloc(ResumeContext.sizeof);
+    ResumeContext* resCtx = mem::alloc(ResumeContext::size);
     resCtx.resumingHandle = task.spawnInfo.taskHandle;
     resCtx.actor = task;
     
@@ -235,6 +235,6 @@ fn void block(Task* task) {
     @require cmdline.len > 0
 *>
 macro set_command_line(Task* task, String cmdline) {
-    task.spawnInfo.commandLine = (String)((char*)mem::alloc(char.sizeof*cmdline.len))[:cmdline.len];
+    task.spawnInfo.commandLine = (String)((char*)mem::alloc(char::size*cmdline.len))[:cmdline.len];
     task.spawnInfo.commandLine[..] = cmdline[..];
 }

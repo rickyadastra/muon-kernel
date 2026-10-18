@@ -4,7 +4,7 @@ faultdef BITMAP_FULL;
 
 module std::collections::bitmap;
 
-const BITS = ulong.sizeof * 8;
+const BITS = ulong::size * 8;
 
 struct BitMap {
     ulong[] data;
@@ -29,7 +29,7 @@ fn BitMap init(void* ptr, usz size) {
     };
 }
 
-macro usz BitMap.data_size(&self) => self.data.len * ulong.sizeof;
+macro usz BitMap.data_size(&self) => self.data.len * ulong::size;
 fn usz BitMap.len(&self) @operator(len) => self.size;
 
 <*
@@ -72,7 +72,7 @@ fn usz? BitMap.find_free(BitMap* self) {
     for (usz i=self.hint; i<self.hint + self.data.len; i++) {
         usz rowIdx = i % self.data.len;
         ulong row = self.data[rowIdx];
-        if (row == ulong.max) continue; // skip row if all bits are set
+        if (row == ulong::max) continue; // skip row if all bits are set
 
         usz pos = @first_free(row);
         ulong mask = 1ul << pos;

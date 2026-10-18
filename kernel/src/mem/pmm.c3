@@ -13,7 +13,7 @@ enum FrameState : ulong {
 faultdef OUT_OF_MEMORY, INVALID_FRAME_INDEX;
 
 const usz FRAME_SIZE = 0x1000;
-const usz BITMAP_FRAMES_PER_ROW = (BitmapRow.sizeof * 8);
+const usz BITMAP_FRAMES_PER_ROW = (BitmapRow::size * 8);
 
 BitmapRow[] pmap @private; // TODO: replace with std::collections::bitmap
 usz pmapSize @local = 0;
@@ -27,7 +27,7 @@ usz allocHint @local = 0;
 macro @align_frame(#val) => #val / FRAME_SIZE; 
 macro @bytes_to_frames(#bytes) @local => @align_frame(#bytes);
 macro @frames_to_rows(#frames) @local => ((#frames + BITMAP_FRAMES_PER_ROW-1) / BITMAP_FRAMES_PER_ROW);
-macro usz bitmap_alloc_size_of(usz bytes) => @frames_to_rows(@bytes_to_frames(bytes)) * BitmapRow.sizeof;
+macro usz bitmap_alloc_size_of(usz bytes) => @frames_to_rows(@bytes_to_frames(bytes)) * BitmapRow::size;
 
 macro @frame_row(#i) @local => #i / BITMAP_FRAMES_PER_ROW;
 macro @frame_bit(#i) @local => #i % BITMAP_FRAMES_PER_ROW;
@@ -90,7 +90,7 @@ fn PhysAddr? alloc_single() @local {
         usz rowIdx = i % pmap.len;
 
         BitmapRow row = pmap[rowIdx];
-        if (row == ulong.max) continue;
+        if (row == ulong::max) continue;
 
         usz pos = @row_first_free(row);
         ulong mask = 1ul << pos;
@@ -111,7 +111,7 @@ fn PhysAddr? alloc_series(usz size) {
     for (usz rowIdx=0; rowIdx<pmap.len; rowIdx++) {
         BitmapRow row = pmap[rowIdx];
 
-        if (row == ulong.max) continue;
+        if (row == ulong::max) continue;
 
         ulong inv = ~row;
         if ($$popcount(inv) < size) continue;
@@ -165,7 +165,7 @@ fn void? init(uptr bitmap, usz totalMemoryBytes) {
     physTotal = totalMemoryBytes;
 
     usz rowCount = @frames_to_rows(frameTotal);
-    pmapSize = rowCount * BitmapRow.sizeof;
+    pmapSize = rowCount * BitmapRow::size;
     pmap = ((BitmapRow*)bitmap)[:rowCount];
 
     pmap[..] = 0;   // initialize bitmap

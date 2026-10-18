@@ -17,7 +17,7 @@ fn TimerEvent*? add_timer_event(TimerEvent event) @private {
     lock.acquire();
     defer lock.release();
 
-    TimerEvent* ev = mem::alloc(TimerEvent.sizeof);
+    TimerEvent* ev = mem::alloc(TimerEvent::size);
     *ev = event;
 
     if (timerEvents.is_empty()) {

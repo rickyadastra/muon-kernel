@@ -31,4 +31,4 @@ struct ObjectTable {
     Spinlock lock;
 }
 
-const usz MAX_TABLE_SIZE = mem::page_size() / ObjectSlot.sizeof;
+const usz MAX_TABLE_SIZE = mem::page_size() / ObjectSlot::size;

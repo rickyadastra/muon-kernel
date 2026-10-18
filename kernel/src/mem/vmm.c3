@@ -36,7 +36,7 @@ fn void? map_physmap(usz len) @local {
 }
 
 fn void? map_pmap() @local {
-    map((uptr)&(pmm::pmap[0]), paging::@path_addr(KnownPagingPath.PMM_BITMAP.path), pmm::pmap.len * BitmapRow.sizeof)!;
+    map((uptr)&(pmm::pmap[0]), paging::@path_addr(KnownPagingPath.PMM_BITMAP.path), pmm::pmap.len * BitmapRow::size)!;
 }
 
 fn void? map(uptr paddr, uptr vaddr, usz len = paging::PageSize.NORMAL.size, PageTable table = kernelAddrSpace.pageTable) {
