@@ -33,7 +33,7 @@ macro any.as_inner(&self) {
 }
 
 macro anycast(any v, $Type) @builtin {
-	if (v.type != $Type.typeid) return TYPE_MISMATCH?;
+	if (v.type != $Type.typeid) return TYPE_MISMATCH~;
 	return ($Type*)v.ptr;
 }
 

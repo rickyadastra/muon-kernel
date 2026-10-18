@@ -26,7 +26,7 @@ macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.siz
 macro uptr @mask_addr(#addr, #bits) @private => #addr & ~((1ul << (#bits)) - 1);
 
 macro @assert_entry(TableEntry #entry) @local {
-    if (!#entry.present) return NOT_MAPPED?;
+    if (!#entry.present) return NOT_MAPPED~;
 }
 
 macro uptr @path_addr(PagingPath #path, usz pdpteModifier = 0, usz pdeModifier = 0, usz pteModifier = 0) @private {
@@ -111,7 +111,7 @@ fn PageTable? check_table(PageTable parent, usz entry) @local {
         return @as_table(vmm::initialized ? vmm::@phys(tablePtr) : tablePtr);
     }
 
-    return NOT_MAPPED?;
+    return NOT_MAPPED~;
 }
 
 fn void? map_impl_with_recurse(PagingPath path, uptr paddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @local {

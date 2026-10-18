@@ -38,7 +38,7 @@ fn void acknoledge_interrupt() => @rtc_read(RTCRegister.STATUS_C, disableNMIs: f
 
 fn Datetime? get_datetime() {
     RTCStatusRegA regA = (RTCStatusRegA)@rtc_read(RTCRegister.STATUS_A);
-    if (regA.updateInProgress) return UPDATE_IN_PROGRESS?;
+    if (regA.updateInProgress) return UPDATE_IN_PROGRESS~;
 
     RTCStatusRegB regB = (RTCStatusRegB)@rtc_read(RTCRegister.STATUS_B);
 

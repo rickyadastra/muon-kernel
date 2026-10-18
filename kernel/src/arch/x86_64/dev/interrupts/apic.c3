@@ -23,7 +23,7 @@ macro uint @lapic_read(#reg) => lapic.read32((ulong)#reg);
 
 fn void? setup_lapic() @private {
     APICBaseMSR msr = (APICBaseMSR)cpu::read_msr(ModelSpecificRegister.APIC);
-    if (!msr.globalEnable) return APIC_DISABLED?;
+    if (!msr.globalEnable) return APIC_DISABLED~;
 
     msr.baseAddr = lapic >> 12;
     cpu::write_msr(ModelSpecificRegister.APIC, (ulong)msr);

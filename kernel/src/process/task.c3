@@ -19,7 +19,7 @@ macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights rights = {
 
 fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_STACK_SIZE, TaskState state = READY,
                 Task* parent = scheduler::get_current_task()) @private {
-    if (stackSize < DEFAULT_KERNEL_STACK_SIZE) return INIT_STACK_TOO_SMALL?;
+    if (stackSize < DEFAULT_KERNEL_STACK_SIZE) return INIT_STACK_TOO_SMALL~;
 
 	scheduler::lock_scheduler();
 	defer scheduler::unlock_scheduler();
@@ -28,7 +28,7 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     if (entryPoint != null && stackSize > 0) {
         // TODO: move stack setup in TaskSpace.init
         stackBase = mem::alloc_pages(stackSize);
-        if (catch stackBase) return task::INIT_STACK_FAIL?;
+        if (catch stackBase) return task::INIT_STACK_FAIL~;
     }
     
     Task* task = mem::alloc(Task.sizeof);
@@ -40,7 +40,7 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
 
     // create self handle
     Handle? selfHandle = create_handle(task, task, DEFAULT_SELF); 
-    if (catch selfHandle) return INIT_SELF_HANDLE_FAIL?;
+    if (catch selfHandle) return INIT_SELF_HANDLE_FAIL~;
     task.track_ref();
 
     task.spawnInfo = (SpawnInfo*)mem::alloc(SpawnInfo.sizeof); // TODO: map to read only page in userspace

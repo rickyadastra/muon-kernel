@@ -31,7 +31,7 @@ bitstruct AddressLength : ushort {
 macro bool supported() => supportsCpuid;
 
 fn void? execute_raw(Register* a, Register* b, Register* c, Register* d) {
-    if (!supported()) return CPUID_UNSUPPORTED?;
+    if (!supported()) return CPUID_UNSUPPORTED~;
 
     Register _a, _b, _c, _d;
 
@@ -72,7 +72,7 @@ fn void? enable() {
     cpu::write_rflags(rflags);
 
     // test is ID bit has changed, if not raise CPUID_UNSUPPORTED
-    if (!cpu::read_rflags().id) return CPUID_UNSUPPORTED?;
+    if (!cpu::read_rflags().id) return CPUID_UNSUPPORTED~;
     supportsCpuid = true;
 } 
 

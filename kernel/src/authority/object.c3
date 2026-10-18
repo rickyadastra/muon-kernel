@@ -25,7 +25,7 @@ fn bool? unregister(KernelObject obj) {
     lock.acquire();
     defer lock.release();
 
-    if (obj.get_ref_count() > 0) return STILL_REFERENCED?;
+    if (obj.get_ref_count() > 0) return STILL_REFERENCED~;
     logging::printn("Unregistering object %x", obj.ptr);
 
     return objects.remove(obj);

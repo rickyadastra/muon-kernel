@@ -31,8 +31,8 @@ macro cr4_enable_osfxsr_xmmexcpt() @local {
 }
 
 fn void? enable() {
-    if (!cpuid::query_feature(SSE_SUPPORT)!) return SSE_UNSUPPORTED?;
-    if (!cpuid::query_feature(SSE2_SUPPORT)!) return SSE2_UNSUPPORTED?;
+    if (!cpuid::query_feature(SSE_SUPPORT)!) return SSE_UNSUPPORTED~;
+    if (!cpuid::query_feature(SSE2_SUPPORT)!) return SSE2_UNSUPPORTED~;
 
     cr0_disable_emulation_enable_monitor();
     cr4_enable_osfxsr_xmmexcpt();

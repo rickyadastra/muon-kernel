@@ -40,7 +40,7 @@ fn Handle? create(EntryPointFn entryPoint) {
     // parent is null only for init task, which can do whatever it want
     if (parent != null) {
         ObjectSlot* slot = parent.handles.get(parent.spawnInfo.taskHandle);
-        if (!handle::check_rights(*slot, (ObjectRights)task::CAN_CREATE_RIGHTS)) return handle::NO_PERMISSION?;
+        if (!handle::check_rights(*slot, (ObjectRights)task::CAN_CREATE_RIGHTS)) return handle::NO_PERMISSION~;
     }
 
     Task* task = task::create(entryPoint, parent: parent)!;
@@ -126,7 +126,7 @@ macro void? remove_handle_from(ObjectTable table, Handle handle) @local {
     if (table.get(handle).object.type == Task.typeid) {
         authority::revoke(table, handle)!;
     } else {
-        return handle::TYPE_MISMATCH?;
+        return handle::TYPE_MISMATCH~;
     }
 }
 
@@ -176,7 +176,7 @@ fn void? set_aux_handle(Handle destTaskHandle, usz id, Handle newHandle) {
         task.spawnInfo.auxHandles[id] = handle;
         
     } else {
-        return handle::TYPE_MISMATCH?;
+        return handle::TYPE_MISMATCH~;
     }
 }
 

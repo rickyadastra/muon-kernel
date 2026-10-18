@@ -40,7 +40,7 @@ fn Datetime epoch_to_datetime(ulong time) {
 }
 
 fn ulong? Datetime.seconds_since_epoch(&self) {
-    if (self.year < 1970) return INVALID_YEAR?;
+    if (self.year < 1970) return INVALID_YEAR~;
 
     ulong totalDays = 0;
 

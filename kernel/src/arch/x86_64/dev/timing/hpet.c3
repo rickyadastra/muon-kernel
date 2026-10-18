@@ -34,7 +34,7 @@ macro bool @test_timer_routing(#timer, #route) @local {
     @require timer <= timerCount
 *>
 fn void? init_timer(char timer) @local {
-    if (!@test_timer_routing(timer, TIMER_IRQ_BASE+timer)) return UNSUPPORTED_ROUTING?;
+    if (!@test_timer_routing(timer, TIMER_IRQ_BASE+timer)) return UNSUPPORTED_ROUTING~;
 
     TimerCapabConfigRegister timerCapreg = @hpet_timer_read(timer, HPETRegister.TIMER_CONFIG_CAPAB_BASE, TimerCapabConfigRegister);
     timerCapreg.interruptRoute = TIMER_IRQ_BASE+timer;

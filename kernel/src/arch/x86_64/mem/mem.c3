@@ -21,7 +21,7 @@ fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
         if (reg.type == AVAILABLE && reg.base > LEGACY_BIOS_LIMIT && reg.size >= byteSize) return reg.base;
     }
 
-    return MEMORY_UNAVAILABLE?;
+    return MEMORY_UNAVAILABLE~;
 }
 
 fn void? mark_memory_regions(MemoryRegion[] regions) @local {

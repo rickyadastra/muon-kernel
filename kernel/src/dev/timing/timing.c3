@@ -5,7 +5,7 @@ import std::lock;
 import arch::mem;
 import muon;
 
-ulong? wallclock @private = WALLCLOCK_NOT_SET?;
+ulong? wallclock @private = WALLCLOCK_NOT_SET~;
 ulong uptime @private;
 
 // timer subsystem

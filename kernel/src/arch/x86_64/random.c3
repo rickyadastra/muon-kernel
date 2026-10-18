@@ -5,7 +5,7 @@ import arch::cpu;
 faultdef RAND_FAIL, RAND_NOT_AVAIL, RAND_AVAIL_NOT_SET;
 
 const usz MAX_RDRAND_RETRIES = 10;
-bool? rdrandAvail = RAND_AVAIL_NOT_SET?;
+bool? rdrandAvail = RAND_AVAIL_NOT_SET~;
 
 fn ulong? rdrand64() @local {
     ulong rand;
@@ -22,12 +22,12 @@ fn ulong? rdrand64() @local {
         if (valid) break;
     }
 
-    return valid ? rand : RAND_FAIL?;
+    return valid ? rand : RAND_FAIL~;
 }
 
 fn ulong? random() {
     if (try rdrandAvail) {
-        if (!rdrandAvail) return RAND_NOT_AVAIL?;
+        if (!rdrandAvail) return RAND_NOT_AVAIL~;
     } else {
         rdrandAvail = cpuid::query_feature(RDRAND_SUPPORT)!;
     }

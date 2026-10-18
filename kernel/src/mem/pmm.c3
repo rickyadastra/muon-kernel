@@ -44,7 +44,7 @@ macro update_stats(FrameState newState, usz amount) {
 }
 
 fn FrameState? get(usz frameId) @inline {
-    if (frameId >= frameTotal) return INVALID_FRAME_INDEX?;
+    if (frameId >= frameTotal) return INVALID_FRAME_INDEX~;
 
     bool set = pmap[@frame_row(frameId)] & (1ul << @frame_bit(frameId)) != 0;
     return set ? FrameState.USED : FrameState.FREE;
@@ -55,8 +55,8 @@ fn FrameState? get(usz frameId) @inline {
   @require state == FREE || state == USED : "Invalid frame state (pmm)"
 *>
 fn void? mark(usz frameId, FrameState state) @private {
-    if (frameId >= frameTotal) return INVALID_FRAME_INDEX?;
-    if (state == USED && frameFree == 0) return OUT_OF_MEMORY?;
+    if (frameId >= frameTotal) return INVALID_FRAME_INDEX~;
+    if (state == USED && frameFree == 0) return OUT_OF_MEMORY~;
 
     FrameState old = get(frameId)!; 
     BitmapRow mask = (BitmapRow)(1ul << @frame_bit(frameId));
@@ -104,7 +104,7 @@ fn PhysAddr? alloc_single() @local {
         }
     }
 
-    return OUT_OF_MEMORY?;
+    return OUT_OF_MEMORY~;
 }
 
 fn PhysAddr? alloc_series(usz size) {
@@ -129,7 +129,7 @@ fn PhysAddr? alloc_series(usz size) {
         }
     }
 
-    return OUT_OF_MEMORY?;
+    return OUT_OF_MEMORY~;
 }
 
 <*

@@ -66,7 +66,7 @@ fn void LinkedList.add(&self, Type data) {
 }
 
 fn void? LinkedList.insert_at(&self, usz index, Type data) {
-    if (index > self.size) return collections::OUT_OF_BOUNDS?;
+    if (index > self.size) return collections::OUT_OF_BOUNDS~;
 
     Node* cur = self._head;
     for (usz i=0; i < index; i++) cur = cur.next;
@@ -121,7 +121,7 @@ macro LinkedList.remove_node(&self, Node* cur) @local {
 }
 
 fn Type? LinkedList.remove_at(&self, usz index) {
-    if (index >= self.size) return collections::OUT_OF_BOUNDS?;
+    if (index >= self.size) return collections::OUT_OF_BOUNDS~;
 
     Node* cur = self._head;
     for (usz i=0; i < index; i++) cur = cur.next;
@@ -161,7 +161,7 @@ fn void LinkedList.remove_all(&self, Type el) @if(IS_EQUATABLE) {
 }
 
 fn Type? LinkedList.get(&self, usz index) {
-    if (index >= self.size) return collections::OUT_OF_BOUNDS?;
+    if (index >= self.size) return collections::OUT_OF_BOUNDS~;
 
     Node* cur = self._head;
     for (usz i=0; i < index; i++) cur = cur.next;
@@ -172,12 +172,12 @@ fn Type? LinkedList.get(&self, usz index) {
 fn bool LinkedList.is_empty(&self) => self._head == null;
 
 fn Type? LinkedList.first(&self) {
-    if (self.is_empty()) return collections::OUT_OF_BOUNDS?;
+    if (self.is_empty()) return collections::OUT_OF_BOUNDS~;
     return self._head.data;
 }
 
 fn Type? LinkedList.last(&self) {
-    if (self.is_empty()) return collections::OUT_OF_BOUNDS?;
+    if (self.is_empty()) return collections::OUT_OF_BOUNDS~;
     return self._tail.data;
 }
 
@@ -204,7 +204,7 @@ fn bool LinkedListMutableIterator.has_next(&self) @dynamic {
 }
 
 fn Type? LinkedListMutableIterator.next(&self) @dynamic {
-    if (self._next == null) return collections::ITERATOR_ILLEGAL_STATE?;
+    if (self._next == null) return collections::ITERATOR_ILLEGAL_STATE~;
     
     self._cur = self._next;
     self._next = self._next.next;
@@ -252,7 +252,7 @@ fn void LinkedListMutableIterator.insert(&self, Type data) @dynamic {
 }
 
 fn void? LinkedListMutableIterator.set(&self, Type newValue) @dynamic {
-    if (self._cur == null) return collections::ITERATOR_ILLEGAL_STATE?;
+    if (self._cur == null) return collections::ITERATOR_ILLEGAL_STATE~;
     
     self._cur.data = newValue;
 }

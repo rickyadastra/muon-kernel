@@ -19,7 +19,7 @@ struct RingBuffer (IOStream) {
     @ensure self.count >= 0, self.count <= SIZE
 *>
 fn void? RingBuffer.put(&self, char c) @dynamic {
-    if (self.is_full()) return stream::FULL?;
+    if (self.is_full()) return stream::FULL~;
 
     self.buffer[self.head] = c;
 
@@ -31,7 +31,7 @@ fn void? RingBuffer.put(&self, char c) @dynamic {
     @ensure self.count >= 0, self.count <= SIZE
 *>
 fn usz? RingBuffer.write(&self, char[] data) @dynamic {
-    if (self.is_full()) return stream::FULL?;
+    if (self.is_full()) return stream::FULL~;
 
     usz actualLen = math::min(data.len, (usz)SIZE - self.count);
     self.buffer[self.head:actualLen] = data[:actualLen];
@@ -46,7 +46,7 @@ fn usz? RingBuffer.write(&self, char[] data) @dynamic {
     @ensure self.count >= 0, self.count <= SIZE
 *>
 fn char? RingBuffer.get(&self) @dynamic {
-    if (self.is_empty()) return stream::EMPTY?;
+    if (self.is_empty()) return stream::EMPTY~;
 
     self.count--;
     char c = self.buffer[self.tail];
@@ -59,7 +59,7 @@ fn char? RingBuffer.get(&self) @dynamic {
     @ensure self.count >= 0, self.count <= SIZE
 *>
 fn char[]? RingBuffer.read(&self, usz len) @dynamic {
-    if (self.is_empty()) return stream::EMPTY?;
+    if (self.is_empty()) return stream::EMPTY~;
 
     usz actualLen = math::min(len, self.count);
     self.count -= actualLen;
@@ -70,7 +70,7 @@ fn char[]? RingBuffer.read(&self, usz len) @dynamic {
 }
 
 fn char? RingBuffer.peek(&self) {
-    if (self.is_empty()) return stream::EMPTY?;
+    if (self.is_empty()) return stream::EMPTY~;
     return self.buffer[self.tail];
 }
 

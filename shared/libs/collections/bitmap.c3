@@ -85,7 +85,7 @@ fn usz? BitMap.find_free(BitMap* self) {
         }
     }
 
-    return collections::BITMAP_FULL?;
+    return collections::BITMAP_FULL~;
 }
 
 fn usz BitMap.cardinality(BitMap* self) {

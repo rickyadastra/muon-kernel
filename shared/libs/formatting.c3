@@ -63,7 +63,7 @@ fn ulong? any_to_decimal(any arg, bool* negative, typeid* type) {
                     value = (ulong)*(double*)arg;
                     *negative = (double)value < 0;
                 default: 
-                    return BAD_VALUE?;
+                    return BAD_VALUE~;
             }
     }
 
@@ -107,7 +107,7 @@ fn double? any_to_float(any arg, typeid* type) {
                 case double:
                     value = (double)*(double*)arg;
                 default: 
-                    return BAD_VALUE?;
+                    return BAD_VALUE~;
             }
     }
 
@@ -154,7 +154,7 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 
     }
 
     usz totalBufLen = fmtLen + (base != 10 ? 2 : 0) + (negative ? 1 : 0);
-    if (totalBufLen > buf.len) return FORMAT_BUFFER_EXCEEDED?;
+    if (totalBufLen > buf.len) return FORMAT_BUFFER_EXCEEDED~;
 
     usz j = 0;
     if (negative) {
@@ -373,12 +373,12 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
         precision = math::min(precision, math::max((isz)0, 9 * (z - r - 1) + exponent - j));
     }
     
-    if (precision > int.max - 1 - (isz)(precision ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED?;
+    if (precision > int.max - 1 - (isz)(precision ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
     int l = (int)(1 + precision + (isz)(precision ? 1 : 0));
     char* estr @noinit;
 
     if (formatting == FLOAT) {
-        if (exponent > int.max - l) return INTERNAL_BUFFER_EXCEEDED?;
+        if (exponent > int.max - l) return INTERNAL_BUFFER_EXCEEDED~;
         if (exponent > 0) l += exponent;
     } else {
         estr = fmt_u((ulong)(exponent < 0 ? -exponent : exponent), ebufPtr);
@@ -387,11 +387,11 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
         if (exponent < 0) *--estr = '-';
         *--estr = 'e';
         
-        if (ebufPtr - estr > (isz)int.max - l) return INTERNAL_BUFFER_EXCEEDED?;
+        if (ebufPtr - estr > (isz)int.max - l) return INTERNAL_BUFFER_EXCEEDED~;
         l += (int)(ebufPtr - estr);
     }
 
-    if (l > int.max - (negative ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED?;
+    if (l > int.max - (negative ? 1 : 0)) return INTERNAL_BUFFER_EXCEEDED~;
     usz len = 0;
     
     if (negative) buf[len++] = '-';
@@ -453,7 +453,7 @@ fn usz? format_any_to_float(any arg, char[] buf, FloatFormatting formatting = AD
 }
 
 macro any? @get_arg(#args, #i) {
-    if (#i >= #args.len) return MISSING_ARGUMENT?;
+    if (#i >= #args.len) return MISSING_ARGUMENT~;
     return #args[#i++]; 
 }
 
@@ -507,15 +507,15 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
                 len += format_any_to_float(@get_arg(args, va_i), self.buffer[len..])!;
             case 'c':
                 char arg = *(char*)@get_arg(args, va_i)!;
-                if (len + 1 > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED?;
+                if (len + 1 > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED~;
                 self.buffer[len++:1] = arg;
             case 's':
                 String arg = *(String*)@get_arg(args, va_i)!;
-                if (len + arg.len > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED?;
+                if (len + arg.len > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED~;
                 self.buffer[len:arg.len] = arg[..];
                 len += arg.len;
             default:
-                if (len + 2 > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED?;
+                if (len + 2 > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED~;
                 self.buffer[len:2] = ((char[2]){'%', c})[..];
                 len += 2;
 
