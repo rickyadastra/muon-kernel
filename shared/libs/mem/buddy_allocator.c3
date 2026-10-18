@@ -36,7 +36,7 @@ fn BuddyAllocator? init(AllocPageFn allocFn, FreePageFn freeFn) {
     @require i <= MAX_ORDER - MIN_ORDER
     @require block.next == null
 *>
-fn void BuddyAllocator.freelist_add(&self, usz i, BuddyBlockHeader* block) @local {
+fn void BuddyAllocator.freelist_add(&self, usz i, BuddyBlockHeader* block) {
     block.next = self.freelist[i];
     self.freelist[i] = block;
 }
@@ -45,14 +45,14 @@ fn void BuddyAllocator.freelist_add(&self, usz i, BuddyBlockHeader* block) @loca
     @require i <= MAX_ORDER - MIN_ORDER
     @ensure return.next == null
 *>
-fn BuddyBlockHeader* BuddyAllocator.freelist_remove(&self, usz i) @local {
+fn BuddyBlockHeader* BuddyAllocator.freelist_remove(&self, usz i) {
     BuddyBlockHeader* block = self.freelist[i];
     self.freelist[i] = block.next;
     block.next = null;
     return block;
 }
 
-fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) @local { 
+fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) { 
     BuddyBlockHeader* first = block;
     BuddyBlockHeader* second = (BuddyBlockHeader*)((uptr)block+(allocator::@order_size(order)/2));
 
@@ -62,7 +62,7 @@ fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) @local {
     return { first, second };
 }
 
-fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @local {
+fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) {
     BuddyBlockHeader*[2] splits;
 
     if (idx >= self.freelist.len) {      // get a new block from alloc
