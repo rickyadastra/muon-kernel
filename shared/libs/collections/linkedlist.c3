@@ -2,7 +2,7 @@ module std::collections;
 
 faultdef OUT_OF_BOUNDS;
 
-module std::collections::linkedlist{Type};
+module std::collections::linkedlist<Type>;
 
 const IS_EQUATABLE = Type.is_eq;
 

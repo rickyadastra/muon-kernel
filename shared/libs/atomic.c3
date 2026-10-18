@@ -24,7 +24,7 @@ macro fetch_sub(ptr, y, AtomicOrdering $ordering = SEQ_CONSISTENT, bool $volatil
     return $$atomic_fetch_sub(ptr, y, $volatile, $ordering.ordinal, $alignment); 
 }
 
-module std::atomic::types{Type};
+module std::atomic::types<Type>;
 
 struct Atomic {
     Type data;
