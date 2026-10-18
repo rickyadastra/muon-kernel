@@ -34,17 +34,17 @@ struct PagingPath {
 }
 
 enum KnownPagingPath : uint (PagingPath path) {
-    PHYSMAP             {KnownTableEntry.KERNEL.idx, 0, 0, 0},
-    MMIO                {KnownTableEntry.MMIO.idx, 0, 0, 0},
-    ACPI                {KnownTableEntry.KERNEL.idx, 504, 0, 0},
-    PMM_BITMAP          {KnownTableEntry.KERNEL.idx, 508, 0, 0},
-    KERNEL_STACKS       {KnownTableEntry.KERNEL.idx, 509, 0, 0},
-    KERNEL              {KnownTableEntry.KERNEL.idx, 510, 0, 0},
+    PHYSMAP             { {KnownTableEntry.KERNEL.idx, 0, 0, 0} },
+    MMIO                { {KnownTableEntry.MMIO.idx, 0, 0, 0} },
+    ACPI                { {KnownTableEntry.KERNEL.idx, 504, 0, 0} },
+    PMM_BITMAP          { {KnownTableEntry.KERNEL.idx, 508, 0, 0} },
+    KERNEL_STACKS       { {KnownTableEntry.KERNEL.idx, 509, 0, 0} },
+    KERNEL              { {KnownTableEntry.KERNEL.idx, 510, 0, 0} },
 
-    RECURSE_PT          {KnownTableEntry.SELF.idx, 0, 0, 0},
-    RECURSE_PD          {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0, 0},
-    RECURSE_PDPT        {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0},
-    RECURSE_PML4        {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx},
+    RECURSE_PT          { {KnownTableEntry.SELF.idx, 0, 0, 0} },
+    RECURSE_PD          { {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0, 0} },
+    RECURSE_PDPT        { {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0} },
+    RECURSE_PML4        { {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx} },
 }
 
 bitstruct TableEntry : ulong {
