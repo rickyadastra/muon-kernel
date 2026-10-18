@@ -8,8 +8,8 @@ bool supportsCpuid @local = false;
 Register scratch @local;
 
 enum CPUIDLeaf : usz (Register a, Register c) @local {
-    FEATURE_INFORMATION     = {0x01, 0},
-    PHYSICAL_ADDRESS_SIZE   = {0x80000008, 0},
+    FEATURE_INFORMATION     {0x01, 0},
+    PHYSICAL_ADDRESS_SIZE   {0x80000008, 0},
 }
 
 constset CPUFeature : char {

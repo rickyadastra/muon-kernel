@@ -38,12 +38,12 @@ bitstruct SegmentAccess : char @overlap {
 }
 
 enum SegmentType : ushort (char flags) {
-    NULL    = 0b0000,
-    DATA_64 = 0b1000,
-    CODE_64 = 0b1010,
-    DATA_32 = 0b1100,
-    CODE_32 = 0b1100,
-    TSS     = 0b0000,
+    NULL    { 0b0000 },
+    DATA_64 { 0b1000 },
+    CODE_64 { 0b1010 },
+    DATA_32 { 0b1100 },
+    CODE_32 { 0b1100 },
+    TSS     { 0b0000 },
 }
 
 struct SegmentDescriptor {

@@ -1,8 +1,8 @@
 module arch::cpu::idt;
 
 enum GateType : char (char flags) {
-    INTERRUPT   = 0xe,
-    TRAP        = 0xf,
+    INTERRUPT  { 0xe },
+    TRAP       { 0xf },
 }
 
 bitstruct SegmentSelector : ushort {
