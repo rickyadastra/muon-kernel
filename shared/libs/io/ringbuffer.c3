@@ -1,7 +1,7 @@
 <*
     @require SIZE > 1
 *>
-module std::io::ringbuffer{SIZE};
+module std::io::ringbuffer<SIZE>;
 
 import std::math;
 import std::io::stream;
