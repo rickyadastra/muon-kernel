@@ -1,0 +1,3 @@
+[submodule "boot/boson"]
+	path = boot/boson
+	url = https://github.com/rickyadastra/boson-bootloader.git

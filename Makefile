@@ -1,9 +1,8 @@
 BUILD_DIR 		:= ./.build
-TOOLCHAIN_DIR 	:= ./toolchain
 FATIMG			:= fat.img
 
 BOSON_BUILDDIR	:= $(BUILD_DIR)/boson
-BOSON_TARGET 	:= $(BUILD_DIR)/boson/bootloader/boson.efi
+BOSON_TARGET 	:= $(BUILD_DIR)/boson/boson.efi
 
 MUON_BUILDDIR	:= $(BUILD_DIR)/muon
 MUON_TARGET 	:= $(BUILD_DIR)/muon/muon.elf
@@ -32,6 +31,8 @@ GDB_FLAGS 		= -ex "target remote localhost:1234" \
 				  -ex "symbol-file ${MUON_TARGET}" \
 				  -ex "hbr arch.panic"
 
+MAKEFLAGS += --no-print-directory
+
 .PHONY: $(BOSON_TARGET) $(MUON_TARGET) $(FATIMG) all run debug
 
 all: boson muon
@@ -39,16 +40,13 @@ boson: $(BOSON_TARGET)
 muon: $(MUON_TARGET)
 $(FATIMG): $(BUILD_DIR)/$(FATIMG)
 
-$(BOSON_TARGET): 
+$(BOSON_TARGET): check-ver | $(BUILD_DIR)
 	@echo "[Make] Building boson bootloader"
-	@meson compile -C $(BOSON_BUILDDIR)
+	@$(MAKE) -C boot/boson BUILD_DIR=../../$(BOSON_BUILDDIR)
 
-$(MUON_TARGET): check-ver
+$(MUON_TARGET): check-ver | $(BUILD_DIR)
 	@echo "[Make] Building muon kernel"
 	@$(C3C) build $(C3C_FLAGS) --build-dir $(MUON_BUILDDIR) --output-dir $(MUON_BUILDDIR)
-
-setup:
-	@meson setup .build/boson . --cross-file $(TOOLCHAIN_DIR)/boson-toolchain.txt -Dtarget=boson-bootloader
 
 clear:
 	@rm -rf $(BUILD_DIR)
@@ -68,6 +66,9 @@ run: $(BUILD_DIR)/$(FATIMG)
 debug: $(BUILD_DIR)/$(FATIMG)
 	@$(QEMU) $(QEMU_DEBUG) $(QEMU_FLAGS) -drive file=$<,format=raw &
 	@$(GDB) $(GDB_FLAGS)
+
+$(BUILD_DIR):
+	@mkdir -p $@
 
 check-ver:
 	@RES=$$( { echo "$(C3C_VERSION)"; echo "$(C3C_MIN_VER)"; } | sort -V | head -n1 ); \
