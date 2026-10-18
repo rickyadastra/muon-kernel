@@ -1,0 +1,37 @@
+{
+    "langrev": "1",
+    "warnings": [
+        "no-unused"
+    ],
+    "authors": [
+        "rickyadastra"
+    ],
+    "version": "0.4.0",
+    "sources": [
+        "kernel/src/**",
+        "shared/libs/**"
+    ],
+    "test-sources": [],
+    "build-dir": "./.build",
+    "output": "./.build",
+    "panicfn": "arch::panicfn",
+    "targets": {
+        "muon-x64": {
+            "type": "executable",
+            "name": "muon",
+            "extension": ".elf",
+            "target": "elf-x64",
+            "use-stdlib": false,
+            "link-libc": false,
+            "no-entry": true,
+            "x86cpu": "baseline",
+            "linker": "builtin",
+            "link-args": [
+                "-Tscripts/linkerscripts/x86_64.ld",
+                "-zmax-page-size=0x1000",
+                "-static",
+                "-ztext"
+            ]
+        }
+    }
+}
