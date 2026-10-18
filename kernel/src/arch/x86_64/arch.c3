@@ -56,12 +56,12 @@ fn void panic() {
     cpu::idle();
 }
 
-alias PanicFn = fn void(String message, String file, String function, uint line);
+alias PanicFn = fn void(String message, String file, String function, int line);
 PanicFn panicfn = &log_and_panic;
 
-fn void log_and_panic(String message, String file = "", String function = "", uint line = 0) {
-    logging::panic(message, file: file, function: function, line: line);
+fn void log_and_panic(String message, String file = "", String function = "", int line = 0) {
+    logging::panic(message, file: file, function: function, line: (uint)line);
     arch::panic();
 }
 
-fn void stack_check_fail() @noreturn @export @extern("__stack_chk_fail") => log_and_panic("stack smashing detected");
+fn void stack_check_fail() @noreturn @export @cname("__stack_chk_fail") => log_and_panic("stack smashing detected");

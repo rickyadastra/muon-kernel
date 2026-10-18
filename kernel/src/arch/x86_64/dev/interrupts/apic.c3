@@ -14,7 +14,7 @@ const uint LEGACY_IRQ_BASE = 0x20;
 
 MADTable* madt @local;
 MemIO lapic @local;
-char lapicId @local = char.max;
+char lapicId @local = char::max;
 usz ioapicCount @local = 0;
 IOApic[MAX_IOAPIC_COUNT] ioapics @local; 
 
@@ -23,7 +23,7 @@ macro uint @lapic_read(#reg) => lapic.read32((ulong)#reg);
 
 fn void? setup_lapic() @private {
     APICBaseMSR msr = (APICBaseMSR)cpu::read_msr(ModelSpecificRegister.APIC);
-    if (!msr.globalEnable) return APIC_DISABLED?;
+    if (!msr.globalEnable) return APIC_DISABLED~;
 
     msr.baseAddr = lapic >> 12;
     cpu::write_msr(ModelSpecificRegister.APIC, (ulong)msr);
@@ -79,10 +79,10 @@ fn void ioapic_set_redirect(uint gsi, char irq, InterruptFlags flags, char desti
 
             // register iso to redtbl
             ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2));
-            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)((ulong)redEntry & uint.max));
+            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)((ulong)redEntry & uint::max));
 
             ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2) + 1);
-            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)(((ulong)redEntry >> 32) & uint.max));
+            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)(((ulong)redEntry >> 32) & uint::max));
         }
     }
 }
@@ -100,7 +100,7 @@ fn void ioapic_set_mask(uint gsi, bool masked, bool cancelPending) @private {
 
             // register iso to redtbl
             ioapic.mmAddr.write32(IOAPIC_REGSEL, (uint)IOAPICRegister.IOAPIC_REDTBL_BASE + (gsi*2));
-            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)((ulong)entryLow & uint.max));
+            ioapic.mmAddr.write32(IOAPIC_REGWIN, (uint)((ulong)entryLow & uint::max));
         }
     }
 }
@@ -132,7 +132,7 @@ fn void? parse_madt(MADTable* madt) @local {
             LocalAPICRecord* lapicRecord = (LocalAPICRecord*)recordPtr;
 
             // set the Local APIC ID for the CPU that will handle all interrupts
-            if (lapicId == char.max) lapicId = lapicRecord.apicId;
+            if (lapicId == char::max) lapicId = lapicRecord.apicId;
 
             logging::debug("Found Local APIC #%d (ACPI Processor ID: %d)", lapicRecord.apicId, lapicRecord.acpiProcessorId);
 

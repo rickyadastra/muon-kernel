@@ -36,7 +36,7 @@ fn BuddyAllocator? init(AllocPageFn allocFn, FreePageFn freeFn) {
     @require i <= MAX_ORDER - MIN_ORDER
     @require block.next == null
 *>
-fn void BuddyAllocator.freelist_add(&self, usz i, BuddyBlockHeader* block) @local {
+fn void BuddyAllocator.freelist_add(&self, usz i, BuddyBlockHeader* block) {
     block.next = self.freelist[i];
     self.freelist[i] = block;
 }
@@ -45,14 +45,14 @@ fn void BuddyAllocator.freelist_add(&self, usz i, BuddyBlockHeader* block) @loca
     @require i <= MAX_ORDER - MIN_ORDER
     @ensure return.next == null
 *>
-fn BuddyBlockHeader* BuddyAllocator.freelist_remove(&self, usz i) @local {
+fn BuddyBlockHeader* BuddyAllocator.freelist_remove(&self, usz i) {
     BuddyBlockHeader* block = self.freelist[i];
     self.freelist[i] = block.next;
     block.next = null;
     return block;
 }
 
-fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) @local { 
+fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) { 
     BuddyBlockHeader* first = block;
     BuddyBlockHeader* second = (BuddyBlockHeader*)((uptr)block+(allocator::@order_size(order)/2));
 
@@ -62,7 +62,7 @@ fn BuddyBlockHeader*[2] split(BuddyBlockHeader* block, usz order) @local {
     return { first, second };
 }
 
-fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @local {
+fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, usz idx) {
     BuddyBlockHeader*[2] splits;
 
     if (idx >= self.freelist.len) {      // get a new block from alloc
@@ -74,7 +74,7 @@ fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @loca
 
             return bblock;
         } else {
-            return allocator::OUT_OF_MEMORY?;
+            return allocator::OUT_OF_MEMORY~;
         }
 
     } else if (self.freelist[idx] != null) {
@@ -88,10 +88,10 @@ fn BuddyBlockHeader*? BuddyAllocator.get_from_parent_block(&self, int idx) @loca
 }
 
 fn void*? BuddyAllocator.acquire(&self, usz size) @dynamic {
-    if (size > allocator::@order_size(MAX_ORDER) - BuddyBlockHeader.sizeof) return allocator::INVALID_ALLOC_SIZE?;
+    if (size > allocator::@order_size(MAX_ORDER) - BuddyBlockHeader::size) return allocator::INVALID_ALLOC_SIZE~;
 
-    usz order = $$max(allocator::@order_of(size+BuddyBlockHeader.sizeof), MIN_ORDER);
-    int idx = (int)order - MIN_ORDER;
+    usz order = $$max(allocator::@order_of(size+BuddyBlockHeader::size), MIN_ORDER);
+    usz idx = order - MIN_ORDER;
 
     BuddyBlockHeader* block;
 
@@ -107,17 +107,17 @@ fn void*? BuddyAllocator.acquire(&self, usz size) @dynamic {
     block.size = allocator::@order_size(order);
     self.usedMemory += allocator::@order_size(order);
 
-    return (void*)((char*)block + BuddyBlockHeader.sizeof);
+    return (void*)((char*)block + BuddyBlockHeader::size);
 }
 
 fn void? BuddyAllocator.release(&self, void* ptr) @dynamic {
-    if (ptr == null) return allocator::INVALID_FREE?;
+    if (ptr == null) return allocator::INVALID_FREE~;
 
-    BuddyBlockHeader* header = (BuddyBlockHeader*)(ptr - BuddyBlockHeader.sizeof);
+    BuddyBlockHeader* header = (BuddyBlockHeader*)(ptr - BuddyBlockHeader::size);
 
     usz order = allocator::@order_of(header.size);
     usz size = header.size;
-    int idx = (int)order - MIN_ORDER;
+    usz idx = order - MIN_ORDER;
 
     self.usedMemory -= size;
 

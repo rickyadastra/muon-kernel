@@ -2,7 +2,7 @@ module datetime;
 
 macro bool @is_leap_year(#year) => (#year % 4 == 0 && #year % 100 != 0) || (#year % 400 == 0);
 
-fn Datetime to_datetime(int year, int month, int day, int hour, int minute, int second) {
+fn Datetime to_datetime(uint year, uint month, uint day, uint hour, uint minute, uint second) {
     return {
         year, month, day, hour, minute, second
     };
@@ -40,7 +40,7 @@ fn Datetime epoch_to_datetime(ulong time) {
 }
 
 fn ulong? Datetime.seconds_since_epoch(&self) {
-    if (self.year < 1970) return INVALID_YEAR?;
+    if (self.year < 1970) return INVALID_YEAR~;
 
     ulong totalDays = 0;
 
@@ -71,5 +71,5 @@ fn Weekday Datetime.weekday(&self) {
     uint offset = MONTH_OFFSET[(char)@is_leap_year(self.year)][self.month-1];
     uint weekday = (self.day + offset + 5*((self.year-1)%4) + 4*((self.year-1)%100) + 6*((self.year-1)%400))%7;
 
-    return Weekday.values[weekday];
+    return Weekday::values[weekday];
 }

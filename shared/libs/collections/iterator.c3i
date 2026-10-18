@@ -2,7 +2,7 @@ module std::collections;
 
 faultdef ITERATOR_ILLEGAL_STATE;
 
-module std::collections::iterator{Type};
+module std::collections::iterator<Type>;
 
 interface Iterable {
     fn Iterator{Type} iterator();

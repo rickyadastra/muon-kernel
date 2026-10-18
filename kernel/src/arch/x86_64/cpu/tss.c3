@@ -16,12 +16,12 @@ fn TSSDescriptor construct_descriptor(uptr base, uint limit, SegmentAccess acces
 }
 
 fn void setup(TSSDescriptor* tssd, uptr kernelStack) {
-    tss.iopb = TaskStateSegment.sizeof;
+    tss.iopb = TaskStateSegment::size;
     tss.rsp0 = kernelStack;
     tss.ist1 = (uptr)&ist1 + (IST_SIZE*0x1000); // stack is top-down
     
     *tssd = construct_descriptor(
-        (uptr)&tss, (uint)(uptr)&tss + TaskStateSegment.sizeof,
+        (uptr)&tss, (uint)(uptr)&tss + TaskStateSegment::size,
         gdt::segment_access_of(sysType: TSS_64_AVAIL, type: SYSTEM, privilege_level: KERNEL, present: true),
         SegmentType.TSS
     );

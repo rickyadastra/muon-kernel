@@ -19,7 +19,7 @@ macro Handle? create_handle(Task* owner, Task* task, TaskObjectRights rights = {
 
 fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_STACK_SIZE, TaskState state = READY,
                 Task* parent = scheduler::get_current_task()) @private {
-    if (stackSize < DEFAULT_KERNEL_STACK_SIZE) return INIT_STACK_TOO_SMALL?;
+    if (stackSize < DEFAULT_KERNEL_STACK_SIZE) return INIT_STACK_TOO_SMALL~;
 
 	scheduler::lock_scheduler();
 	defer scheduler::unlock_scheduler();
@@ -28,10 +28,10 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
     if (entryPoint != null && stackSize > 0) {
         // TODO: move stack setup in TaskSpace.init
         stackBase = mem::alloc_pages(stackSize);
-        if (catch stackBase) return task::INIT_STACK_FAIL?;
+        if (catch stackBase) return task::INIT_STACK_FAIL~;
     }
     
-    Task* task = mem::alloc(Task.sizeof);
+    Task* task = mem::alloc(Task::size);
 
     task.id = scheduler::nextTaskId.add(1);
     task.state = state;
@@ -40,10 +40,10 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
 
     // create self handle
     Handle? selfHandle = create_handle(task, task, DEFAULT_SELF); 
-    if (catch selfHandle) return INIT_SELF_HANDLE_FAIL?;
+    if (catch selfHandle) return INIT_SELF_HANDLE_FAIL~;
     task.track_ref();
 
-    task.spawnInfo = (SpawnInfo*)mem::alloc(SpawnInfo.sizeof); // TODO: map to read only page in userspace
+    task.spawnInfo = (SpawnInfo*)mem::alloc(SpawnInfo::size); // TODO: map to read only page in userspace
     task.spawnInfo.taskHandle = selfHandle;
 
     // parent will receive a handle to the new task, track it
@@ -192,7 +192,7 @@ fn void? sleep_ms(usz ms) {
     scheduler::lock_scheduler();
 
     Task* task = scheduler::get_current_task();
-    ResumeContext* resCtx = mem::alloc(ResumeContext.sizeof);
+    ResumeContext* resCtx = mem::alloc(ResumeContext::size);
     resCtx.resumingHandle = task.spawnInfo.taskHandle;
     resCtx.actor = task;
     
@@ -200,7 +200,7 @@ fn void? sleep_ms(usz ms) {
         ResumeContext*? resumeCtx = anycast(e.context, ResumeContext);
 
         if (catch ex = resumeCtx) {
-            logging::printn("error after sleep: %s", ex.nameof);
+            logging::printn("error after sleep: %s", ex.description);
 
         } else {
             // clear pending event
@@ -209,7 +209,7 @@ fn void? sleep_ms(usz ms) {
             // resume task if is suspended
             if (resumeCtx.actor.state == TaskState.SUSPENDED) {
                 if (catch exx = process::resume_after_sleep(*resumeCtx)) {
-                    logging::printn("error after sleep: %s", exx.nameof);
+                    logging::printn("error after sleep: %s", exx.description);
                 }
             }
         }
@@ -235,6 +235,6 @@ fn void block(Task* task) {
     @require cmdline.len > 0
 *>
 macro set_command_line(Task* task, String cmdline) {
-    task.spawnInfo.commandLine = (String)((char*)mem::alloc(char.sizeof*cmdline.len))[:cmdline.len];
+    task.spawnInfo.commandLine = (String)((char*)mem::alloc(char::size*cmdline.len))[:cmdline.len];
     task.spawnInfo.commandLine[..] = cmdline[..];
 }

@@ -22,11 +22,11 @@ fn TableEntry PageTable.get(PageTable* self, usz i) => (*self)[i];
 fn void PageTable.clear(PageTable* self, usz i) => (*self)[i] = (TableEntry){};
 
 macro PageTable @as_table(uptr #ptr) => (PageTable)((TableEntry*)#ptr)[:TABLE_ENTRIES];
-macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong.sizeof * 8) - vmm::virtual_address_length())) >> ((ulong.sizeof * 8) - vmm::virtual_address_length()));
+macro uptr @canonical(uptr #addr) @private => (uptr)((long)(#addr << ((ulong::size * 8) - vmm::virtual_address_length())) >> ((ulong::size * 8) - vmm::virtual_address_length()));
 macro uptr @mask_addr(#addr, #bits) @private => #addr & ~((1ul << (#bits)) - 1);
 
 macro @assert_entry(TableEntry #entry) @local {
-    if (!#entry.present) return NOT_MAPPED?;
+    if (!#entry.present) return NOT_MAPPED~;
 }
 
 macro uptr @path_addr(PagingPath #path, usz pdpteModifier = 0, usz pdeModifier = 0, usz pteModifier = 0) @private {
@@ -111,7 +111,7 @@ fn PageTable? check_table(PageTable parent, usz entry) @local {
         return @as_table(vmm::initialized ? vmm::@phys(tablePtr) : tablePtr);
     }
 
-    return NOT_MAPPED?;
+    return NOT_MAPPED~;
 }
 
 fn void? map_impl_with_recurse(PagingPath path, uptr paddr, PageSize hugePage = NORMAL, PageProperties props = DEFAULT) @local {
@@ -292,7 +292,7 @@ fn usz? unmap(PageTable table, uptr vaddr) @private {
     PagingPath path = @addr_path(vaddr);
     logging::debug("unmapping vaddr: %x (%d %d %d %d)", vaddr, path.pml4e, path.pdpte, path.pde, path.pte);
 
-    PhysAddr physFrameAddr = 0;
+    PhysAddr physFrameAddr;
     usz bytes = 0;
 
     if (cpu::read_cr3() == (uptr)table.ptr) {

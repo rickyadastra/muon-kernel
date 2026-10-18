@@ -18,7 +18,7 @@ fn usz Semaphore.get_ref_count(&self) @dynamic => self.refcount.load();
 fn void Semaphore.track_ref(&self) @dynamic => self.refcount.increment();
 fn void Semaphore.drop_ref(&self) @dynamic => self.refcount.decrement();
 
-fn void Semaphore.wait(&self) @private {
+fn void Semaphore.wait(&self) {
     scheduler::lock_scheduler();
 
     // if a resource is available take it and exit 
@@ -35,7 +35,7 @@ fn void Semaphore.wait(&self) @private {
     task::yield();
 }
 
-fn void Semaphore.signal(&self) @private {
+fn void Semaphore.signal(&self) {
     scheduler::lock_scheduler();
     defer scheduler::unlock_scheduler();
     
@@ -50,7 +50,7 @@ fn void Semaphore.signal(&self) @private {
 }
 
 fn Semaphore* alloc() @private {
-    Semaphore* s = (Semaphore*)mem::alloc(Semaphore.sizeof);
+    Semaphore* s = (Semaphore*)mem::alloc(Semaphore::size);
     s.queue = linkedlist::init{Task*}(mem::get_allocator());
     return s;
 }

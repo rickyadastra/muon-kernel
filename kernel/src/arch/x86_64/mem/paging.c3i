@@ -7,23 +7,23 @@ faultdef NOT_MAPPED;
 const usz PAGE_SIZE = pmm::FRAME_SIZE;
 
 enum PageSize : usz (usz size) {
-    NORMAL = 1 << 12,
-    HUGE_2M = 1 << 21,
-    HUGE_1G = 1 << 30,
+    NORMAL { 1 << 12 },
+    HUGE_2M { 1 << 21 },
+    HUGE_1G { 1 << 30 },
 }
 
 enum PageProperties : usz (bool present, bool readWrite, bool user, bool writeThrough, bool cacheDisable) {
-    DEFAULT             = { true, true, false, false, false },
-    MMIO                = { true, true, false, true, true },
+    DEFAULT             { true, true, false, false, false },
+    MMIO                { true, true, false, true, true },
 }
 
-const usz TABLE_ENTRIES = PAGE_SIZE / TableEntry.sizeof;
+const usz TABLE_ENTRIES = PAGE_SIZE / TableEntry::size;
 const usz ENTRY_ADDRESS_LSB = 12;
 const ulong ENTRY_ADDRESS_MASK = 0xffff_ffff_ffff_f000;
 
 enum PagingMode : uint (usz virtAddrLen, usz pml4Shift, usz pdptShift, usz pdShift, usz ptShift) {
-    PAGING_MAP_LEVEL4 = {48, 39, 30, 21, 12},
-    PAGING_MAP_LEVEL5 = {52, 39, 30, 21, 12}, // unsupported at the moment
+    PAGING_MAP_LEVEL4 {48, 39, 30, 21, 12},
+    PAGING_MAP_LEVEL5 {52, 39, 30, 21, 12}, // unsupported at the moment
 }
 
 struct PagingPath {
@@ -34,17 +34,17 @@ struct PagingPath {
 }
 
 enum KnownPagingPath : uint (PagingPath path) {
-    PHYSMAP             = {KnownTableEntry.KERNEL.idx, 0, 0, 0},
-    MMIO                = {KnownTableEntry.MMIO.idx, 0, 0, 0},
-    ACPI                = {KnownTableEntry.KERNEL.idx, 504, 0, 0},
-    PMM_BITMAP          = {KnownTableEntry.KERNEL.idx, 508, 0, 0},
-    KERNEL_STACKS       = {KnownTableEntry.KERNEL.idx, 509, 0, 0},
-    KERNEL              = {KnownTableEntry.KERNEL.idx, 510, 0, 0},
+    PHYSMAP             { {KnownTableEntry.KERNEL.idx, 0, 0, 0} },
+    MMIO                { {KnownTableEntry.MMIO.idx, 0, 0, 0} },
+    ACPI                { {KnownTableEntry.KERNEL.idx, 504, 0, 0} },
+    PMM_BITMAP          { {KnownTableEntry.KERNEL.idx, 508, 0, 0} },
+    KERNEL_STACKS       { {KnownTableEntry.KERNEL.idx, 509, 0, 0} },
+    KERNEL              { {KnownTableEntry.KERNEL.idx, 510, 0, 0} },
 
-    RECURSE_PT          = {KnownTableEntry.SELF.idx, 0, 0, 0},
-    RECURSE_PD          = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0, 0},
-    RECURSE_PDPT        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0},
-    RECURSE_PML4        = {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx},
+    RECURSE_PT          { {KnownTableEntry.SELF.idx, 0, 0, 0} },
+    RECURSE_PD          { {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0, 0} },
+    RECURSE_PDPT        { {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, 0} },
+    RECURSE_PML4        { {KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx, KnownTableEntry.SELF.idx} },
 }
 
 bitstruct TableEntry : ulong {
@@ -67,10 +67,10 @@ bitstruct TableEntry : ulong {
 typedef PageTable = inline TableEntry[];
 
 enum KnownTableEntry : uint (usz idx) {
-    KERNEL = 511,
-    SELF = 510,
-    OTHER = 509,
-    MMIO = 508,
+    KERNEL { 511 },
+    SELF { 510 },
+    OTHER { 509 },
+    MMIO { 508 },
 }
 
 struct AddressSpaceImpl {

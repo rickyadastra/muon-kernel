@@ -8,11 +8,11 @@ bool supportsCpuid @local = false;
 Register scratch @local;
 
 enum CPUIDLeaf : usz (Register a, Register c) @local {
-    FEATURE_INFORMATION     = {0x01, 0},
-    PHYSICAL_ADDRESS_SIZE   = {0x80000008, 0},
+    FEATURE_INFORMATION     {0x01, 0},
+    PHYSICAL_ADDRESS_SIZE   {0x80000008, 0},
 }
 
-enum CPUFeature : const char {
+constset CPUFeature : char {
     // 0-31 are RCX (see https://www.felixcloutier.com/x86/cpuid#input-eax-=-01h--returns-feature-information-in-ecx-and-edx)
     TSC_DEADLINE_SUPPORT = 24,
     RDRAND_SUPPORT = 30,
@@ -31,7 +31,7 @@ bitstruct AddressLength : ushort {
 macro bool supported() => supportsCpuid;
 
 fn void? execute_raw(Register* a, Register* b, Register* c, Register* d) {
-    if (!supported()) return CPUID_UNSUPPORTED?;
+    if (!supported()) return CPUID_UNSUPPORTED~;
 
     Register _a, _b, _c, _d;
 
@@ -72,7 +72,7 @@ fn void? enable() {
     cpu::write_rflags(rflags);
 
     // test is ID bit has changed, if not raise CPUID_UNSUPPORTED
-    if (!cpu::read_rflags().id) return CPUID_UNSUPPORTED?;
+    if (!cpu::read_rflags().id) return CPUID_UNSUPPORTED~;
     supportsCpuid = true;
 } 
 

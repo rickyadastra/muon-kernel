@@ -49,13 +49,13 @@ bitstruct MXCSReg : uint {
     bool inexactResMasked : 12;
 }
 
-enum PrecisionControl : const char {
+constset PrecisionControl : char {
     SINGLE = 0b00,
     DOUBLE = 0b10,
     EXTENDED = 0b11, 
 }
 
-enum RoundingControl : const char {
+constset RoundingControl : char {
     TO_NEAREST = 0b00,
     DOWN = 0b01,
     UP = 0b10,

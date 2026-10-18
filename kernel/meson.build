@@ -20,6 +20,7 @@ c3_compile_args = [
     '--use-stdlib=no',
     '--x86cpu=baseline',        # TODO: add AVX support
     '--build-dir', 'kernel/',
+    '--warn-builtin=no',
     '--single-module=yes',
     '--target', elf_target,
     '--panicfn', 'arch::panicfn',

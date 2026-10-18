@@ -1,7 +1,7 @@
 <*
     @require POOL_SIZE % BLOCK_SIZE == 0
 *>
-module mem::allocator::block {BLOCK_SIZE};
+module mem::allocator::block <BLOCK_SIZE>;
 
 import std::collections::bitmap;
 

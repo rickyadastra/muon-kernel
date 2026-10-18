@@ -8,11 +8,11 @@ const DOUBLE_EPSILON = 2.22044604925031308085e-16;
 
 macro max(x, y, ...)
 {
-	$if $vacount == 0:
+	$if $vaarg.len == 0:
 		return $$max(x, y);
 	$else
 		var m = $$max(x, y);
-		$for var $i = 0; $i < $vacount; $i++:
+		$for var $i = 0; $i < $vaarg.len; $i++:
 			m = $$max(m, $vaarg[$i]);
 		$endfor
 		return m;
@@ -21,11 +21,11 @@ macro max(x, y, ...)
 
 macro min(x, y, ...)
 {
-	$if $vacount == 0:
+	$if $vaarg.len == 0:
 		return $$min(x, y);
 	$else
 		var m = $$min(x, y);
-		$for var $i = 0; $i < $vacount; $i++:
+		$for var $i = 0; $i < $vaarg.len; $i++:
 			m = $$min(m, $vaarg[$i]);
 		$endfor
 		return m;
@@ -33,7 +33,7 @@ macro min(x, y, ...)
 }
 
 macro int signbit(x) {
-	$switch $typeof(x):
+	$switch $Typeof(x):
 	$case float:
 	$case float16:
 		return bitcast((float)x, uint) >> 31;
@@ -43,7 +43,7 @@ macro int signbit(x) {
 }
 
 macro bool is_finite(x) {
-	$switch $typeof(x):
+	$switch $Typeof(x):
 		$case float:
 		$case float16:
 			return bitcast((float)x, uint) & 0x7fffffff < 0x7f800000;
@@ -53,7 +53,7 @@ macro bool is_finite(x) {
 }
 
 macro is_nan(x) {
-	$switch $typeof(x):
+	$switch $Typeof(x):
 	$case float:
 	$case float16:
 		return bitcast((float)x, uint) & 0x7fffffff > 0x7f800000;
@@ -63,7 +63,7 @@ macro is_nan(x) {
 }
 
 macro is_inf(x) {
-	$switch $typeof(x):
+	$switch $Typeof(x):
 	$case float:
 	$case float16:
 		return bitcast((float)x, uint) & 0x7fffffff == 0x7f800000;
@@ -73,7 +73,7 @@ macro is_inf(x) {
 }
 
 macro frexp(x, int* e) {
-	$switch $typeof(x):
+	$switch $Typeof(x):
 	$case float:
 	$case float16:
 		return _frexpf((float)x, e);
@@ -108,7 +108,7 @@ fn double _frexp(double x, int* e) {
 
 fn float _frexpf(float x, int* e) {
 	uint i = bitcast(x, uint);
-	int ee = (i >> 23) & 0xff;
+	int ee = (int)(i >> 23) & 0xff;
 
 	switch
 	{

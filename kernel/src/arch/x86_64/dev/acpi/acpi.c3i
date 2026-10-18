@@ -42,7 +42,7 @@ struct XSDTable @packed {
     ulong[*] otherSdtPtrs;
 }
 
-enum AddressSpaceID : const char {
+constset AddressSpaceID : char {
     SYSTEM_MEMORY,
     SYSTEM_IO,
 }

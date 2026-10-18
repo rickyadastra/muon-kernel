@@ -23,16 +23,16 @@ macro bool check_rights(ObjectSlot slot, ObjectRights rights) {
 }
 
 macro void? validate(ObjectSlot entry, Handle handle) {
-    if (!entry.present()) return handle::INVALID?;
-    if (entry.generation != handle.generation) return handle::GEN_MISMATCH?;
-    if (entry.salt != handle.salt) return handle::SALT_MISMATCH?;
+    if (!entry.present()) return handle::INVALID~;
+    if (entry.generation != handle.generation) return handle::GEN_MISMATCH~;
+    if (entry.salt != handle.salt) return handle::SALT_MISMATCH~;
 }
 
 fn KernelObject? resolve(ObjectTable table, Handle handle, ObjectRights rights) {
     table.lock.acquire();
     defer table.lock.release();
 
-    if (handle.index >= table.entries.len) return handle::INVALID?;
+    if (handle.index >= table.entries.len) return handle::INVALID~;
     ObjectSlot slot = table.entries[handle.index];
 
     validate(slot, handle)!;

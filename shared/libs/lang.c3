@@ -33,7 +33,7 @@ macro any.as_inner(&self) {
 }
 
 macro anycast(any v, $Type) @builtin {
-	if (v.type != $Type.typeid) return TYPE_MISMATCH?;
+	if (v.type != $Type) return TYPE_MISMATCH~;
 	return ($Type*)v.ptr;
 }
 
@@ -41,21 +41,21 @@ macro any_make(void* ptr, typeid type) @builtin {
 	return $$any_make(ptr, type);
 }
 
-fn void* memcpy(void* dest, void* src, usz n) @extern("memcpy") @nostrip {
+fn void* memcpy(void* dest, void* src, usz n) @cname("memcpy") @nostrip {
 	for (usz i = 0; i < n; i++) ((char*)dest)[i] = ((char*)src)[i];
 	return dest;
 }
 
-fn void* memmove(void* dest, void* src, usz n) @extern("memmove") @nostrip {
+fn void* memmove(void* dest, void* src, usz n) @cname("memmove") @nostrip {
 	return memcpy(dest, src, n) @inline;
 }
 
-fn void* memset(void* dest, CInt value, usz n) @extern("memset") @nostrip {
+fn void* memset(void* dest, CInt value, usz n) @cname("memset") @nostrip {
 	for (usz i = 0; i < n; i++) ((char*)dest)[i] = (char)value;
 	return dest;
 }
 
-fn CInt memcmp(void* buf1, void* buf2, usz count) @extern("memcmp") @nostrip {
+fn CInt memcmp(void* buf1, void* buf2, usz count) @cname("memcmp") @nostrip {
 	for (char* p = buf1, char* q = buf2; count > 0; count--, p++, q++) {
 		if (*p != *q) return (*p - *q);
 	}
@@ -67,15 +67,15 @@ fn CInt memcmp(void* buf1, void* buf2, usz count) @extern("memcmp") @nostrip {
  @param expr : "the expression to cast"
  @param $Type : "the type to cast to"
 
- @require $sizeof(expr) == $Type.sizeof : "Cannot bitcast between types of different size."
- @ensure $typeof(return) == $Type*
+ @require $reflect(expr).size == $Type::size : "Cannot bitcast between types of different size."
+ @ensure $Typeof(return) == $Type*
 *>
 macro bitcast(expr, $Type) @builtin {
-	$if $Type.alignof <= $alignof(expr):
+	$if $Type::alignment <= $reflect(expr).alignment:
 		return *($Type*)&expr;
 	$else
 		$Type x @noinit;
-		$$memcpy(&x, &expr, $sizeof(expr), false, $Type.alignof, $alignof(expr));
+		$$memcpy(&x, &expr, $reflect(expr).size, false, $Type::alignment, $reflect(expr).alignment);
 		return x;
 	$endif
 }
@@ -86,7 +86,7 @@ extern char[] __init_array_end;
 alias DynamicRegisterFn = fn void();
 
 fn void init_runtime() {
-    usz count = ((ulong)&__init_array_end - (ulong)&__init_array_start) / DynamicRegisterFn.sizeof;
+    usz count = ((ulong)&__init_array_end - (ulong)&__init_array_start) / DynamicRegisterFn::size;
     DynamicRegisterFn[] initArray = ((DynamicRegisterFn*)&__init_array_start)[:count];
 
     foreach (DynamicRegisterFn func : initArray) {
@@ -102,7 +102,7 @@ module lang::values;
 
 import lang;
 
-macro bool @is_int(#value) @const => types::is_int($typeof(#value));
+macro bool @is_int(#value) @const => types::is_int($Typeof(#value));
 
 macro promote_int(x) {
 	$if @is_int(x):

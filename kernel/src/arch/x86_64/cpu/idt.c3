@@ -37,7 +37,7 @@ fn void idt_load(IDTRegister* reg) {
 
 fn void setup() {
     for (uint i = 0; i < IDT_ENTRIES; i++) {
-        char ist = (i < interrupts::EXCEPTIONS && is_kernel_handled(KnownInterrupt.from_ordinal(i))) ? 1 : 0;
+        char ist = (i < interrupts::EXCEPTIONS && is_kernel_handled(KnownInterrupt::from_ordinal(i))) ? 1 : 0;
         
         idt[i] = construct_descriptor(i, interrupts::irqs[i], ist: ist, type: GateType.INTERRUPT);
     }
@@ -46,7 +46,7 @@ fn void setup() {
 fn void install() {
     IDTRegister idtr = {
         .offset = &idt,
-        .size = (GateDescriptor.sizeof * IDT_ENTRIES) - 1
+        .size = (GateDescriptor::size * IDT_ENTRIES) - 1
     };
 
     idt_load(&idtr);

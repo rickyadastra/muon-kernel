@@ -46,7 +46,7 @@ macro popall() @local {
 
 alias InterruptVoidFn = fn void();
 
-fn void exception_routine() @IntRoutine @private @export @extern("exception_routine") {
+fn void exception_routine() @IntRoutine @private @export @cname("exception_routine") {
     asm { cld; }
     pushall();
 
@@ -61,7 +61,7 @@ fn void exception_routine() @IntRoutine @private @export @extern("exception_rout
     }
 }
 
-fn void interrupt_routine() @IntRoutine @private @export @extern("interrupt_routine") {
+fn void interrupt_routine() @IntRoutine @private @export @cname("interrupt_routine") {
     asm { cld; }
     pushall();
 
@@ -77,8 +77,8 @@ fn void interrupt_routine() @IntRoutine @private @export @extern("interrupt_rout
 }
 
 macro @irq_body(char #num, $exc) @local {
-    $if (#num >= KnownInterrupt.len) ||| !(KnownInterrupt.from_ordinal(#num).has_error_code):
-        asm { push 0xff; } // push dummy error code if interrupt has none
+    $if (#num >= KnownInterrupt::values.len) ||| !(KnownInterrupt::from_ordinal(#num).has_error_code):
+        asm { push ((ichar)0xff); } // push dummy error code if interrupt has none
     $endif
     
     asm { push (#num); };

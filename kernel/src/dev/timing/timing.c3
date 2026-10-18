@@ -5,7 +5,7 @@ import std::lock;
 import arch::mem;
 import muon;
 
-ulong? wallclock @private = WALLCLOCK_NOT_SET?;
+ulong? wallclock @private = WALLCLOCK_NOT_SET~;
 ulong uptime @private;
 
 // timer subsystem
@@ -17,7 +17,7 @@ fn TimerEvent*? add_timer_event(TimerEvent event) @private {
     lock.acquire();
     defer lock.release();
 
-    TimerEvent* ev = mem::alloc(TimerEvent.sizeof);
+    TimerEvent* ev = mem::alloc(TimerEvent::size);
     *ev = event;
 
     if (timerEvents.is_empty()) {

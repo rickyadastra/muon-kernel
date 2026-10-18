@@ -10,7 +10,7 @@ const char TIMER_IRQ_BASE = KnownInterrupt.HPET_TIMER0.num - 0x20;
 
 faultdef UNSUPPORTED_ROUTING;
 
-enum PageProtectionCapability : const char {
+constset PageProtectionCapability : char {
     NO_GUARANTEE,
     PROTECTED_4KB,
     PROTECTED_64KB,
@@ -35,7 +35,7 @@ struct HPETTable @packed {
     }
 }
 
-enum HPETRegister : const uint {
+constset HPETRegister : uint {
     GENERAL_CAPABILITIES_ID         = 0x000,
     GENERAL_CONFIGURATION           = 0x010,
     GENERAL_INTR_STATUS             = 0x020,
@@ -59,7 +59,7 @@ bitstruct GeneralConfigRegister : ulong {
     bool enableLegacyReplacement : 1;
 }
 
-enum TimerMode : const char {
+constset TimerMode : char {
     ONESHOT,
     PERIODIC,
 }

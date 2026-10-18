@@ -12,19 +12,19 @@ enum AtomicOrdering : int {
 
 macro fetch_add(ptr, y, AtomicOrdering $ordering = SEQ_CONSISTENT, bool $volatile = false, usz $alignment = 0) {
     $if $alignment == 0:
-        $alignment = $typeof(*ptr).sizeof;
+        $alignment = $Typeof(*ptr)::size;
     $endif
     return $$atomic_fetch_add(ptr, y, $volatile, $ordering.ordinal, $alignment); 
 }
 
 macro fetch_sub(ptr, y, AtomicOrdering $ordering = SEQ_CONSISTENT, bool $volatile = false, usz $alignment = 0) {
     $if $alignment == 0:
-        $alignment = $typeof(*ptr).sizeof;
+        $alignment = $Typeof(*ptr)::size;
     $endif
     return $$atomic_fetch_sub(ptr, y, $volatile, $ordering.ordinal, $alignment); 
 }
 
-module std::atomic::types{Type};
+module std::atomic::types<Type>;
 
 struct Atomic {
     Type data;
@@ -37,11 +37,11 @@ struct Atomic {
 macro Type Atomic.load(&self, AtomicOrdering ordering = SEQ_CONSISTENT) {
     Type* data = &self.data;
     switch(ordering) {
-        case NOT_ATOMIC: return $$atomic_load(data, false, AtomicOrdering.NOT_ATOMIC.ordinal);
-        case UNORDERED: return $$atomic_load(data, false, AtomicOrdering.UNORDERED.ordinal);
-        case RELAXED: return $$atomic_load(data, false, AtomicOrdering.RELAXED.ordinal);
-        case ACQUIRE: return $$atomic_load(data, false, AtomicOrdering.ACQUIRE.ordinal);
-        case SEQ_CONSISTENT: return $$atomic_load(data, false, AtomicOrdering.SEQ_CONSISTENT.ordinal);
+        case NOT_ATOMIC: return $$atomic_load(data, false, AtomicOrdering.NOT_ATOMIC.ordinal, $reflect(data).alignment);
+        case UNORDERED: return $$atomic_load(data, false, AtomicOrdering.UNORDERED.ordinal, $reflect(data).alignment);
+        case RELAXED: return $$atomic_load(data, false, AtomicOrdering.RELAXED.ordinal, $reflect(data).alignment);
+        case ACQUIRE: return $$atomic_load(data, false, AtomicOrdering.ACQUIRE.ordinal, $reflect(data).alignment);
+        case SEQ_CONSISTENT: return $$atomic_load(data, false, AtomicOrdering.SEQ_CONSISTENT.ordinal, $reflect(data).alignment);
         case ACQUIRE_RELEASE:
         case RELEASE: $$unreachable();
     }
@@ -54,11 +54,11 @@ macro Type Atomic.load(&self, AtomicOrdering ordering = SEQ_CONSISTENT) {
 macro void Atomic.store(&self, Type value, AtomicOrdering ordering = SEQ_CONSISTENT) {
     Type* data = &self.data;
     switch(ordering) {
-        case NOT_ATOMIC: $$atomic_store(data, value, false, AtomicOrdering.NOT_ATOMIC.ordinal);
-        case UNORDERED: $$atomic_store(data, value, false, AtomicOrdering.UNORDERED.ordinal);
-        case RELAXED: $$atomic_store(data, value, false, AtomicOrdering.RELAXED.ordinal);
-        case RELEASE: $$atomic_store(data, value, false, AtomicOrdering.RELEASE.ordinal);
-        case SEQ_CONSISTENT: $$atomic_store(data, value, false, AtomicOrdering.SEQ_CONSISTENT.ordinal);
+        case NOT_ATOMIC: $$atomic_store(data, value, false, AtomicOrdering.NOT_ATOMIC.ordinal, $reflect(data).alignment);
+        case UNORDERED: $$atomic_store(data, value, false, AtomicOrdering.UNORDERED.ordinal, $reflect(data).alignment);
+        case RELAXED: $$atomic_store(data, value, false, AtomicOrdering.RELAXED.ordinal, $reflect(data).alignment);
+        case RELEASE: $$atomic_store(data, value, false, AtomicOrdering.RELEASE.ordinal, $reflect(data).alignment);
+        case SEQ_CONSISTENT: $$atomic_store(data, value, false, AtomicOrdering.SEQ_CONSISTENT.ordinal, $reflect(data).alignment);
         case ACQUIRE_RELEASE:
         case ACQUIRE: $$unreachable();
     }
@@ -95,10 +95,10 @@ macro Type Atomic.sub(&self, Type value, AtomicOrdering ordering = SEQ_CONSISTEN
 
 macro Type Atomic.increment(&self, AtomicOrdering ordering = SEQ_CONSISTENT) {
     Type* data = &self.data;
-    return @atomic_exec(atomic::fetch_add, data, 1, ordering);
+    return @atomic_exec(atomic::fetch_add, data, 1ul, ordering);
 }
 
 macro Type Atomic.decrement(&self, AtomicOrdering ordering = SEQ_CONSISTENT) {
     Type* data = &self.data;
-    return @atomic_exec(atomic::fetch_sub, data, 1, ordering);
+    return @atomic_exec(atomic::fetch_sub, data, 1ul, ordering);
 }

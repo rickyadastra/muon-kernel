@@ -45,14 +45,14 @@ fn void setup_tsc_deadline_timer(double frequency) {
     apic::timer_enable(APICTimerMode.TSC_DEADLINE);
 
     // set timer interface
-    APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer.sizeof);
+    APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer::size);
     apicTimer.frequency = frequency;
     timer = (Timer)apicTimer;
     timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());
 }
 
 fn void? calibrate() {   
-    if (!cpuid::query_feature(CPUFeature.TSC_DEADLINE_SUPPORT)!) return TIMER_UNSUPPORTED?;
+    if (!cpuid::query_feature(CPUFeature.TSC_DEADLINE_SUPPORT)!) return TIMER_UNSUPPORTED~;
 
     double tscFrequency = get_tsc_frequency_with_hpet();
     logging::debug("TSC frequency: %f GHz", tscFrequency / 1e9);

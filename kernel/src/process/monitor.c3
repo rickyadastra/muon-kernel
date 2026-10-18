@@ -44,7 +44,7 @@ macro SchedulerMonitor*? resolve_handle_to_monitor(Handle handle, ObjectRights r
     @require scheduler::get_current_task() != null
 *>
 fn Handle? create() {
-    SchedulerMonitor* mon = (SchedulerMonitor*)mem::alloc(SchedulerMonitor.sizeof);
+    SchedulerMonitor* mon = (SchedulerMonitor*)mem::alloc(SchedulerMonitor::size);
 
     // create handle for scheduler monitor in current task and track it
     Handle handle = scheduler::get_current_task().handles.insert(mon, {})!;
@@ -88,5 +88,5 @@ fn TaskSnapshot[]? fetch(Handle handle, TaskSnapshot[]* snapshots) {
 		snapshot.command = task.spawnInfo.commandLine;
 	}
 
-	return (*snapshots)[:math::min(scheduler::allTasks.size, snapshots.len)];
+	return (*snapshots)[:math::min(scheduler::allTasks.size, (usz)snapshots.len)];
 }
