@@ -15,9 +15,6 @@
 - Pre-emptive round-robin scheduler with cooperation
 
 ## Getting Started
-> [!WARNING]
-> Muon is currently under active development, and as such interfaces and features may change.
-
 ### Requirements
 On Ubuntu 24.04, install [`c3c`](https://c3-lang.org/getting-started/prebuilt-binaries/#installing-on-ubuntu) by following the official guide, and the tools required to build and run the image using the folllowing command:
 ```sh
@@ -26,10 +23,9 @@ sudo apt install mtools qemu-systems-x86 ovmf
 To run QEMU with KVM acceleration, enable KVM and ensure your user has access to `/dev/kvm`. If you're using WSL2, follow this [KVM setup guide](https://serverfault.com/a/1115773).
 
 ### Prepare the Bootloader
-> [!NOTE]
-> Muon currently only supports Boson as the bootloader.
+- **Boson Bootloader**: make sure you have cloned the Boson Bootloader submodule ([`boot/boson`](boot/boson)) and you have installed all the required dependencies. 
 
-**Boson Bootloader**: make sure you have cloned the Boson Bootloader submodule ([`boot/boson`](boot/boson)) and you have installed all the required dependencies. 
+*Other bootloaders are not supported at the moment.*
 
 ### Compile and Run
 The compilation pass is executed by C3's project system.
@@ -94,7 +90,6 @@ After the shell starts a program (one of `sleep`, `spawner` or `time`) it waits 
 You can explore the shell code [here](https://github.com/rickyadastra/muon-kernel/tree/demo/kernel-shell/kernel/src/demo).
 
 ## Project Structure
-
 | Path | Contents |
 | ---- | -------- |
 | `kernel/` | Architecture-agnostic kernel sources |
@@ -104,6 +99,9 @@ You can explore the shell code [here](https://github.com/rickyadastra/muon-kerne
 | `.build/` | Build-time folder containing binaries and FAT image |
 
 ## Development
+> [!WARNING]
+> Muon is currently under active development and, as such, its interfaces and features may change or be removed without notice. It is **NOT** intended for daily use and probably won't be for a *very* long time.
+
 Build settings are defined in the [`project.json`](project.json) configuration file.
 The [`Makefile`](Makefile) provides targets for creating individual binaries, the image and running or debugging it in QEMU.
 The default OVMF path is `/usr/share/ovmf/OVMF.fd`.
