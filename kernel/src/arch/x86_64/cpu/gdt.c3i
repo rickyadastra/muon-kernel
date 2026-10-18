@@ -7,7 +7,7 @@ enum DescriptorType : char {
     DATA_OR_CODE
 }
 
-enum SystemSegmentType : const char {
+constset SystemSegmentType : char {
     LDT = 0x2,
     TSS_64_AVAIL = 0x9,
     TSS_64_BUSY = 0xb,

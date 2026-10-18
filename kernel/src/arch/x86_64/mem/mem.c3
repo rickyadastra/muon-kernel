@@ -30,6 +30,7 @@ fn void? mark_memory_regions(MemoryRegion[] regions) @local {
 
     foreach (usz i, MemoryRegion reg : regions) {
             logging::debug("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.nameof);
+		if (reg.base >= pmm::physTotal) continue;
         if (reg.type != AVAILABLE) {
 
             // sanitize size: some uefi memory regions are MMIO outside of physical RAM

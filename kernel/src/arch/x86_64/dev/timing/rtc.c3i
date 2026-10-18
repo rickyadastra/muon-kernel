@@ -9,7 +9,7 @@ const uint RTC_DISABLE_NMI = 0x80;
 
 const ulong BASE_YEAR = 2000;
 
-enum RTCRegister : const uint {
+constset RTCRegister : uint {
     SECONDS         = 0x00,
     SECONDS_ALARM   = 0x01,
     MINUTES         = 0x02,

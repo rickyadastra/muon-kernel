@@ -5,7 +5,7 @@ import dev::port;
 const char PIT_PORT = 0x40;
 const char LOHI_SWSTROBE = 0x38;    // read high/low bytes, set software strobe interrupt mode
 
-enum PortOffset : const inline char {
+constset PortOffset : inline char {
     CHANNEL_0       = 0x00,
     CHANNEL_1       = 0x01,
     CHANNEL_2       = 0x02,

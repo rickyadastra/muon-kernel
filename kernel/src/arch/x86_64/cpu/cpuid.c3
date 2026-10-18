@@ -12,7 +12,7 @@ enum CPUIDLeaf : usz (Register a, Register c) @local {
     PHYSICAL_ADDRESS_SIZE   = {0x80000008, 0},
 }
 
-enum CPUFeature : const char {
+constset CPUFeature : char {
     // 0-31 are RCX (see https://www.felixcloutier.com/x86/cpuid#input-eax-=-01h--returns-feature-information-in-ecx-and-edx)
     TSC_DEADLINE_SUPPORT = 24,
     RDRAND_SUPPORT = 30,

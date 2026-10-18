@@ -14,7 +14,7 @@ macro void disable_interrupts() { asm("cli"); }
 macro void idle() { asm("hlt"); }
 macro void pause() { asm("pause"); }
 
-enum ModelSpecificRegister : const uint {
+constset ModelSpecificRegister : uint {
     APIC =              0x1b,
     TSC_DEADLINE =      0x6e0,
     EFER =              0xC0000080,

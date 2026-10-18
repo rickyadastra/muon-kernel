@@ -2,7 +2,7 @@ module dev::interrupts::pic;
 
 import dev::port;
 
-enum PortOffset : const inline ushort {
+constset PortOffset : inline ushort {
     COMMAND = 0x0000,
     DATA    = 0x0001,
 }

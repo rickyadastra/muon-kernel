@@ -14,7 +14,7 @@ struct IOApic {
     MemIO mmAddr;
 }
 
-enum RecordType : const char {
+constset RecordType : char {
     LOCAL_APIC,
     IO_APIC,
     IO_APIC_ISO, // IO APIC interrupt source override
@@ -110,7 +110,7 @@ bitstruct APICBaseMSR : ulong {
     ulong baseAddr : 12..35;
 }
 
-enum LAPICRegister : const uint {
+constset LAPICRegister : uint {
     LAPIC_ID                    = 0x20,
     LAPIC_VERSION               = 0x30,
     TASK_PRIORITY               = 0x80,
@@ -138,7 +138,7 @@ enum LAPICRegister : const uint {
     TIMER_DIVIDE_CONFIG         = 0x3e0,
 }
 
-enum IOAPICRegister : const uint {
+constset IOAPICRegister : uint {
     IOAPIC_ID                   = 0x00,
     IOAPIC_VER                  = 0x01,
     IOAPIC_ARBITRATION_ID       = 0x02,
@@ -170,7 +170,7 @@ bitstruct IOAPICVerReg : uint {
     char maxRedirectEntry : 16..23;
 }
 
-enum DeliveryMode : const char {
+constset DeliveryMode : char {
     FIXED           = 0b000,
     LOWEST          = 0b001,
     SMI             = 0b010,
