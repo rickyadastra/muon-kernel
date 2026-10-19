@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" height=180/>
+  <img alt="Muon Kernel Logo" src="assets/logo.png" height=180 style="width: auto; max-width: 100%; object-fit: contain;"/>
   <br>
   A capability-based <b>C3 x86-64 microkernel</b>; an open-source personal and academic project.
   <br><br>
