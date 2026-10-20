@@ -1,5 +1,0 @@
-option(
-    'target',
-    type: 'combo',
-    choices: ['boson-bootloader', 'muon-kernel']
-)

@@ -1,9 +1,0 @@
-[binaries]
-c = 'clang'
-strip = 'true'
-
-[host_machine]
-system = 'uefi'
-cpu_family = 'x86_64'
-cpu = 'x86_64'
-endian = 'little'

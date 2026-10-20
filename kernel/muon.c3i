@@ -1,0 +1,7 @@
+module muon;
+
+faultdef NOT_YET_IMPLEMENTED;
+
+const bool DEBUG = false;
+const String VERSION = $$PROJECT_VERSION;
+$exec("echo", {"\"const String COMMIT_HASH = \\\"$(git rev-parse --short HEAD)\\\";\""});
