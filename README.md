@@ -53,24 +53,32 @@ The full milestone breakdown is available [here](MILESTONES.md).
 - [x] 📗 **Milestone 0.2** – Memory Management
 - [x] 🕹️ **Milestone 0.3** – Interrupts and Timing
 - [x] 🐎 **Milestone 0.4** – Kernel mode scheduler (cooperative round-robin)
-   - [x] Task/Thread structure with context and stack
-   - [x] Preemptive context switch via timer interrupt
-   - [x] FPU context save and restore
-   - [x] Process functions `create()`, `start()` and `terminate()`/`exit()`
-   - [x] Cooperative task `yield()` function
-   - [x] `sleep_ms()` and `suspend()`/`resume()` functions
-   - [x] `wait()` and `detach()` functions
-   - [x] Synchronization primitives via Semaphore object
-   - [x] **Basic shell to launch programs**
-- [ ] 👥 **Milestone 0.5** - Userspace
-   - *TBD*
-- [ ] 🔐 **Milestone 0.6** - Capability System
-   - [x] `Handle` and `ObjectTable` implementations
-   - [ ] Per-Task private capability space
-   - [ ] Kernel-wide capability implementation
-   - *More TBD*
-- [ ] 📁 **Milestone 0.7** - File System basics
-   - *TBD*
+- [ ] 🪨 **Milestone 0.5** - Consolidation
+   - [x] Boson refactor to C3 (see [boson-bootloader](https://github.com/rickyadastra/boson-bootloader))
+   - [x] Muon's repository refactor
+   - [ ] Boson's boot protocol refactor to be extensible
+   - [ ] Symbols extraction capabilities in Boson
+   - [ ] DWARF Interpreter and stack unwinding
+   - [ ] Verbose in-kernel panic handler
+- [ ] 👥 **Milestone 0.6** - Userspace & System Calls
+   - [ ] GDT user segments and MSR
+   - [ ] Page table creation for user processes
+   - [ ] System call dispatcher via `syscall`/`sysret`
+   - [ ] Capability-based rights checking
+- [ ] 💻 **Milestone 0.7** - Inter-Process Communication
+   - [ ] IPC mechanisms (fast path, large data)
+   - [ ] Dynamic allocation syscalls
+   - [ ] Message passing IPC channels
+   - [ ] **Shell as a userspace program**
+   - [ ] **BASIC Interpreter PoC**
+- [ ] 📁 **Milestone 0.8** - File System basics
+   - [ ] Virtual File System (VFS) userspace daemon
+   - [ ] Ramdisk loading via Boson and read-only FS
+   - [ ] **BASIC I/O commands**
+- [ ] 🚌 **Milestone 0.9** - Device Drivers basics   
+   *Bus enumeration, xHCI and USB drivers, TBD*
+- [ ] 🔌 **Milestone 0.10** - Basic networking   
+   *Lightweight TCP/IP network daemon, TBD*
 
 ### Milestone 0.4 Highlights
 [Milestone 0.4 - muon kernel shell](https://github.com/user-attachments/assets/808684f5-9305-41c7-af35-20fffe0cb870)
