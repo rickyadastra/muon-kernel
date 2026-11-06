@@ -11,6 +11,12 @@
         "kernel/**",
         "shared/libs/**"
     ],
+    "dependency-search-paths": [
+        "boot/boson/lib"
+    ],
+    "dependencies": [
+        "boson_protocol"
+    ],
     "test-sources": [],
     "build-dir": "./.build",
     "output": "./.build",
