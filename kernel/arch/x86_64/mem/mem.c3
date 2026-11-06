@@ -16,59 +16,59 @@ fn Allocator get_allocator() => &kAllocator;
 
 faultdef MEMORY_UNAVAILABLE;
 
-fn uptr? find_bitmap_region(MemoryRegion[] memoryRegions, usz byteSize) @local {
-    foreach (usz i, MemoryRegion reg : memoryRegions) {
-        if (reg.type == AVAILABLE && reg.base > LEGACY_BIOS_LIMIT && reg.size >= byteSize) return reg.base;
+fn uptr? find_bitmap_entry(MemoryEntry[] memoryEntries, usz byteSize) @local {
+    foreach (usz i, MemoryEntry me : memoryEntries) {
+        if (me.type == AVAILABLE && me.base > LEGACY_BIOS_LIMIT && me.length >= byteSize) return me.base;
     }
 
     return MEMORY_UNAVAILABLE~;
 }
 
-fn void? mark_memory_regions(MemoryRegion[] regions) @local {
-    // mark legacy bios region, should never be used
+fn void? mark_memory_entries(MemoryEntry[] entries) @local {
+    // mark legacy bios entry, should never be used
     pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
 
-    foreach (usz i, MemoryRegion reg : regions) {
-            logging::debug("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.description);
-		if (reg.base >= pmm::physTotal) continue;
-        if (reg.type != AVAILABLE) {
+    foreach (usz i, MemoryEntry me : entries) {
+            logging::debug("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, me.base, me.base+me.length-1, me.baseVirt, me.length, me.type.description);
+		if (me.base >= pmm::physTotal) continue;
+        if (me.type != AVAILABLE) {
 
-            // sanitize size: some uefi memory regions are MMIO outside of physical RAM
-            usz size = reg.size;
-            if (reg.base + reg.size >= pmm::physTotal) {
-                size = pmm::physTotal - reg.base;
+            // sanitize size: some uefi memory entries are MMIO outside of physical RAM
+            usz size = me.length;
+            if (me.base + me.length >= pmm::physTotal) {
+                size = pmm::physTotal - me.base;
             }
 
-            pmm::mark_region_used(reg.base, size)!;
+            pmm::mark_region_used(me.base, size)!;
         }
     }
 }
 
-fn void? map_memory_regions(MemoryRegion[] regions) @local {
-    foreach (usz i, MemoryRegion reg : regions) {
-        if (reg.type != AVAILABLE && reg.baseVirt != 0) {
-            vmm::map(reg.base, reg.baseVirt, reg.size)!;
+fn void? map_memory_entries(MemoryEntry[] entries) @local {
+    foreach (usz i, MemoryEntry me : entries) {
+        if (me.type != AVAILABLE && me.baseVirt != 0) {
+            vmm::map(me.base, me.baseVirt, me.length)!;
             
-        } else if (reg.type == ACPI) {
-            vmm::map(reg.base, vmm::@acpi(reg.base), reg.size)!;
+        } else if (me.type == ACPI) {
+            vmm::map(me.base, vmm::@acpi(me.base), me.length)!;
         }
     }
 }
 
-fn void? init(BootloaderPayload* payload) {
-    MemoryRegion[] regions = payload.memoryRegionMap[:payload.memoryRegionEntries];
-    usz bitmapAllocSize = pmm::bitmap_alloc_size_of(payload.totalMemoryBytes);
-    uptr bitmap = find_bitmap_region(regions, bitmapAllocSize)!;
+fn void? init(TagMemoryMap* memoryMap) {
+    MemoryEntry[] entries = memoryMap.entries[:memoryMap.numOfEntries];
+    usz bitmapAllocSize = pmm::bitmap_alloc_size_of(memoryMap.totalBytes);
+    uptr bitmap = find_bitmap_entry(entries, bitmapAllocSize)!;
     
-    // create physmem bitmap, mark default regions
-    pmm::init(bitmap, payload.totalMemoryBytes)!;
-    // mark memory regions
-    mark_memory_regions(regions)!;
+    // create physmem bitmap, mark default entries
+    pmm::init(bitmap, memoryMap.totalBytes)!;
+    // mark memory entries
+    mark_memory_entries(entries)!;
 
-    // create kernel address space with self map, pmm and physmap region
-    vmm::init(payload.totalMemoryBytes)!;
-    // map memory regions
-    map_memory_regions(regions)!;
+    // create kernel address space with self map, pmm and physmap entry
+    vmm::init(memoryMap.totalBytes)!;
+    // map memory entries
+    map_memory_entries(entries)!;
 
     // set new bitmap address
     pmm::set_bitmap(vmm::bitmap_virt_base());

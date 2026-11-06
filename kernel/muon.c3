@@ -4,10 +4,10 @@ import arch;
 import boson;
 import process;
 
-fn void kmain(BootloaderPayload* payload) {
+fn void kmain(BootInfoBlock* bib) {
     logging::init();
 
-    arch::init(payload);
+    arch::init(bib);
     object::init();
 
     muon::@wrap_panic(scheduler::init());

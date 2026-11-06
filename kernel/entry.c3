@@ -3,10 +3,10 @@ import muon;
 import boson;
 import lang;
 
-fn void kstart(BootloaderPayload* payload) @export("kstart") {
+fn void kstart(BootInfoBlock* bib) @export("kstart") {
     lang::init_runtime();
 
-    muon::kmain(payload);
+    muon::kmain(bib);
     
     muon::panic("muon::kmain() returned");
 }

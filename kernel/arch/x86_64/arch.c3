@@ -5,13 +5,22 @@ import muon;
 import mem;
 import dev;
 
-fn void init(BootloaderPayload* payload) {
-    uptr rsdpAddr = payload.rsdpAddr;
+fn void init(BootInfoBlock* bib) {
+    uptr rsdpAddr, stackBase;
+	TagMemoryMap* memoryMap;
+
+	bib.@foreach_tag(; i, tag) {
+		switch (tag.id) {
+			case RSDP: rsdpAddr = (uptr)((TagRsdp*)tag).rsdp;
+			case STACK: stackBase = (uptr)((TagStack*)tag).base;
+			case MEMORY_MAP: memoryMap = (TagMemoryMap*)tag;
+		}
+	};
 
     arch::cpu::disable_interrupts();
 
     // Foundations
-    gdt::setup(payload.stack.base);
+    gdt::setup(stackBase);
     logging::printn("GDT setup complete");
 
     gdt::install();
@@ -30,7 +39,7 @@ fn void init(BootloaderPayload* payload) {
     logging::printn("SSE enabled");
 
     // Memory Management
-    muon::@wrap_panic(mem::init(payload));
+    muon::@wrap_panic(mem::init(memoryMap));
     logging::printn("Memory manager init complete");
 
     // Interrupts and Timing
