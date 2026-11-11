@@ -9,9 +9,7 @@ fn void kstart(void* bootParam) @export("kstart") {
     logging::init();
 
 	boot::@to_boot_context(bootCtx, bootParam);
-	if (bootCtx.bootloader == UNKNOWN) {
-		muon::panic("Cannot identify bootloader (unknown), cannot start");
-	}
+	if (bootCtx.bootloader == UNKNOWN) muon::panic("Unknown bootloader, halting");
 
     muon::kmain(&bootCtx);
     

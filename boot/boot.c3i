@@ -50,7 +50,6 @@ macro @to_boot_context(BootContext #bootCtx, void* #bootParam) {
 	$if !$feat(BOOT_BOSON):
 		$error("No bootloaders were specified.");
 	$endif
-	$$trap();
 }
 
 module muon::boot @feat(ARCH_X86_64);

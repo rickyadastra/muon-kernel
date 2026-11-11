@@ -1,9 +1,12 @@
 module muon::boot @feat(BOOT_BOSON); 
 import boson::protocol;
 
+const BibRevision BIB_REVISION = { 1, 0 };
+
 macro void? @from_boson_bib(BootContext #bootCtx, void* #bootParam) @feat(BOOT_BOSON) {
 	BootInfoBlock* bib = ((BootInfoBlock*)#bootParam);
 	if (bib.magic != protocol::MAGIC) return INVALID_BOOTLOADER~;
+	if (bib.revision.major > BIB_REVISION.major) return INVALID_BOOTLOADER~;
 	
 	#bootCtx = { .bootloader = BOSON };
 
