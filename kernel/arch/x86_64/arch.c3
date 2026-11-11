@@ -1,26 +1,14 @@
 module arch;
 
-import boson;
 import muon;
 import mem;
 import dev;
 
-fn void init(BootInfoBlock* bib) {
-    uptr rsdpAddr, stackBase;
-	TagMemoryMap* memoryMap;
-
-	bib.@foreach_tag(; i, tag) {
-		switch (tag.id) {
-			case RSDP: rsdpAddr = (uptr)((TagRsdp*)tag).rsdp;
-			case STACK: stackBase = (uptr)((TagStack*)tag).base;
-			case MEMORY_MAP: memoryMap = (TagMemoryMap*)tag;
-		}
-	};
-
+fn void init(BootContext* ctx) {
     arch::cpu::disable_interrupts();
 
     // Foundations
-    gdt::setup(stackBase);
+    gdt::setup((uptr)ctx.stack.base);
     logging::printn("GDT setup complete");
 
     gdt::install();
@@ -39,13 +27,13 @@ fn void init(BootInfoBlock* bib) {
     logging::printn("SSE enabled");
 
     // Memory Management
-    muon::@wrap_panic(mem::init(memoryMap));
+    muon::@wrap_panic(mem::init(&ctx.memory));
     logging::printn("Memory manager init complete");
 
     // Interrupts and Timing
     timing::pit::disable();
 
-    muon::@wrap_panic(acpi::init(rsdpAddr));
+    muon::@wrap_panic(acpi::init(ctx.rsdpAddr));
     logging::printn("ACPI init complete");
 
     muon::@wrap_panic(apic::init());

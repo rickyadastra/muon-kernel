@@ -1,12 +1,15 @@
 import arch;
-import muon;
-import boson;
-import lang;
+import muon, muon::boot;
+import lang, env;
 
-fn void kstart(BootInfoBlock* bib) @export("kstart") {
+BootContext bootCtx @local;
+
+fn void kstart(void* bootParam) @export("kstart") {
     lang::init_runtime();
 
-    muon::kmain(bib);
+	boot::@to_boot_context(bootCtx, bootParam);
+
+    muon::kmain(&bootCtx);
     
     muon::panic("muon::kmain() returned");
 }

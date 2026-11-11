@@ -1,13 +1,12 @@
 module muon;
 
 import arch;
-import boson;
 import process;
 
-fn void kmain(BootInfoBlock* bib) {
+fn void kmain(BootContext* ctx) {
     logging::init();
 
-    arch::init(bib);
+    arch::init(ctx);
     object::init();
 
     muon::@wrap_panic(scheduler::init());
