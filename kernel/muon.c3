@@ -4,7 +4,6 @@ import arch;
 import process;
 
 fn void kmain(BootContext* ctx) {
-    logging::init();
 
     arch::init(ctx);
     object::init();
