@@ -6,6 +6,9 @@ BOSON_TARGET 	:= $(BUILD_DIR)/boson/boson.efi
 
 MUON_BUILDDIR	:= $(BUILD_DIR)/muon
 MUON_TARGET 	:= $(BUILD_DIR)/muon/muon.elf
+MUON_FLAGS		:= --build-dir $(MUON_BUILDDIR) \
+				   --output-dir $(MUON_BUILDDIR) \
+				   -D BOOT_BOSON	# adds support for Boson Bootloader
 
 C3C				:= c3c
 C3C_FLAGS		:= --trust=full --warn-builtin=no
@@ -46,7 +49,7 @@ $(BOSON_TARGET): check-ver | $(BUILD_DIR)
 
 $(MUON_TARGET): check-ver | $(BUILD_DIR)
 	@echo "[Make] Building muon kernel"
-	@$(C3C) build $(C3C_FLAGS) --build-dir $(MUON_BUILDDIR) --output-dir $(MUON_BUILDDIR)
+	@$(C3C) build $(C3C_FLAGS) $(MUON_FLAGS)
 
 clear:
 	@rm -rf $(BUILD_DIR)

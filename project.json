@@ -9,6 +9,8 @@
     "version": "0.4",
     "sources": [
         "kernel/**",
+        "boot/*",
+        "boot/adapters/*",
         "shared/libs/**"
     ],
     "dependency-search-paths": [
@@ -30,6 +32,9 @@
             "use-stdlib": false,
             "link-libc": false,
             "no-entry": true,
+            "features": [
+                "ARCH_X86_64"
+            ],
             "x86cpu": "baseline",
             "linker": "builtin",
             "link-args": [
