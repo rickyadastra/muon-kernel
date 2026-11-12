@@ -43,6 +43,12 @@
                 "-static",
                 "-ztext"
             ]
+        },
+        "muon-x64-symbols": {
+            "type": "prepare",
+            "exec": [
+                "symgen.c3 muon.elf muon.sym"
+            ]
         }
     }
 }

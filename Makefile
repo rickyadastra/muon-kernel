@@ -11,7 +11,9 @@ MUON_FLAGS		:= --build-dir $(MUON_BUILDDIR) \
 				   -D BOOT_BOSON	# adds support for Boson Bootloader
 
 C3C				:= c3c
-C3C_FLAGS		:= --trust=full --warn-builtin=no
+C3C_FLAGS		:= --trust=full \
+				   --warn-builtin=no \
+				   --exec-dir $(MUON_BUILDDIR)
 C3C_MIN_VER		:= 0.8.4
 C3C_VERSION		:= $(shell $(C3C) --version | awk '/C3 Compiler Version/ {print $$4}')
 
@@ -49,7 +51,8 @@ $(BOSON_TARGET): check-ver | $(BUILD_DIR)
 
 $(MUON_TARGET): check-ver | $(BUILD_DIR)
 	@echo "[Make] Building muon kernel"
-	@$(C3C) build $(C3C_FLAGS) $(MUON_FLAGS)
+	@$(C3C) build muon-x64 $(C3C_FLAGS) $(MUON_FLAGS)
+	@$(C3C) run muon-x64-symbols $(C3C_FLAGS) 
 
 clear:
 	@rm -rf $(BUILD_DIR)
