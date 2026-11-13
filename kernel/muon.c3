@@ -1,13 +1,11 @@
 module muon;
 
 import arch;
-import boson;
 import process;
 
-fn void kmain(BootloaderPayload* payload) {
-    logging::init();
+fn void kmain(BootContext* ctx) {
 
-    arch::init(payload);
+    arch::init(ctx);
     object::init();
 
     muon::@wrap_panic(scheduler::init());

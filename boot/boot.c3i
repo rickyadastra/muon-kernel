@@ -1,0 +1,62 @@
+module muon::boot;
+
+faultdef INVALID_BOOTLOADER;
+
+const usz MAX_MEMORY_REGIONS = 128;
+
+enum MemoryRegionType : uint {
+    BOOTLOADER,
+    AVAILABLE,
+    FIRMWARE,
+    ACPI,
+    MMIO,
+    RESERVED,
+    KERNEL,
+}
+
+struct MemoryRegion {
+    MemoryRegionType type;
+    uptr base;
+    uptr baseVirt;
+    ulong size;
+}
+
+enum Bootloader {
+	UNKNOWN,
+	BOSON,
+}
+
+struct MemoryBootContext {
+	MemoryRegion[MAX_MEMORY_REGIONS] mapRegions;
+	usz mapRegionsCount;
+	ulong totalBytes;
+}
+
+struct StackBootContext {
+	void* base;
+	usz size;
+}
+
+struct CommonBootContext @private {
+	Bootloader bootloader;
+	MemoryBootContext memory;
+	StackBootContext stack;
+}
+
+macro @to_boot_context(BootContext #bootCtx, void* #bootParam) {
+	$if $feat(BOOT_BOSON):
+		if (try @from_boson_bib(#bootCtx, #bootParam)) return;
+	$endif
+	$if !$feat(BOOT_BOSON):
+		$error("No bootloaders were specified.");
+	$endif
+}
+
+module muon::boot @feat(ARCH_X86_64);
+
+struct BootContext {
+	inline CommonBootContext commonCtx;	
+
+	uptr pageTablePtr;
+	uptr rsdpAddr;
+}
