@@ -56,8 +56,8 @@ The full milestone breakdown is available [here](MILESTONES.md).
 - [ ] 🪨 **Milestone 0.5** - Consolidation
    - [x] Boson refactor to C3 (see [boson-bootloader](https://github.com/rickyadastra/boson-bootloader))
    - [x] Muon's repository refactor
-   - [ ] Boson's boot protocol refactor to be extensible
-   - [ ] Symbols extraction capabilities in Boson
+   - [x] Boson's boot protocol refactor to be extensible
+   - [x] Muon symbols extraction via script
    - [ ] DWARF Interpreter and stack unwinding
    - [ ] Verbose in-kernel panic handler
 - [ ] 👥 **Milestone 0.6** - Userspace & System Calls
