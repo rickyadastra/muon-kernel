@@ -12,6 +12,7 @@ enum MemoryRegionType : uint {
     MMIO,
     RESERVED,
     KERNEL,
+	MODULE,
 }
 
 struct MemoryRegion {
