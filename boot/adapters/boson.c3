@@ -1,6 +1,8 @@
 module muon::boot @feat(BOOT_BOSON); 
 import boson::protocol;
 
+alias BosonModule = protocol::Module;
+
 const BibRevision BIB_REVISION = { 1, 0 };
 
 macro void? @from_boson_bib(BootContext #bootCtx, void* #bootParam) @feat(BOOT_BOSON) {
@@ -29,6 +31,18 @@ macro void? @from_boson_bib(BootContext #bootCtx, void* #bootParam) @feat(BOOT_B
 						.base = me.base,
 						.baseVirt = me.baseVirt,
 						.size = me.length,
+					};
+				}
+			case MODULES:
+				TagModules* modules = (TagModules*)tag;
+				#bootCtx.modules.count = modules.numOfModules;
+				
+				foreach (usz j, BosonModule mod : modules.modules[:modules.numOfModules]) {
+					#bootCtx.modules.modules[j] = {
+						.address = mod.address,
+						.size = mod.size,
+						.nameLen = mod.nameLen,
+						.name = mod.name
 					};
 				}
 		}

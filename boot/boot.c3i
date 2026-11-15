@@ -3,6 +3,7 @@ module muon::boot;
 faultdef INVALID_BOOTLOADER;
 
 const usz MAX_MEMORY_REGIONS = 128;
+const usz MAX_MODULES = 32;
 
 enum MemoryRegionType : uint {
     BOOTLOADER,
@@ -38,10 +39,27 @@ struct StackBootContext {
 	usz size;
 }
 
+struct Module {
+	uptr address;
+	uint size;
+	char nameLen;
+	char[32] name;
+}
+
+macro String Module.get_name(&self) => (String)self.name[:self.nameLen];
+
+struct ModulesBootContext {
+	Module[MAX_MODULES] modules;
+	usz count;
+}
+
+macro Module[] ModulesBootContext.get_modules(&self) => self.modules[:self.count];
+
 struct CommonBootContext @private {
 	Bootloader bootloader;
 	MemoryBootContext memory;
 	StackBootContext stack;
+	ModulesBootContext modules;
 }
 
 macro @to_boot_context(BootContext #bootCtx, void* #bootParam) {
