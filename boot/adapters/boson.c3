@@ -45,6 +45,10 @@ macro void? @from_boson_bib(BootContext #bootCtx, void* #bootParam) @feat(BOOT_B
 						.name = mod.name
 					};
 				}
+			case UNWIND_INFO:
+				TagUnwindInfo* unwind = (TagUnwindInfo*)tag;
+				#bootCtx.debug.unwindTable = (void*)unwind.unwindTablePtr;
+				#bootCtx.debug.unwindTableSize = unwind.unwindTableSize;
 		}
 	};
 }

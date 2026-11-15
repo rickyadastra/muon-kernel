@@ -4,9 +4,10 @@ OUTPUT_ARCH(i386:x86-64)
 
 PHDRS
 {
-    text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ; /* Execute + Read */
-    rodata  PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
-    data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
+    text      PT_LOAD         FLAGS(5); /* Execute + Read */
+    rodata    PT_LOAD         FLAGS(4); /* Read only */
+    data      PT_LOAD         FLAGS(6); /* Write + Read */
+    muon_dbg  0x6D110D09      FLAGS(4); /* Read only */
 }
 
 SECTIONS
@@ -26,6 +27,10 @@ SECTIONS
     KEEP(*(.init_array))
     __init_array_end = .;
   } : rodata
+
+  .eh_frame ALIGN (0x1000) : {
+    *(.eh_frame)
+  } : muon_dbg
 
   .data ALIGN (0x1000) : {
     *(.data*)

@@ -55,11 +55,17 @@ struct ModulesBootContext {
 
 macro Module[] ModulesBootContext.get_modules(&self) => self.modules[:self.count];
 
+struct DebugInfoContext {
+	void* unwindTable;
+	usz unwindTableSize;
+}
+
 struct CommonBootContext @private {
 	Bootloader bootloader;
 	MemoryBootContext memory;
 	StackBootContext stack;
 	ModulesBootContext modules;
+	DebugInfoContext debug;
 }
 
 macro @to_boot_context(BootContext #bootCtx, void* #bootParam) {
