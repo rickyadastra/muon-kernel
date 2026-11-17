@@ -58,6 +58,7 @@ The full milestone breakdown is available [here](MILESTONES.md).
    - [x] Muon's repository refactor
    - [x] Boson's boot protocol refactor to be extensible
    - [x] Muon symbols extraction via script
+   - [x] Improved kernel logging module
    - [ ] DWARF Interpreter and stack unwinding
    - [ ] Verbose in-kernel panic handler
 - [ ] 👥 **Milestone 0.6** - Userspace & System Calls
