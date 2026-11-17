@@ -11,7 +11,7 @@
         "kernel/**",
         "boot/*",
         "boot/adapters/*",
-        "shared/libs/**"
+        "libs/**"
     ],
     "dependency-search-paths": [
         "boot/boson/lib"
