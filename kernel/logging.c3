@@ -113,5 +113,5 @@ fn void panic(String reason, String file = "", String function = "", uint line =
 fn void init() {
     serial = serial::of(SerialPort.COM1);
     serial.setup(SerialPort.COM1);
-    printn("Serial port setup complete");
+    log::info("Serial port setup complete");
 }

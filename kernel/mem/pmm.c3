@@ -147,7 +147,6 @@ fn PhysAddr? alloc(usz frames = 1) {
     @require frames >= 1
 *>
 fn void? free(PhysAddr addr, usz frames = 1) {
-    // log::printn("freeing %x %d", (uptr)addr, frames);
     usz frame = @frame_of(addr);
 
     for (usz i=0; i<frames; i++) {
@@ -155,7 +154,7 @@ fn void? free(PhysAddr addr, usz frames = 1) {
             mark_free(frame+i)!;
 
         } else {
-            log::printn("Double pmm::free of %x", (uptr)addr + (i*FRAME_SIZE));
+            log::warn("Double pmm::free of %x", (uptr)addr + (i*FRAME_SIZE));
         }
     }
 }

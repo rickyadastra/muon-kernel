@@ -22,8 +22,7 @@ fn InterruptStack* pagefault_handler(InterruptStack* stack, KnownInterrupt intr)
     String presence = errorCode.present ? "present" : "non-present";
     String privilege = errorCode.user ? "user" : "kernel";
 
-    log::print("Page fault at address %x. ", cpu::read_cr2());
-    log::printn("Tried to %s a %s page in %s mode.", action, presence, privilege);
+    log::error("Page fault at address %x. Tried to %s a %s page in %s mode.", cpu::read_cr2(), action, presence, privilege);
 
     interrupts::@print_stack(stack, intr);
     arch::panic();

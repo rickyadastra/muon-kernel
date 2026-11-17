@@ -114,7 +114,7 @@ fn void free(void* ptr) {
     defer lock.release();
 
     if (catch kAllocator.release(ptr)) {
-        log::printn("Attempted free on null pointer.");
+        log::warn("Attempted free on null pointer.");
     } else {
         log::debug("KERNEL ALLOCATOR - FREED %x (usage %d%)", ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
     }

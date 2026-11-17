@@ -30,7 +30,7 @@ macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
 fn InterruptStack* exception_handler(InterruptStack* stack) @private {
     KnownInterrupt intr = KnownInterrupt::from_ordinal(stack.irq);
     
-    log::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.description, intr.mnmem, intr.name);
+    log::error("Exception %d of type %s (%s): %s", intr.num, intr.type.description, intr.mnmem, intr.name);
 
     switch (intr) {
         case KnownInterrupt.PAGE_FAULT:

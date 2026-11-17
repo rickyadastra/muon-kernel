@@ -9,43 +9,43 @@ fn void init(BootContext* ctx) {
 
     // Foundations
     gdt::setup((uptr)ctx.stack.base);
-    log::printn("GDT setup complete");
+    log::debug("GDT setup complete");
 
     gdt::install();
-    log::printn("GDT install complete");
+    log::info("GDT install complete");
 
     idt::setup();
-    log::printn("IDT setup complete");
+    log::debug("IDT setup complete");
 
     idt::install();
-    log::printn("IDT install complete");
+    log::info("IDT install complete");
 
     muon::@wrap_panic(cpu::cpuid::enable());
-    log::printn("CPUID enabled");
+    log::debug("CPUID enabled");
 
     muon::@wrap_panic(cpu::sse::enable());
-    log::printn("SSE enabled");
+    log::debug("SSE enabled");
 
     // Memory Management
     muon::@wrap_panic(mem::init(&ctx.memory));
-    log::printn("Memory manager init complete");
+    log::info("Memory manager init complete");
 
     // Interrupts and Timing
     timing::pit::disable();
 
     muon::@wrap_panic(acpi::init(ctx.rsdpAddr));
-    log::printn("ACPI init complete");
+    log::info("ACPI init complete");
 
     muon::@wrap_panic(apic::init());
-    log::printn("APIC init complete");
+    log::info("APIC init complete");
 
     muon::@wrap_panic(timing::hpet::init());
 
     interrupts::init();
-    log::printn("Interrupts init complete");
+    log::info("Interrupts init complete");
 
     muon::@wrap_panic(timing::calibrate());
-    log::printn("Timer calibration complete");
+    log::info("Timer calibration complete");
 }
 
 fn void panic() {

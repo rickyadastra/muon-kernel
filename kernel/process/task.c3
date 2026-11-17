@@ -107,7 +107,7 @@ fn void yield() @naked {
 }
 
 macro prepare_cleanup(Task* task) {
-    log::printn("Task #%d is ready for cleanup", task.id);
+    log::debug("Task #%d is ready for cleanup", task.id);
 
     task.state = CLEANUP;
     scheduler::enqueue_awaiting_cleanup_task(task);
@@ -126,7 +126,7 @@ fn void terminate(Task* task, int ret) {
 
     // resume awaitor
     if (task.pendingAwaitor != null) {
-        log::printn("Resuming awaitor Task #%d", task.pendingAwaitor.id);
+        log::debug("Resuming awaitor Task #%d", task.pendingAwaitor.id);
         resume(task.pendingAwaitor);
     }
 
@@ -174,11 +174,11 @@ fn void? wait(Task* awaitor, Task* awaited) {
     scheduler::lock_scheduler();
 
     if (awaited.state == TERMINATED) {
-        log::printn("Task #%d will NOT wait for already terminated task #%d", awaitor.id, awaited.id);
+        log::debug("Task #%d will NOT wait for already terminated task #%d", awaitor.id, awaited.id);
     	scheduler::unlock_scheduler();
 
     } else {
-        log::printn("Task #%d will wait for task #%d", awaitor.id, awaited.id);
+        log::debug("Task #%d will wait for task #%d", awaitor.id, awaited.id);
         
         awaited.pendingAwaitor = awaitor;
         bool shouldYield = do_suspend(awaitor);
@@ -200,7 +200,7 @@ fn void? sleep_ms(usz ms) {
         ResumeContext*? resumeCtx = anycast(e.context, ResumeContext);
 
         if (catch ex = resumeCtx) {
-            log::printn("error after sleep: %s", ex.description);
+            log::error("error after sleep: %s", ex.description);
 
         } else {
             // clear pending event
@@ -209,7 +209,7 @@ fn void? sleep_ms(usz ms) {
             // resume task if is suspended
             if (resumeCtx.actor.state == TaskState.SUSPENDED) {
                 if (catch exx = process::resume_after_sleep(*resumeCtx)) {
-                    log::printn("error after sleep: %s", exx.description);
+                    log::error("error after sleep: %s", exx.description);
                 }
             }
         }
