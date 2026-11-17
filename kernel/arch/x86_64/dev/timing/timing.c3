@@ -23,8 +23,6 @@ fn void get_wallclock_callback(ulong irq) {
 
 fn void increment_time_sources(TimerEvent* event) @local {
     if (try wallclock) log::debug("Wallclock updated to %d", (ulong)++wallclock);
-    uptime++;
-
     timing::schedule_milli(1000, &increment_time_sources);
 }
 
@@ -58,6 +56,7 @@ fn void? calibrate() {
     log::debug("TSC frequency: %f GHz", tscFrequency / 1e9);
 
     setup_tsc_deadline_timer(tscFrequency);
+	bootTime = cpu::read_tsc();
 }
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
