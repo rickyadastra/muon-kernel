@@ -1,6 +1,6 @@
 module arch::interrupts;
 
-import muon::logging;
+import muon::log;
 import arch::mem @public;
 import arch::cpu;
 import dev::interrupts::apic;
@@ -13,24 +13,24 @@ macro InterruptHandlerFn @handler_wrapper(SimpleInterruptHandlerFn $fn) => fn (I
 };
 
 macro void @print_stack(InterruptStack* #stack, KnownInterrupt intr) @private {
-    logging::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
-    logging::printn(" rax: %x  rbx: %x  rcx: %x  rdx: %x", #stack.rax, #stack.rbx, #stack.rcx, #stack.rdx);
-    logging::printn(" rsi: %x  rdi: %x  rbp: %x  rsp: %x", #stack.rsi, #stack.rdi, #stack.rbp, #stack.rsp);
-    logging::printn(" r8:  %x  r9:  %x  r10: %x  r11: %x", #stack.r8, #stack.r9, #stack.r10, #stack.r11);
-    logging::printn(" r12: %x  r13: %x  r14: %x  r15: %x", #stack.r12, #stack.r13, #stack.r14, #stack.r15);
-    logging::newline();
-    logging::print(" IRQ %d (%x)", #stack.irq, (uint)#stack.irq, terminator: intr.has_error_code ? ' ' : '\n');
-    if (intr.has_error_code) logging::printn("with error code: %x", #stack.error_code);
-    logging::print(" rip: %x  cs:  %x (%s) ", #stack.rip, (ushort)#stack.cs, gdt::@descriptor_of(#stack.cs).description);
-    logging::printn(" ss:  %x (%s)", (ushort)#stack.ss, gdt::@descriptor_of(#stack.ss).description);
-    logging::printn(" rflags: %x", #stack.rflags);
-    logging::printn("—————————————————————————————————— END OF INTERRUPT STACK DUMP —————————————————————————————————————");
+    log::printn("—————————————————————————————————————— INTERRUPT STACK DUMP ————————————————————————————————————————");
+    log::printn(" rax: %x  rbx: %x  rcx: %x  rdx: %x", #stack.rax, #stack.rbx, #stack.rcx, #stack.rdx);
+    log::printn(" rsi: %x  rdi: %x  rbp: %x  rsp: %x", #stack.rsi, #stack.rdi, #stack.rbp, #stack.rsp);
+    log::printn(" r8:  %x  r9:  %x  r10: %x  r11: %x", #stack.r8, #stack.r9, #stack.r10, #stack.r11);
+    log::printn(" r12: %x  r13: %x  r14: %x  r15: %x", #stack.r12, #stack.r13, #stack.r14, #stack.r15);
+    log::newline();
+    log::print(" IRQ %d (%x)", #stack.irq, (uint)#stack.irq, terminator: intr.has_error_code ? ' ' : '\n');
+    if (intr.has_error_code) log::printn("with error code: %x", #stack.error_code);
+    log::print(" rip: %x  cs:  %x (%s) ", #stack.rip, (ushort)#stack.cs, gdt::@descriptor_of(#stack.cs).description);
+    log::printn(" ss:  %x (%s)", (ushort)#stack.ss, gdt::@descriptor_of(#stack.ss).description);
+    log::printn(" rflags: %x", #stack.rflags);
+    log::printn("—————————————————————————————————— END OF INTERRUPT STACK DUMP —————————————————————————————————————");
 }
 
 fn InterruptStack* exception_handler(InterruptStack* stack) @private {
     KnownInterrupt intr = KnownInterrupt::from_ordinal(stack.irq);
     
-    logging::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.description, intr.mnmem, intr.name);
+    log::printn("Exception %d of type %s (%s): %s", intr.num, intr.type.description, intr.mnmem, intr.name);
 
     switch (intr) {
         case KnownInterrupt.PAGE_FAULT:
@@ -52,7 +52,7 @@ fn InterruptStack* interrupt_handler(InterruptStack* stack) @private {
     if (func != null) {
         stack = func(stack);
     } else {
-        logging::debug("unhandled interrupt %d", stack.irq);
+        log::debug("unhandled interrupt %d", stack.irq);
     }
 
     apic::lapic_eoi();

@@ -1,4 +1,4 @@
-module muon::logging;
+module muon::log;
 
 import dev::serial;
 import string::formatting;

@@ -84,20 +84,20 @@ fn InterruptStack* exception_handler(InterruptStack* stack) {
     MXCSReg reg;
     store_mxcsr(&reg);
 
-    logging::print("MXCSR: %x, Exception: ", reg);
+    log::print("MXCSR: %x, Exception: ", reg);
     switch {
         case reg.invalidOperationExcpt:
-            logging::printn("invalidOperation");
+            log::printn("invalidOperation");
         case reg.denormOperandExcpt:
-            logging::printn("denormOperand");
+            log::printn("denormOperand");
         case reg.zeroDivExcpt:
-            logging::printn("zeroDiv");
+            log::printn("zeroDiv");
         case reg.numOverflowExcpt:
-            logging::printn("numOverflow");
+            log::printn("numOverflow");
         case reg.numUnderflowExcpt:
-            logging::printn("numUnderflow");
+            log::printn("numUnderflow");
         case reg.inexactResExcpt:
-            logging::printn("inexactRes");
+            log::printn("inexactRes");
     }
 
     @clear_exception_flags(reg);

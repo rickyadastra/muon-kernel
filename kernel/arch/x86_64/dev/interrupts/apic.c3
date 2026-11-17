@@ -6,7 +6,7 @@ import dev::mmio;
 import dev::interrupts;
 import dev::timing;
 import mem::vmm;
-import muon::logging;
+import muon::log;
 
 const uint SPURIOUS_INTERR_VECTOR_VALUE = 0x100 | KnownInterrupt.SPURIOUS_INTERRUPT.num; // 0x100: enable APIC
 const usz MAX_IOAPIC_COUNT = 8;
@@ -126,7 +126,7 @@ fn IOAPICRedirectionEntry ioapic_get_redirect(uint gsi) {
 fn void? parse_madt(MADTable* madt) @local {
     RecordHeader* recordPtr = &madt.firstRecord;
     while ((uptr)recordPtr < ((uptr)madt + madt.length)) {
-        // logging::debug("record @ %x of type: %d, length: %d bytes", recordPtr, recordPtr.type, recordPtr.length);
+        // log::debug("record @ %x of type: %d, length: %d bytes", recordPtr, recordPtr.type, recordPtr.length);
 
         if (recordPtr.type == RecordType.LOCAL_APIC) {
             LocalAPICRecord* lapicRecord = (LocalAPICRecord*)recordPtr;
@@ -134,12 +134,12 @@ fn void? parse_madt(MADTable* madt) @local {
             // set the Local APIC ID for the CPU that will handle all interrupts
             if (lapicId == char::max) lapicId = lapicRecord.apicId;
 
-            logging::debug("Found Local APIC #%d (ACPI Processor ID: %d)", lapicRecord.apicId, lapicRecord.acpiProcessorId);
+            log::debug("Found Local APIC #%d (ACPI Processor ID: %d)", lapicRecord.apicId, lapicRecord.acpiProcessorId);
 
         } else if (recordPtr.type == RecordType.IO_APIC) {
             IOApic ioApic = ioapic_register((IOAPICRecord*)recordPtr)!;
             
-            logging::debug("Found IOAPIC #%d @ %x (%x) managing interrupts %d-%d (%d lines)", ioApic.record.ioApicId, ioApic.record.ioApicAddr, 
+            log::debug("Found IOAPIC #%d @ %x (%x) managing interrupts %d-%d (%d lines)", ioApic.record.ioApicId, ioApic.record.ioApicAddr, 
                             ioApic.record, ioApic.record.globalSystemInterruptBase, ioApic.managedIntLines - 1, ioApic.managedIntLines);
         
         } else if (recordPtr.type == RecordType.IO_APIC_ISO) {
@@ -150,7 +150,7 @@ fn void? parse_madt(MADTable* madt) @local {
             String trigger = isoRecord.flags.triggerOnLevel ? "LEVEL" : "EDGE";
             String active = isoRecord.flags.activeOnLow ? "LOW" : "HIGH";
 
-            logging::debug("Found IOAPIC Override for IRQ #%d to GSI #%d (%s %s)", irq, gsi, trigger, active);
+            log::debug("Found IOAPIC Override for IRQ #%d to GSI #%d (%s %s)", irq, gsi, trigger, active);
 
             ioapic_set_redirect(gsi, irq, isoRecord.flags);
 
@@ -162,7 +162,7 @@ fn void? parse_madt(MADTable* madt) @local {
             String trigger = nmiRecord.flags.triggerOnLevel ? "LEVEL" : "EDGE";
             String active = nmiRecord.flags.activeOnLow ? "LOW" : "HIGH";            
 
-            logging::debug("Found Local APIC NMI for LINT #%d on CPU #%d (%s %s)", lint, procId, trigger, active);
+            log::debug("Found Local APIC NMI for LINT #%d on CPU #%d (%s %s)", lint, procId, trigger, active);
 
             // TODO: support multiple CPUs and register NMI on each one
             lapic_set_lvt(lint, nmiRecord.flags, KnownInterrupt.NONMASKABLE_INTERRUPT, nonMaskable: true);

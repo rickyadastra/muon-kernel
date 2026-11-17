@@ -86,9 +86,9 @@ fn Task* pick_next_ready_task() @private {
     
     if (!taskQueue.is_empty()) {
         nextTask = taskQueue.remove_at(0)!!;
-        logging::debug("pick task %d", nextTask.id);
+        log::debug("pick task %d", nextTask.id);
     } else {
-        logging::debug("pick idle");
+        log::debug("pick idle");
         nextTask = idleTask;
     }
 
@@ -135,7 +135,7 @@ macro enqueue_task(Task* task) {
     lock_scheduler();
     defer unlock_scheduler();
 
-    logging::debug("enqueue task %d", task.id);
+    log::debug("enqueue task %d", task.id);
 
     taskQueue.add(task);
 }
@@ -155,7 +155,7 @@ macro enqueue_terminated_task(Task* task) {
     lock_scheduler();
     defer unlock_scheduler();
 
-    logging::debug("enqueue task %d (terminated)", task.id);
+    log::debug("enqueue task %d (terminated)", task.id);
 
     terminatedQueue.add(task);
 }
@@ -167,7 +167,7 @@ macro enqueue_awaiting_cleanup_task(Task* task) {
     lock_scheduler();
     defer unlock_scheduler();
 
-    logging::debug("enqueue task %d (awaiting cleanup)", task.id);
+    log::debug("enqueue task %d (awaiting cleanup)", task.id);
 
     cleanupQueue.add(task);
 }

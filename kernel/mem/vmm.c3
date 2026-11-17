@@ -3,7 +3,7 @@ module mem::vmm;
 import arch::cpu;
 import arch::mem::paging @public;
 import mem::pmm @public;
-import muon::logging;
+import muon::log;
 import std::math;
 
 faultdef PAGING_INIT_FAIL;
@@ -25,7 +25,7 @@ macro usz @pages(usz #bytes, usz #pageSize = paging::PageSize.NORMAL.size) => (#
 macro usz @physmap_pages(usz #bytes) => @pages(#bytes, paging::PageSize.HUGE_1G.size);
 
 fn void? map_physmap(usz len) @local {
-    logging::debug("%d -> mapping %dx 1GB pages", len, @physmap_pages(len));
+    log::debug("%d -> mapping %dx 1GB pages", len, @physmap_pages(len));
     
     for (usz i = 0; i < math::min(@physmap_pages(len), PHYSMAP_MAX); i++) {
         uptr paddr = (uptr)(PageSize.HUGE_1G.size * i);

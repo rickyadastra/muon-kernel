@@ -1,6 +1,6 @@
 module arch::mem;
 
-import muon::logging;
+import muon::log;
 import arch::cpu;
 import arch::interrupts @public;
 
@@ -22,8 +22,8 @@ fn InterruptStack* pagefault_handler(InterruptStack* stack, KnownInterrupt intr)
     String presence = errorCode.present ? "present" : "non-present";
     String privilege = errorCode.user ? "user" : "kernel";
 
-    logging::print("Page fault at address %x. ", cpu::read_cr2());
-    logging::printn("Tried to %s a %s page in %s mode.", action, presence, privilege);
+    log::print("Page fault at address %x. ", cpu::read_cr2());
+    log::printn("Tried to %s a %s page in %s mode.", action, presence, privilege);
 
     interrupts::@print_stack(stack, intr);
     arch::panic();

@@ -1,7 +1,7 @@
 module dev::timing;
 
 import datetime;
-import muon::logging;
+import muon::log;
 import arch::cpu;
 import arch::interrupts;
 import arch::mem;
@@ -11,7 +11,7 @@ import std::collections::linkedlist;
 
 fn void get_wallclock_callback(ulong irq) {
     if (try utime = rtc::get_datetime().seconds_since_epoch()) {
-        logging::debug("Wallclock set to %d", utime);
+        log::debug("Wallclock set to %d", utime);
         wallclock = utime;
     }
 
@@ -22,7 +22,7 @@ fn void get_wallclock_callback(ulong irq) {
 }
 
 fn void increment_time_sources(TimerEvent* event) @local {
-    if (try wallclock) logging::debug("Wallclock updated to %d", (ulong)++wallclock);
+    if (try wallclock) log::debug("Wallclock updated to %d", (ulong)++wallclock);
     uptime++;
 
     timing::schedule_milli(1000, &increment_time_sources);
@@ -55,14 +55,14 @@ fn void? calibrate() {
     if (!cpuid::query_feature(CPUFeature.TSC_DEADLINE_SUPPORT)!) return TIMER_UNSUPPORTED~;
 
     double tscFrequency = get_tsc_frequency_with_hpet();
-    logging::debug("TSC frequency: %f GHz", tscFrequency / 1e9);
+    log::debug("TSC frequency: %f GHz", tscFrequency / 1e9);
 
     setup_tsc_deadline_timer(tscFrequency);
 }
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
     KernelTime curTime = timer.get_current();
-    logging::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
+    log::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
 
     InterruptStack** stackPtr = &stack;
     serve_timer_events(curTime, stackPtr)!!;

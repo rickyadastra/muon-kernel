@@ -2,7 +2,7 @@ module arch::mem;
 
 import mem @public;
 import muon::boot;
-import muon::logging;
+import muon::log;
 
 import mem::allocator::buddy;
 import std::lock;
@@ -29,7 +29,7 @@ fn void? mark_memory_regions(MemoryRegion[] regions) @local {
     pmm::mark_region_used(LEGACY_BIOS_BASE, LEGACY_BIOS_LIMIT)!;
 
     foreach (usz i, MemoryRegion reg : regions) {
-            logging::debug("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.description);
+            log::debug("%d:\t[%x-%x] -> %x, %d B (type: %s)", i, reg.base, reg.base+reg.size-1, reg.baseVirt, reg.size, reg.type.description);
 		if (reg.base >= pmm::physTotal) continue;
         if (reg.type != AVAILABLE) {
 
@@ -105,7 +105,7 @@ fn void* alloc(usz bytes) {
     defer lock.release();
 
     void* ptr = (void*)kAllocator.acquire(bytes)!!;
-    logging::debug("KERNEL ALLOCATOR - NEW ALLOCATION of %d bytes at %x (usage %d%)", bytes, ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
+    log::debug("KERNEL ALLOCATOR - NEW ALLOCATION of %d bytes at %x (usage %d%)", bytes, ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
     return ptr;
 }
 
@@ -114,8 +114,8 @@ fn void free(void* ptr) {
     defer lock.release();
 
     if (catch kAllocator.release(ptr)) {
-        logging::printn("Attempted free on null pointer.");
+        log::printn("Attempted free on null pointer.");
     } else {
-        logging::debug("KERNEL ALLOCATOR - FREED %x (usage %d%)", ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
+        log::debug("KERNEL ALLOCATOR - FREED %x (usage %d%)", ptr, ((double)kAllocator.usedMemory / kAllocator.totalMemory)*100);
     }
 }

@@ -17,7 +17,7 @@ fn void register(KernelObject obj) {
     defer lock.release();
 
     objects.add(obj);
-    logging::printn("Registered new object %x", obj.ptr);
+    log::printn("Registered new object %x", obj.ptr);
     print_info(obj);
 }
 
@@ -26,11 +26,11 @@ fn bool? unregister(KernelObject obj) {
     defer lock.release();
 
     if (obj.get_ref_count() > 0) return STILL_REFERENCED~;
-    logging::printn("Unregistering object %x", obj.ptr);
+    log::printn("Unregistering object %x", obj.ptr);
 
     return objects.remove(obj);
 }
 
 macro print_info(KernelObject obj) {  
-    logging::printn("Object %x, refcount: %d", obj.ptr, obj.get_ref_count());
+    log::printn("Object %x, refcount: %d", obj.ptr, obj.get_ref_count());
 }

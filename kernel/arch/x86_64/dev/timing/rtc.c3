@@ -2,7 +2,7 @@ module dev::timing::rtc;
 
 import datetime;
 import dev::port;
-import muon::logging;
+import muon::log;
 
 Port rtc @local = RTC_PORT;
 

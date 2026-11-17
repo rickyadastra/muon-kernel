@@ -3,7 +3,7 @@ module arch::interrupts;
 import dev;
 import dev::timing @public;
 import dev::interrupts::apic @public;
-import muon::logging;
+import muon::log;
 import arch::mem;
 import arch::cpu;
 
@@ -49,7 +49,7 @@ const KnownInterrupt[*] KERNEL_HANDLED_INTS = {
 fn void set_interrupt_handler(KnownInterrupt inter, InterruptHandlerFn handler = null) {    
     handlers[inter.num] = handler;
     
-    logging::debug("Registering new interrupt handler for %s, vector %d @ %x", inter.description, inter.num, handler);
+    log::debug("Registering new interrupt handler for %s, vector %d @ %x", inter.description, inter.num, handler);
 }
 
 fn void set_interrupt_routing(KnownInterrupt inter, InterruptFlags flags) {
@@ -58,7 +58,7 @@ fn void set_interrupt_routing(KnownInterrupt inter, InterruptFlags flags) {
 
     apic::ioapic_set_redirect(gsi, irq, flags);
 
-    logging::debug("Registering new interrupt routing for %s, vector %d to gsi %d", inter.description, inter.num, gsi);
+    log::debug("Registering new interrupt routing for %s, vector %d to gsi %d", inter.description, inter.num, gsi);
 }
 
 fn void set_interrupt_mask(KnownInterrupt inter, bool val, bool cancelPending = false) {
@@ -66,7 +66,7 @@ fn void set_interrupt_mask(KnownInterrupt inter, bool val, bool cancelPending = 
 
     apic::ioapic_set_mask(gsi, val, cancelPending);
 
-    logging::debug("%sasking interrupt line for %s, vector %d", val ? "M" : "Unm", inter.description, inter.num);
+    log::debug("%sasking interrupt line for %s, vector %d", val ? "M" : "Unm", inter.description, inter.num);
 }
 
 fn void init() {
