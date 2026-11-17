@@ -9,7 +9,15 @@
     "version": "0.4",
     "sources": [
         "kernel/**",
+        "boot/*",
+        "boot/adapters/*",
         "shared/libs/**"
+    ],
+    "dependency-search-paths": [
+        "boot/boson/lib"
+    ],
+    "dependencies": [
+        "boson_protocol"
     ],
     "test-sources": [],
     "build-dir": "./.build",
@@ -24,6 +32,9 @@
             "use-stdlib": false,
             "link-libc": false,
             "no-entry": true,
+            "features": [
+                "ARCH_X86_64"
+            ],
             "x86cpu": "baseline",
             "linker": "builtin",
             "link-args": [
@@ -31,6 +42,12 @@
                 "-zmax-page-size=0x1000",
                 "-static",
                 "-ztext"
+            ]
+        },
+        "muon-x64-symbols": {
+            "type": "prepare",
+            "exec": [
+                "symgen.c3 muon.elf muon.sym"
             ]
         }
     }

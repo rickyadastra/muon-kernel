@@ -1,7 +1,7 @@
 module arch::mem;
 
-import boson;
 import mem @public;
+import muon::boot;
 import muon::logging;
 
 import mem::allocator::buddy;
@@ -55,18 +55,18 @@ fn void? map_memory_regions(MemoryRegion[] regions) @local {
     }
 }
 
-fn void? init(BootloaderPayload* payload) {
-    MemoryRegion[] regions = payload.memoryRegionMap[:payload.memoryRegionEntries];
-    usz bitmapAllocSize = pmm::bitmap_alloc_size_of(payload.totalMemoryBytes);
+fn void? init(MemoryBootContext* memory) {
+    MemoryRegion[] regions = memory.mapRegions[:memory.mapRegionsCount];
+    usz bitmapAllocSize = pmm::bitmap_alloc_size_of(memory.totalBytes);
     uptr bitmap = find_bitmap_region(regions, bitmapAllocSize)!;
     
     // create physmem bitmap, mark default regions
-    pmm::init(bitmap, payload.totalMemoryBytes)!;
+    pmm::init(bitmap, memory.totalBytes)!;
     // mark memory regions
     mark_memory_regions(regions)!;
 
     // create kernel address space with self map, pmm and physmap region
-    vmm::init(payload.totalMemoryBytes)!;
+    vmm::init(memory.totalBytes)!;
     // map memory regions
     map_memory_regions(regions)!;
 

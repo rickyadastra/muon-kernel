@@ -1,17 +1,14 @@
 module arch;
 
-import boson;
 import muon;
 import mem;
 import dev;
 
-fn void init(BootloaderPayload* payload) {
-    uptr rsdpAddr = payload.rsdpAddr;
-
+fn void init(BootContext* ctx) {
     arch::cpu::disable_interrupts();
 
     // Foundations
-    gdt::setup(payload.stack.base);
+    gdt::setup((uptr)ctx.stack.base);
     logging::printn("GDT setup complete");
 
     gdt::install();
@@ -30,13 +27,13 @@ fn void init(BootloaderPayload* payload) {
     logging::printn("SSE enabled");
 
     // Memory Management
-    muon::@wrap_panic(mem::init(payload));
+    muon::@wrap_panic(mem::init(&ctx.memory));
     logging::printn("Memory manager init complete");
 
     // Interrupts and Timing
     timing::pit::disable();
 
-    muon::@wrap_panic(acpi::init(rsdpAddr));
+    muon::@wrap_panic(acpi::init(ctx.rsdpAddr));
     logging::printn("ACPI init complete");
 
     muon::@wrap_panic(apic::init());

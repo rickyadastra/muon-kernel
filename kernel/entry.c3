@@ -1,12 +1,17 @@
 import arch;
-import muon;
-import boson;
-import lang;
+import muon, muon::boot;
+import lang, env;
 
-fn void kstart(BootloaderPayload* payload) @export("kstart") {
+BootContext bootCtx @local;
+
+fn void kstart(void* bootParam) @export("kstart") {
     lang::init_runtime();
+    logging::init();
 
-    muon::kmain(payload);
+	boot::@to_boot_context(bootCtx, bootParam);
+	if (bootCtx.bootloader == UNKNOWN) muon::panic("Unknown bootloader, halting");
+
+    muon::kmain(&bootCtx);
     
     muon::panic("muon::kmain() returned");
 }
