@@ -1,6 +1,6 @@
 module muon::log;
 
-import dev::serial;
+import dev::serial, dev::timing;
 import string::formatting;
 
 enum LogLevel : int (String label, String ansiColor) {
@@ -44,7 +44,10 @@ fn void log(String format, args..., LogLevel level = INFO, String callee = "?", 
 	$endif
 
 	// print log time
-	String? f = formatter.format("%4d.%06d", 0, 0);
+	ulong totalUs = timing::get_uptime_us();
+	ulong seconds = totalUs / 1_000_000;
+	ulong microseconds = totalUs % 1_000_000;
+	String? f = formatter.format("%4d.%06d", seconds, microseconds);
 	@out(serial, "[", f!!, "] ");
 
 	// print log level label
