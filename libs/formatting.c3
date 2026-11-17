@@ -120,7 +120,8 @@ fn double? any_to_float(any arg, typeid* type) {
     @param [inout] buf
     @require base > 1, base <= 16
 *>
-fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 0) {
+fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, 
+		usz zeropad = 0, usz width = 0, bool leftAlign = false) {
     bool negative = false;
     typeid actualType = ulong;
     char[INTERNAL_FORMAT_BUFFER_SIZE] fmtBuf @noinit;
@@ -154,9 +155,14 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 
     }
 
     usz totalBufLen = fmtLen + (ulong)(base != 10 ? 2 : 0) + (ulong)(negative ? 1 : 0);
+	usz pad = (width > totalBufLen) ? (width-totalBufLen) : 0;
+	totalBufLen += pad;
+
     if (totalBufLen > buf.len) return FORMAT_BUFFER_EXCEEDED~;
 
     usz j = 0;
+	if (!leftAlign && pad > 0) @pad_ws(buf, j, pad);
+
     if (negative) {
         buf[j++] = '-';
     }
@@ -176,6 +182,8 @@ fn usz? format_any_to_decimal(any arg, char[] buf, usz base = 10, usz zeropad = 
     for (int i = (int)fmtLen-1; i >= 0; i--, j++) {
         buf[j] = fmtBuf[i];
     }
+
+	if (leftAlign && pad > 0) @pad_ws(buf, j, pad);
 
     return totalBufLen;
 }
@@ -457,9 +465,16 @@ macro any? @get_arg(#args, #i) {
     return #args[#i++]; 
 }
 
+macro @pad_ws(#buf, #len, #pad) {
+	#buf[#len:#pad] = ' ';
+	#len += #pad;
+}
+
 fn String? Formatter.format(Formatter* self, String format, args...) {    
     usz len = 0;
     usz va_i = 0;
+	usz width = 0;
+	bool leftAlign = false;
 
     if (format.len == 0) return "";
 
@@ -480,15 +495,26 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
             continue;
         }
 
-        // parse zero padding
-        if (c == '0') {
+		// left alignment
+		if (c == '-') {
+			leftAlign = true;
+			c = format[++i];
+		}
+
+		// parse zero padding
+		if (c == '0') { 
             c = format[++i];
             while (c >= '0' && c <= '9') {
                 self.zeropad *= 10;
                 self.zeropad += (usz)(c-'0');
                 c = format[++i];
             }
-        }
+        } else {
+			while (c >= '0' && c <= '9') {
+				width = width*10 + (usz)(c-'0');
+				c = format[++i];
+			}
+		}
 
         switch (c) {
             case 'o':
@@ -502,7 +528,8 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
                 self.base = 16;
                 nextcase 'd';
             case 'd':
-                len += format_any_to_decimal(@get_arg(args, va_i), self.buffer[len..], base: self.base, zeropad: self.zeropad)!;
+                len += format_any_to_decimal(@get_arg(args, va_i), self.buffer[len..], 
+						base: self.base, zeropad: self.zeropad, width: width, leftAlign: leftAlign)!;
             case 'f':
                 len += format_any_to_float(@get_arg(args, va_i), self.buffer[len..])!;
             case 'c':
@@ -511,9 +538,14 @@ fn String? Formatter.format(Formatter* self, String format, args...) {
                 self.buffer[len++:1] = arg;
             case 's':
                 String arg = *(String*)@get_arg(args, va_i)!;
-                if (len + arg.len > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED~;
+				usz pad = (width > arg.len) ? (width-arg.len) : 0;				
+                if (len + arg.len + pad > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED~;
+
+				if (!leftAlign && pad > 0) @pad_ws(self.buffer, len, pad);
                 self.buffer[len:arg.len] = arg[..];
                 len += arg.len;
+				if (leftAlign && pad > 0) @pad_ws(self.buffer, len, pad);
+
             default:
                 if (len + 2 > INTERNAL_BUFFER_SIZE) return INTERNAL_BUFFER_EXCEEDED~;
                 self.buffer[len:2] = ((char[2]){'%', c})[..];
