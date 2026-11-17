@@ -4,11 +4,14 @@ FATIMG			:= fat.img
 BOSON_BUILDDIR	:= $(BUILD_DIR)/boson
 BOSON_TARGET 	:= $(BUILD_DIR)/boson/boson.efi
 
+LOG_LEVEL		:= INFO 	# INFO (default), DEBUG, TRACE
+
 MUON_BUILDDIR	:= $(BUILD_DIR)/muon
 MUON_TARGET 	:= $(BUILD_DIR)/muon/muon.elf
 MUON_FLAGS		:= --build-dir $(MUON_BUILDDIR) \
 				   --output-dir $(MUON_BUILDDIR) \
-				   -D BOOT_BOSON	# adds support for Boson Bootloader
+				   -D BOOT_BOSON \
+				   -D LOG_$(LOG_LEVEL)
 
 C3C				:= c3c
 C3C_FLAGS		:= --trust=full \

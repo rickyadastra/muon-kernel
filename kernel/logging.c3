@@ -12,19 +12,31 @@ enum LogLevel : int (String label, String ansiColor) {
 }
 
 Serial* serial @private;
-const SerialPort LOG_PORT = SerialPort.COM1;
 
+const SerialPort LOG_PORT = SerialPort.COM1;
 const ANSI_RESET = "\e[0m";
 
-// macro void @throw_excuse(#excuse, #msg) @private {
-//     serial.write("Fault ");
-//     serial.write(#excuse.description);
-//     serial.write("!: \"");
-//     serial.write(#msg);
-//     serial.write("\"\n");
-// }
+macro @out(#serial, ...) @local {
+	$for var $i = 0; $i < $vaarg.len; $i++:
+        #serial.write($vaarg[$i]);
+    $endfor
+}
 
-fn void print(String format, args..., LogLevel level = INFO, String callee = "?", char terminator = '\0') {
+fn void print(String format, args..., char terminator = '\0') {
+    Formatter formatter;
+	String? f = formatter.format(format, ...args);
+
+	// fault during formatting pass
+    if (catch e = f) {
+		@out(serial, "\n\t*** Fault while formatting string \"", format, "\" : ", e.description, "\n");
+        return;
+    }
+
+    serial.write(f);
+    serial.put(terminator);
+}
+
+fn void log(String format, args..., LogLevel level = INFO, String callee = "?", char terminator = '\0') {
     Formatter formatter;
 
 	$if !$feat(NO_ANSI_COLORS): 
@@ -33,32 +45,21 @@ fn void print(String format, args..., LogLevel level = INFO, String callee = "?"
 
 	// print log time
 	String? f = formatter.format("%4d.%06d", 0, 0);
-	serial.write("[");
-	serial.write(f!!);
-	serial.write("] ");
+	@out(serial, "[", f!!, "] ");
 
 	// print log level label
 	f = formatter.format("%-5s", level.label);
-	serial.write("[");
-	serial.write(f!!);
-	serial.write("] ");
+	@out(serial, "[", f!!, "] ");
 
 	// print callee module
-	if (callee != "") {
-		serial.write("[");
-		serial.write(callee);
-		serial.write("] ");
-	}
+	if (callee != "") @out(serial, "[", callee, "] ");
 
+	// print message
     f = formatter.format(format, ...args);
 
 	// fault during formatting pass
     if (catch e = f) {
-		serial.write("\n\t*** Fault while formatting string \"");
-        serial.write(format);
-        serial.write("\" : ");
-		serial.write(e.description);
-		serial.write("\n");
+		@out(serial, "\n\t*** Fault while formatting string \"", format, "\" : ", e.description, "\n");
         return;
     }
 
@@ -70,15 +71,22 @@ fn void print(String format, args..., LogLevel level = INFO, String callee = "?"
 	$endif
 }
 
-macro void debug(String format, args..., char terminator = '\n') {
-    $if muon::DEBUG:
-        print("[%s] ", $$MODULE);
-        print(format, ...args, terminator: terminator);
-    $endif
-}
+macro trace(String format, args..., char terminator = '\n') @weak {}
+macro debug(String format, args..., char terminator = '\n') @weak {}
 
-macro void printn(String format, args...) => print(format, ...args, callee: $$MODULE, terminator: '\n');
-macro void newline() => print("", terminator: '\n');
+macro trace(String format, args..., char terminator = '\n') @feat(LOG_TRACE) 
+	=> log(format, ...args, level: LogLevel.TRACE, callee: $$MODULE, terminator: terminator);
+macro debug(String format, args..., char terminator = '\n') @feat(LOG_DEBUG | LOG_TRACE) 
+	=> log(format, ...args, level: LogLevel.DEBUG, callee: $$MODULE, terminator: terminator);
+macro info(String format, args..., char terminator = '\n') 
+	=> log(format, ...args, level: LogLevel.INFO, callee: $$MODULE, terminator: terminator);
+macro warn(String format, args..., char terminator = '\n') 
+	=> log(format, ...args, level: LogLevel.WARN, callee: $$MODULE, terminator: terminator);
+macro error(String format, args..., char terminator = '\n') 
+	=> log(format, ...args, level: LogLevel.ERROR, callee: $$MODULE, terminator: terminator);
+
+macro void printn(String format, args...) => print(format, ...args, terminator: '\n');
+macro void newline() => serial.put('\n');
 
 fn void panic(String reason, String file = "", String function = "", uint line = 0) {
     serial.write("\nMUON PANIC! ");
