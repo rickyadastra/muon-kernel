@@ -473,13 +473,13 @@ macro @pad_ws(#buf, #len, #pad) {
 fn String? Formatter.format(Formatter* self, String format, args...) {    
     usz len = 0;
     usz va_i = 0;
-	usz width = 0;
-	bool leftAlign = false;
 
     if (format.len == 0) return "";
 
     for (usz i = 0; i < format.len; i++) {
         char c = format[i];
+		usz width = 0;
+		bool leftAlign = false;
         self.base = 10;
         self.zeropad = 0;
         
