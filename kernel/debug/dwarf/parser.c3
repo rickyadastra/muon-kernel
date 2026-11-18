@@ -29,8 +29,10 @@ fn CieData CommonInfoEntry.parse(&entry) {
 	data.returnAddrReg = (RegId)read_uleb128(&&(char*)((uptr)entry + CommonInfoEntry::size + aug.len + 3));
 	data.augData = (((ushort)*(char*)((uptr)entry + CommonInfoEntry::size + aug.len + 4)) << 8) |
 		*(char*)((uptr)entry + CommonInfoEntry::size + aug.len + 5);
-	data.instructions = (char*)((uptr)entry + CommonInfoEntry::size + aug.len + 6);
-	data.instructionsLen = entry.length - (usz)(data.instructions-(char*)entry) + 4;
+
+	char* instrPtr = (char*)((uptr)entry + CommonInfoEntry::size + aug.len + 6);
+	usz instrLen = entry.length - (usz)(instrPtr - (char*)entry) + 4;
+	data.instructions = instrPtr[:instrLen];
 
 	return data;
 }
@@ -60,4 +62,32 @@ fn void validate_cie(CieData cieData) {
 	assert(cieData.returnAddrReg == EXPECTED_RETURN_ADDR);
 	assert(cieData.aug == EXPECTED_AUGS);
 	assert(cieData.augData == EXPECTED_AUG_DATA);
+}
+
+fn FdeData FrameDescriptionEntry.parse(&entry) {
+	FdeData data;
+
+	data.initialLocation = (uptr)&entry.initialLocation + (ulong)(int)entry.initialLocation;
+	data.locationRange = (usz)entry.addrRange;
+
+	char* instrPtr = (char*)((uptr)entry + FrameDescriptionEntry::size);
+	usz instrLen = entry.length - (usz)(instrPtr - (char*)entry) + 4;
+	data.instructions = instrPtr[:instrLen];
+
+	return data;
+}
+
+fn FdeData? find_fde(char[] data, uptr pc) {
+	FdeData fdeData;
+
+	@foreach_entry(data; h) {
+		if (h.cieId != 0) {
+			FdeData fde = ((Fde*)h).parse();
+			if (pc >= fde.initialLocation && pc < fde.initialLocation + fde.locationRange) {
+				return fde;
+			}
+		}
+	};
+
+	return FDE_NOT_FOUND~;
 }

@@ -17,3 +17,11 @@ fn void? init(DebugInfoContext debugCtx) {
 
 	log::debug("CIE validation passed");
 }
+
+fn void? unwind_from(uptr pc) {
+	log::trace("Searching FDE for PC %x", pc);
+	FdeData fde = dwarf::find_fde(ehFrame, pc)!;
+
+	log::debug("FDE found for %x: range=%x:%x, instrs=%d",
+		pc, fde.initialLocation, fde.locationRange, fde.instructions.len);
+}

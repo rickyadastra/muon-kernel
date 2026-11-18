@@ -31,12 +31,10 @@ struct CieData {
 	String aug;
 	ushort augData;
 	char* instructions;
-	usz instructionsLen; 
 }
 
 struct FdeData {
 	uptr initialLocation;
 	usz locationRange;
-	char* instructions;
-	usz instructionsLen;
+	char[] instructions;
 }
