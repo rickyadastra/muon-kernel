@@ -9,43 +9,43 @@ fn void init(BootContext* ctx) {
 
     // Foundations
     gdt::setup((uptr)ctx.stack.base);
-    logging::printn("GDT setup complete");
+    log::debug("GDT setup complete");
 
     gdt::install();
-    logging::printn("GDT install complete");
+    log::info("GDT install complete");
 
     idt::setup();
-    logging::printn("IDT setup complete");
+    log::debug("IDT setup complete");
 
     idt::install();
-    logging::printn("IDT install complete");
+    log::info("IDT install complete");
 
     muon::@wrap_panic(cpu::cpuid::enable());
-    logging::printn("CPUID enabled");
+    log::debug("CPUID enabled");
 
     muon::@wrap_panic(cpu::sse::enable());
-    logging::printn("SSE enabled");
+    log::debug("SSE enabled");
 
     // Memory Management
     muon::@wrap_panic(mem::init(&ctx.memory));
-    logging::printn("Memory manager init complete");
+    log::info("Memory manager init complete");
 
     // Interrupts and Timing
     timing::pit::disable();
 
     muon::@wrap_panic(acpi::init(ctx.rsdpAddr));
-    logging::printn("ACPI init complete");
+    log::info("ACPI init complete");
 
     muon::@wrap_panic(apic::init());
-    logging::printn("APIC init complete");
+    log::info("APIC init complete");
 
     muon::@wrap_panic(timing::hpet::init());
 
     interrupts::init();
-    logging::printn("Interrupts init complete");
+    log::info("Interrupts init complete");
 
     muon::@wrap_panic(timing::calibrate());
-    logging::printn("Timer calibration complete");
+    log::info("Timer calibration complete");
 }
 
 fn void panic() {
@@ -57,7 +57,7 @@ alias PanicFn = fn void(String message, String file, String function, int line);
 PanicFn panicfn = &log_and_panic;
 
 fn void log_and_panic(String message, String file = "", String function = "", int line = 0) {
-    logging::panic(message, file: file, function: function, line: (uint)line);
+    log::panic(message, file: file, function: function, line: (uint)line);
     arch::panic();
 }
 

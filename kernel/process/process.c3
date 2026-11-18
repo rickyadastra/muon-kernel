@@ -83,7 +83,7 @@ fn void? terminate(Handle handle, int ret = 0) {
     Task* task = resolve_handle_to_task(scheduler::get_current_task().handles, handle, task::CAN_TERMINATE_RIGHTS)!;
     task::terminate(task, ret);
 
-    logging::debug("Task #%d terminated", task.id);
+    log::debug("Task #%d terminated", task.id);
 }
 
 <*
@@ -99,7 +99,7 @@ fn void? suspend(Handle handle = scheduler::get_current_task().spawnInfo.taskHan
     Task* task = resolve_handle_to_task(scheduler::get_current_task().handles, handle, task::CAN_SUSPEND_RIGHTS)!;
     task::suspend(task);
 
-    logging::debug("Task #%d suspended", task.id);
+    log::debug("Task #%d suspended", task.id);
 }
 
 <*

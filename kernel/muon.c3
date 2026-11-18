@@ -23,27 +23,27 @@ fn void init() {
     // test::prepare_scheduler();
     // test::prepare_scheduler_fpu();
 
-    logging::printn("Muon init complete");
+    log::info("Muon init complete");
 }
 
 fn void test(SpawnInfo* info) {
-    logging::printn("task 2 says hello world");
+    log::info("task 2 says hello world");
 
     Handle child = process::create(process::@entry_void_to_int(&test2))!!;
 
     process::sleep_ms(2000)!!;
-    logging::printn("task 2 will start task 3 and wait for it...");
+    log::info("task 2 will start task 3 and wait for it...");
     process::start(child)!!;
     int st = process::wait(child)!!;
 
-    logging::printn("task 2 says goodbye (task 3 terminated with code %d)", st);
+    log::info("task 2 says goodbye (task 3 terminated with code %d)", st);
 }
 
 fn void test2(SpawnInfo* info) {
-    logging::printn("task 3 greets y'all! i'm gonna take a nap");
+    log::info("task 3 greets y'all! i'm gonna take a nap");
     process::sleep_ms(3000)!!;
 
-    logging::printn("task 3 woke up, gm and goodbye");
+    log::info("task 3 woke up, gm and goodbye");
 }
 
 fn void idle() @local {
@@ -53,8 +53,8 @@ fn void idle() @local {
 macro panic(String message) => arch::log_and_panic(message, $$FILE, $$FUNC, $$LINE);
 
 macro @wrap_panic(#func) {
-    if (catch excuse = #func) {
-        logging::printn("Got fault %s during %s. Cannot continue, goodbye, world.", excuse.description, $$FUNC);
+    if (catch ex = #func) {
+        log::error("Got fault %s during %s. Cannot continue, goodbye, world.", ex.description, $$FUNC);
         panic("Init failed");
     }
 }

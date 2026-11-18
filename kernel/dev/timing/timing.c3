@@ -6,7 +6,7 @@ import arch::mem;
 import muon;
 
 ulong? wallclock @private = WALLCLOCK_NOT_SET~;
-ulong uptime @private;
+KernelTime bootTime @private;
 
 // timer subsystem
 Timer timer @private;
@@ -32,8 +32,14 @@ fn TimerEvent*? add_timer_event(TimerEvent event) @private {
 }
 
 fn ulong get_wallclock() => wallclock!!;
-fn ulong get_uptime() => uptime;
 macro ulong get_ticks() => timer.get_current();
+fn ulong get_uptime() => timer ? (timer.get_current() - bootTime) / (ulong)timer.get_frequency() : 0;
+fn ulong get_uptime_us() {
+	if (!timer) return 0;
+	ulong delta = timer.get_current() - bootTime;
+	ulong freq = (ulong)timer.get_frequency();
+	return (delta / freq) * 1_000_000 + ((delta % freq) * 1_000_000) / freq;
+} 
 
 macro @ticks_convert(ulong #ticks, double #scale) @local => ((double)#ticks * #scale) / timer.get_frequency();
 macro ticks_to_nano(ulong ticks) => @ticks_convert(ticks, 1e9);

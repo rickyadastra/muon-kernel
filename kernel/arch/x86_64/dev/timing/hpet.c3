@@ -2,7 +2,7 @@ module dev::timing::hpet;
 
 import dev::acpi;
 import dev::mmio;
-import muon::logging;
+import muon::log;
 import mem::vmm;
 import arch::cpu;
 
@@ -89,7 +89,7 @@ fn void set_oneshot_millis(usz timer, double millis) {
     @hpet_timer_write(timer, HPETRegister.TIMER_COMPARATOR_VALUE_BASE, mainCounter+ticks);
     @hpet_timer_write(timer, HPETRegister.TIMER_CONFIG_CAPAB_BASE, reg);
 
-    logging::debug("Next interrupt in %d ticks", ticks);
+    log::debug("Next interrupt in %d ticks", ticks);
 }
 
 macro void @timer_eoi(usz #timer) @local {

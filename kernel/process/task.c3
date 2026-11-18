@@ -55,7 +55,7 @@ fn Task*? create(EntryPointFn entryPoint = null, usz stackSize = DEFAULT_KERNEL_
         task.context.init(entryPoint, stackBase, stackBase+stackSize*mem::page_size(), task.spawnInfo)!;
     }
 
-    logging::debug("Task #%d created, stack %x-%x", task.id, stackBase, stackBase+stackSize*mem::page_size())!;
+    log::debug("Task #%d created, stack %x-%x", task.id, stackBase, stackBase+stackSize*mem::page_size())!;
 
     object::register(task);
     scheduler::track_task(task);
@@ -73,7 +73,7 @@ fn void? destroy(Task* task) @private {
     task.handles.destroy()!;
     mem::free(task);
 
-    logging::debug("Task #%d destroyed", task.id);
+    log::debug("Task #%d destroyed", task.id);
 }
 
 <*
@@ -107,7 +107,7 @@ fn void yield() @naked {
 }
 
 macro prepare_cleanup(Task* task) {
-    logging::printn("Task #%d is ready for cleanup", task.id);
+    log::debug("Task #%d is ready for cleanup", task.id);
 
     task.state = CLEANUP;
     scheduler::enqueue_awaiting_cleanup_task(task);
@@ -121,12 +121,12 @@ fn void terminate(Task* task, int ret) {
     scheduler::lock_scheduler();
 	task.timeOfCompletion = timing::get_ticks();
 
-    if (scheduler::dequeue_task(task)) logging::debug("removed terminated task from ready queue");
+    if (scheduler::dequeue_task(task)) log::debug("removed terminated task from ready queue");
     task.handles.remove_all();
 
     // resume awaitor
     if (task.pendingAwaitor != null) {
-        logging::printn("Resuming awaitor Task #%d", task.pendingAwaitor.id);
+        log::debug("Resuming awaitor Task #%d", task.pendingAwaitor.id);
         resume(task.pendingAwaitor);
     }
 
@@ -174,11 +174,11 @@ fn void? wait(Task* awaitor, Task* awaited) {
     scheduler::lock_scheduler();
 
     if (awaited.state == TERMINATED) {
-        logging::printn("Task #%d will NOT wait for already terminated task #%d", awaitor.id, awaited.id);
+        log::debug("Task #%d will NOT wait for already terminated task #%d", awaitor.id, awaited.id);
     	scheduler::unlock_scheduler();
 
     } else {
-        logging::printn("Task #%d will wait for task #%d", awaitor.id, awaited.id);
+        log::debug("Task #%d will wait for task #%d", awaitor.id, awaited.id);
         
         awaited.pendingAwaitor = awaitor;
         bool shouldYield = do_suspend(awaitor);
@@ -200,7 +200,7 @@ fn void? sleep_ms(usz ms) {
         ResumeContext*? resumeCtx = anycast(e.context, ResumeContext);
 
         if (catch ex = resumeCtx) {
-            logging::printn("error after sleep: %s", ex.description);
+            log::error("error after sleep: %s", ex.description);
 
         } else {
             // clear pending event
@@ -209,7 +209,7 @@ fn void? sleep_ms(usz ms) {
             // resume task if is suspended
             if (resumeCtx.actor.state == TaskState.SUSPENDED) {
                 if (catch exx = process::resume_after_sleep(*resumeCtx)) {
-                    logging::printn("error after sleep: %s", exx.description);
+                    log::error("error after sleep: %s", exx.description);
                 }
             }
         }

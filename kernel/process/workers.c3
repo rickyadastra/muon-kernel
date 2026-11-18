@@ -8,14 +8,14 @@ import arch::mem;
 fn void terminated_tasks_cleanup() {
     while (true) {
         scheduler::lock_scheduler();
-        logging::debug("scheduler lock acquired");
+        log::debug("scheduler lock acquired");
 
         if (scheduler::cleanupQueue.is_empty()) {
-            logging::debug("cleanup queue is empty, releasing lock");
+            log::debug("cleanup queue is empty, releasing lock");
             scheduler::unlock_scheduler();
-            logging::debug("lock released, going to sleep");
+            log::debug("lock released, going to sleep");
             process::suspend()!!;
-            logging::debug("back from sleep");
+            log::debug("back from sleep");
             continue;
         }
 
@@ -30,15 +30,15 @@ fn void terminated_tasks_cleanup() {
         object::unregister(t)!!;
         task::destroy(t)!!;
 
-        logging::debug("handle table lock released");
+        log::debug("handle table lock released");
         scheduler::unlock_scheduler();
-        logging::debug("scheduler lock releasing");
+        log::debug("scheduler lock releasing");
     }
 }
 
 fn void clear_pending_event(Task* task) @private {
     if (task.pendingEvent != null) {
-        logging::debug("clearing event pending on task #%d", task.id);
+        log::debug("clearing event pending on task #%d", task.id);
         mem::free(task.pendingEvent.context);
         task.pendingEvent.cancel();
     }
