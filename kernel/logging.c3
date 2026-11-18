@@ -39,7 +39,7 @@ fn void print(String format, args..., char terminator = '\0') {
 fn void log(String format, args..., LogLevel level = INFO, String callee = "?", char terminator = '\0') {
     Formatter formatter;
 
-	$if !$feat(NO_ANSI_COLORS): 
+	$if !$feat(ANSI_COLORS_NO): 
 	serial.write(level.ansiColor); 
 	$endif
 
@@ -69,7 +69,7 @@ fn void log(String format, args..., LogLevel level = INFO, String callee = "?", 
     serial.write(f);
     serial.put(terminator);
 
-	$if !$feat(NO_ANSI_COLORS): 
+	$if !$feat(ANSI_COLORS_NO): 
 	serial.write(ANSI_RESET); 
 	$endif
 }
