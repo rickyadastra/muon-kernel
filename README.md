@@ -50,10 +50,10 @@ It is possible to alter certain behavior and optional features at compilation.
 Either directly using the `c3c build` command or the Makefile shortcuts, the following flags are available.
 C3 feature flags are specified with `-D <feature>`.
 
-| Feature | Description | C3 Flag | Make Option |
-| ------- | ----------- | ------- | ----------- |
-| **Finer Logs** | Enable finer level of logging. Option `lebel` can be `TRACE`, `DEBUG` or `INFO` (default). | `LOG_<level>` | `LOG_LEVEL=<level>` |
-| **ANSI-colored Logs** | Enable or disable coloring of logs using standard ANSI codes. Enabled by default. Disable via flag. | `ANSI_COLORS_<YES\|NO>` | `ANSI_COLORS=<YES\|NO>` |
+| Feature | C3 Flag | Make Option |
+| ------- | ------- | ----------- |
+| **Finer Logs**<br> Enable finer level of logging. Option `level` can be `TRACE`, `DEBUG` or `INFO` (default). | `LOG_<level>` | `LOG_LEVEL=<level>` |
+| **ANSI-colored Logs**<br> Enable or disable coloring of logs using standard ANSI codes. Enabled by default. Disable via flag. | `ANSI_COLORS_<YES\|NO>` | `ANSI_COLORS=<YES\|NO>` |
 
 ## Milestones
 The full milestone breakdown is available [here](MILESTONES.md).
