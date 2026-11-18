@@ -4,7 +4,7 @@ import arch;
 import process;
 
 fn void kmain(BootContext* ctx) {
-
+	muon::@wrap_panic(debug::init(ctx.debug));
     arch::init(ctx);
     object::init();
 

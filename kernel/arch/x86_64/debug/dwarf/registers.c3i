@@ -1,7 +1,0 @@
-module muon::debug::dwarf;
-
-constset RegId : char {
-    RBP = 6,
-    RSP = 7,
-    RIP = 16,
-}
