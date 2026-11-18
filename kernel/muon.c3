@@ -4,14 +4,16 @@ import arch;
 import process;
 
 fn void kmain(BootContext* ctx) {
-	muon::@wrap_panic(debug::init(ctx.debug));
+	debug::init(ctx.debug)!!;
+	muon::@wrap_panic(debug::unwind_from((uptr)&arch::init));
+
     arch::init(ctx);
     object::init();
 
     muon::@wrap_panic(scheduler::init());
-    muon::init();
-    scheduler::start();
-    
+    // muon::init();
+    // scheduler::start();
+	
     idle();
 }
 
