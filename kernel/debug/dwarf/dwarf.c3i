@@ -1,0 +1,42 @@
+module muon::debug::dwarf;
+
+struct Header @packed @private {
+	uint length;
+	union {
+		uint cieId;
+		uint cieOffset;
+	}
+}
+
+struct CommonInfoEntry @packed {
+	inline Header header;
+	char version;
+	char[*] augmentation;
+}
+
+struct FrameDescriptionEntry @packed {
+	inline Header header;
+	uint initialLocation;
+	uint addrRange;
+	char augLen;
+} 
+
+alias Cie = CommonInfoEntry;
+alias Fde = FrameDescriptionEntry;
+
+struct CieData {
+	char codeAlignFactor;
+	ichar dataAlignFactor;
+	RegId returnAddrReg;
+	String aug;
+	ushort augData;
+	char* instructions;
+	usz instructionsLen; 
+}
+
+struct FdeData {
+	uptr initialLocation;
+	usz locationRange;
+	char* instructions;
+	usz instructionsLen;
+}
