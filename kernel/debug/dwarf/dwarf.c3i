@@ -40,3 +40,26 @@ struct FdeData {
 	usz locationRange;
 	char[] instructions;
 }
+
+struct FrameState {
+	ulong cfaReg;
+	ulong cfaOffset;
+	ulong[MAX_REGS] regOffset;
+	ulong savedMask;
+	uptr curPc;
+} 
+
+bitstruct OpCode : char {
+	char low : 0..5;
+	char high : 6..7;
+}
+
+enum Op : char (OpCode code) {
+	NOP 			{ (OpCode)0x00 },
+	ADVANCE_LOC 	{ (OpCode)0x40 },
+	ADVANCE_LOC1	{ (OpCode)0x02 },
+	ADVANCE_LOC2	{ (OpCode)0x03 },
+	DEF_CFA			{ (OpCode)0x0c },
+	DEF_CFA_OFFSET	{ (OpCode)0x0e },
+	OFFSET			{ (OpCode)0x80 },
+}

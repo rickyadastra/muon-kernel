@@ -19,9 +19,23 @@ fn void? init(DebugInfoContext debugCtx) {
 }
 
 fn void? unwind_from(uptr pc) {
+	if (cieData.instructions.ptr == null) {
+		log::error("Debug info not found/not initialized, cannot unwind stack!!");
+		return;
+	}
+
 	log::trace("Searching FDE for PC %x", pc);
-	FdeData fde = dwarf::find_fde(ehFrame, pc)!;
+	FdeData fdeData = dwarf::find_fde(ehFrame, pc)!;
 
 	log::debug("FDE found for %x: range=%x:%x, instrs=%d",
-		pc, fde.initialLocation, fde.locationRange, fde.instructions.len);
+		pc, fdeData.initialLocation, fdeData.initialLocation+fdeData.locationRange, fdeData.instructions.len);
+	
+	FrameState state;
+	state.curPc = pc;
+
+	state.execute(cieData.instructions)!;
+	state.execute(fdeData.instructions)!;
+
+	log::debug("Frame state is cfaReg=%d, cfaOffset=%x, loc=%x", 
+		state.cfaReg, state.cfaOffset, state.curPc);
 }
