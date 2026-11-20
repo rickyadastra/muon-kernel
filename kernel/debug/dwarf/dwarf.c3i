@@ -1,5 +1,7 @@
 module muon::debug::dwarf;
 
+const usz MAX_REGS = (usz)RegId::values[^1] + 1;
+
 struct Header @packed @private {
 	uint length;
 	union {
@@ -30,7 +32,7 @@ struct CieData {
 	RegId returnAddrReg;
 	String aug;
 	ushort augData;
-	char* instructions;
+	char[] instructions;
 }
 
 struct FdeData {
