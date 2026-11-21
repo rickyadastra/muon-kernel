@@ -2,6 +2,8 @@ module muon::debug;
 
 import muon::boot, muon::log, muon::debug::dwarf;
 
+const sz MAX_UNWIND_FRAMES = 32;
+
 char[] ehFrame @local;
 CieData cieData @local;
 
@@ -24,21 +26,37 @@ fn void? unwind_from(uptr pc, uptr sp) {
 		return;
 	}
 
-	log::trace("Searching FDE for PC %x", pc);
-	FdeData fdeData = dwarf::find_fde(ehFrame, pc)!;
+	sz frames = 0;
 
-	log::debug("FDE found for %x: range=%x:%x, instrs=%d",
-		pc, fdeData.initialLocation, fdeData.initialLocation+fdeData.locationRange, fdeData.instructions.len);
-	
-	FrameState state;
-	state.curPc = fdeData.initialLocation;
+	do {
+		// find FDE for pc
+		log::trace("Searching FDE for PC %x", pc);
+		FdeData? fdeData = dwarf::find_fde(ehFrame, pc);
+		if (catch fdeData) break; // abort on no FDE found
 
-	state.execute(cieData.instructions)!;
-	state.execute(fdeData.instructions, pc)!;
+		log::debug("FDE found for %x: range=%x:%x, instrs=%d",
+			pc, fdeData.initialLocation, fdeData.initialLocation+fdeData.locationRange, fdeData.instructions.len);
 
-	log::debug("Frame state is cfaReg=%d, cfaOffset=%x, loc=%x", 
-		state.cfaReg, state.cfaOffset, state.curPc);
-	
-	state.update_to_next_frame(&pc, &sp)!;
-	log::debug("Next frame is PC=%x, SP=%x", pc, sp);
+		// init frame state with CIE and FDE's initial loc
+		FrameState state;
+		state.curPc = fdeData.initialLocation;
+		state.execute(cieData.instructions)!;
+		state.execute(fdeData.instructions, pc)!;
+
+		log::debug("Frame state is cfaReg=%d, cfaOffset=%x, loc=%x", 
+			state.cfaReg, state.cfaOffset, state.curPc);
+		
+		// update pc to new frame
+		state.update_to_next_frame(&pc, &sp)!;
+		log::debug("Next frame is PC=%x, SP=%x", pc, sp);
+
+		if (pc == 0) break; // abort on entry point reached
+		pc -= 1;
+
+		frames++;
+	} while (frames < MAX_UNWIND_FRAMES);
+}
+
+macro print_backtrace() {
+
 }
