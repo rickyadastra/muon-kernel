@@ -18,7 +18,7 @@ fn void? init(DebugInfoContext debugCtx) {
 	log::debug("CIE validation passed");
 }
 
-fn void? unwind_from(uptr pc) {
+fn void? unwind_from(uptr pc, uptr sp) {
 	if (cieData.instructions.ptr == null) {
 		log::error("Debug info not found/not initialized, cannot unwind stack!!");
 		return;
@@ -31,11 +31,14 @@ fn void? unwind_from(uptr pc) {
 		pc, fdeData.initialLocation, fdeData.initialLocation+fdeData.locationRange, fdeData.instructions.len);
 	
 	FrameState state;
-	state.curPc = pc;
+	state.curPc = fdeData.initialLocation;
 
 	state.execute(cieData.instructions)!;
-	state.execute(fdeData.instructions)!;
+	state.execute(fdeData.instructions, pc)!;
 
 	log::debug("Frame state is cfaReg=%d, cfaOffset=%x, loc=%x", 
 		state.cfaReg, state.cfaOffset, state.curPc);
+	
+	state.update_to_next_frame(&pc, &sp)!;
+	log::debug("Next frame is PC=%x, SP=%x", pc, sp);
 }

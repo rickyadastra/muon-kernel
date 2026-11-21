@@ -43,8 +43,8 @@ struct FdeData {
 
 struct FrameState {
 	ulong cfaReg;
-	ulong cfaOffset;
-	ulong[MAX_REGS] regOffset;
+	long cfaOffset;
+	long[MAX_REGS] regOffset;
 	ulong savedMask;
 	uptr curPc;
 } 

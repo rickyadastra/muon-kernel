@@ -6,8 +6,11 @@ const RegId EXPECTED_RETURN_ADDR = RegId.RIP;
 const String EXPECTED_AUGS = "zR";
 const ushort EXPECTED_AUG_DATA = 0x011b;
 
-constset RegId : char {
+constset RegId : inline char {
     RBP = 6,
     RSP = 7,
     RIP = 16,
 }
+
+const RegId REGISTER_PC = RegId.RIP;
+const RegId REGISTER_SP = RegId.RSP;
