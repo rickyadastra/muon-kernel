@@ -26,6 +26,13 @@ const String[] PANIC_SPLASH_MESSAGES = {
 	"Kernel panic! At least it wasn't written in C.",
 	"Triple fault avoided (barely).",
 	"Undefined behavior? In MY C3 kernel?!",
+	"Heisenberg uncertainty principle: we know where RIP is, not why.",
+	"The CPU is protecting itself from your code.",
+	"Buddy allocator couldn't find any buddies.",
+	"TLB flushed itself out of embarrassment.",
+	"It worked on my QEMU instance!",
+	"LLVM optimized away my hopes and dreams.",
+	"Keep calm and check objdump.",
 };
 
 Serial* serial @private;
@@ -125,13 +132,11 @@ macro error(String format, args..., char terminator = '\n')
 macro void printn(String format, args...) => print(format, ...args, terminator: '\n');
 macro void newline() => serial.put('\n');
 
-fn void panic(String reason, String file = "", String function = "", uint line = 0) {
+fn void panic_internal(String doodle, String reason, String file, String function, uint line) @local {
 	newline();
 	@set_ansi_color(LogLevel.PANIC.ansiColor);
 
-	var $idx = (usz)($$rnd() * PANIC_SPLASH_MESSAGES.len); 
-	var $splash = PANIC_SPLASH_MESSAGES[$idx];
-	@out(serial, "[" +++ LogLevel.PANIC.label +++ "] " +++ $splash +++ "\n");
+	@out(serial, "[" +++ LogLevel.PANIC.label +++ "] ", doodle, "\n");
 
 	@out(serial, "  panic reason: \"", reason, "\"\n");
 
@@ -146,6 +151,12 @@ fn void panic(String reason, String file = "", String function = "", uint line =
             if (try len) @out(serial, " (", file, ':', tempBuf[:len], ")\n");
         }
     }
+}
+
+macro void panic(String reason, String file = "", String function = "", uint line = 0) {
+	var $idx = (usz)($$rnd() * PANIC_SPLASH_MESSAGES.len); 
+	var $splash = PANIC_SPLASH_MESSAGES[$idx];
+	panic_internal($splash, reason, file, function, line);
 }
 
 macro void end_panic() {
