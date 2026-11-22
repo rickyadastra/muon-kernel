@@ -11,8 +11,8 @@ fn void kmain(BootContext* ctx) {
     object::init();
 
     muon::@wrap_panic(scheduler::init());
-    // muon::init();
-    // scheduler::start();
+    muon::init();
+    scheduler::start();
 	
     idle();
 }

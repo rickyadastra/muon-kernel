@@ -4,7 +4,7 @@ import arch;
 
 bool inPanic = false;
 
-macro panic(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE, bool backtrace = true) {
+macro panic(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE, bool backtrace = true) @noreturn {
 	@panic_with_extra(message, file: file, function: function, line: (uint)line) {
 		if (backtrace) {
 			log::printp("\nBacktrace:\n");
@@ -13,7 +13,7 @@ macro panic(String message, String file = $$FILE, String function = $$FUNC, int 
 	};
 }
 
-macro @panic_with_extra(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE; @body()) @noreturn {
+macro @panic_with_extra(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE; @body()) {
 	if (inPanic == true) {
 		log::printp("\nDOUBLE PANIC! Halting now.");
 		arch::panic();
