@@ -1,3 +1,17 @@
+module muon::debug;
+
+macro @capture_frame(uptr #pc, uptr #sp) {
+	uptr pc, sp;
+	asm("leaq 0(%rip), %rax");
+	asm {
+		movq pc, $rax;
+		movq sp, $rsp;
+	}
+
+	if (#pc == 0) #pc = pc;
+	if (#sp == 0) #sp = sp;
+}
+
 module muon::debug::dwarf;
 
 const char EXPECTED_CODE_ALIGN = 1;

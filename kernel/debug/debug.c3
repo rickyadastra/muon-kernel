@@ -4,6 +4,11 @@ import muon::boot, muon::log, muon::debug::dwarf;
 
 const sz MAX_UNWIND_FRAMES = 32;
 
+struct FrameUnwindInfo {
+	uptr pc;
+	uptr sp;
+}
+
 char[] ehFrame @local;
 CieData cieData @local;
 
@@ -16,19 +21,20 @@ fn void? init(DebugInfoContext debugCtx) {
 		cieData.aug, cieData.augData);
 	
 	dwarf::validate_cie(cieData);
-
 	log::debug("CIE validation passed");
 }
 
-fn void? unwind_from(uptr pc, uptr sp) {
+macro usz? @unwind_frames(FrameUnwindInfo[MAX_UNWIND_FRAMES] #frameUnwindInfo, uptr pc, uptr sp) @private {
 	if (cieData.instructions.ptr == null) {
 		log::error("Debug info not found/not initialized, cannot unwind stack!!");
-		return;
+		return 0;
 	}
 
-	sz frames = 0;
+	usz frames = 0;
 
 	do {
+		#frameUnwindInfo[frames++] = { pc, sp };
+
 		// find FDE for pc
 		log::trace("Searching FDE for PC %x", pc);
 		FdeData? fdeData = dwarf::find_fde(ehFrame, pc);
@@ -52,11 +58,26 @@ fn void? unwind_from(uptr pc, uptr sp) {
 
 		if (pc == 0) break; // abort on entry point reached
 		pc -= 1;
-
-		frames++;
 	} while (frames < MAX_UNWIND_FRAMES);
+
+	return frames;
 }
 
-macro print_backtrace() {
+fn void print_backtrace_from(uptr pc, uptr sp) {
+	FrameUnwindInfo[MAX_UNWIND_FRAMES] frameUnwindInfo;
+	usz frames = @unwind_frames(frameUnwindInfo, pc, sp)!!;
 
+	foreach (sz i, FrameUnwindInfo fui : frameUnwindInfo[:frames]) {
+		SymbolResult res = resolve_symbol(fui.pc);
+
+		log::printn("  #%d: [%x] %s+%d", i, fui.pc, res.name, res.offset);
+	}
+}
+
+macro void print_backtrace(uptr pc = 0, uptr sp = 0) {
+	$if $defined(@capture_frame):
+		if (pc == 0 || sp == 0) @capture_frame(pc, sp);
+	$endif
+
+	print_backtrace_from(pc, sp);
 }
