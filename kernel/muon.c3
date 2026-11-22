@@ -5,9 +5,9 @@ import process;
 
 fn void kmain(BootContext* ctx) {
 	debug::init(ctx.debug)!!;
-	muon::@wrap_panic(debug::unwind_from((uptr)&arch::init));
 
     arch::init(ctx);
+	debug::load_symbols(ctx.modules);
     object::init();
 
     muon::@wrap_panic(scheduler::init());
