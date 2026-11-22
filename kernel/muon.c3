@@ -52,11 +52,24 @@ fn void idle() @local {
     while (true) arch::cpu::idle();
 }
 
-macro panic(String message) => arch::log_and_panic(message, $$FILE, $$FUNC, $$LINE);
+macro panic(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE, bool backtrace = true) {
+	log::panic(message, file: file, function: function, line: (uint)line);
+	if (backtrace) debug::print_backtrace();
+	arch::panic();
+}
 
 macro @wrap_panic(#func) {
     if (catch ex = #func) {
         log::error("Got fault %s during %s. Cannot continue, goodbye, world.", ex.description, $$FUNC);
         panic("Init failed");
     }
+}
+
+// panicfn pointer definition for C3 builtin panic handler
+
+alias PanicFn = fn void(String message, String file, String function, int line);
+PanicFn panicfn = &panic_fn;
+
+fn void panic_fn(String message, String file = "", String function = "", int line = 0) @local {
+	panic(message, file, function, line);
 }
