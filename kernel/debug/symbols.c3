@@ -5,10 +5,9 @@ import std::core::string;
 import muon::log, muon::boot;
 import mem;
 
-faultdef SYMBOL_NOT_FOUND;
+faultdef SYMBOLS_UNAVAILABLE, SYMBOL_NOT_FOUND;
 
 const ulong KERNEL_SYM_MAGIC = 0x4D554F4E5F53594D; // "MUON_SYM"
-const String UNKNOWN_SYMBOL_NAME = "(unknown)";
 
 struct KernelSymbol {
 	ulong startAddress;
@@ -22,6 +21,9 @@ struct KernelSymbolTable {
 	uint strtabSize;
 	KernelSymbol[*] symbols;
 }
+
+macro KernelSymbol[] KernelSymbolTable.get_symbols(&self) => self.symbols[:self.numSymbols];
+macro char[] KernelSymbolTable.get_strtab(&self) => ((char*)self + KernelSymbolTable::size + self.numSymbols*KernelSymbol::size)[:self.strtabSize];
 
 struct SymbolResult {
 	String name;
@@ -48,15 +50,17 @@ fn void load_symbols(ModulesBootContext modulesCtx) {
 }
 
 fn KernelSymbol? find_symbol(uptr pc) @private {
-	KernelSymbol[] syms = symbolTable.symbols[:symbolTable.numSymbols];
+	if (symbolTable == null) return SYMBOLS_UNAVAILABLE~;
+
+	KernelSymbol[] syms = symbolTable.get_symbols();
 	
-	usz min = 0;
-	usz max = symbolTable.numSymbols-1l;
+	sz min = 0;
+	sz max = symbolTable.numSymbols-1l;
 
 	// todo: extract binary search to std::sort
 	
-	while (min <= max) {
-		usz mid = min + ((max - min) / 2);
+	while (min <= max && min >= 0 && max < symbolTable.numSymbols) {
+		sz mid = min + ((max - min) / 2);
 		KernelSymbol candidate = syms[mid];
 
 		if (pc < candidate.startAddress) {
@@ -72,18 +76,17 @@ fn KernelSymbol? find_symbol(uptr pc) @private {
 	return SYMBOL_NOT_FOUND~;
 }
 
-fn SymbolResult resolve_symbol(uptr pc) {	
-	char* strtabPtr = (char*)((char*)symbolTable + KernelSymbolTable::size + symbolTable.numSymbols*KernelSymbol::size); 
-	char[] strtab = strtabPtr[:symbolTable.strtabSize];
+fn SymbolResult? resolve_symbol(uptr pc) {
+	if (symbolTable == null) return SYMBOLS_UNAVAILABLE~;
 
-	KernelSymbol? sym = find_symbol(pc);
+	char[] strtab = symbolTable.get_strtab();
+	KernelSymbol sym = find_symbol(pc)!;
 
 	// return default name if not found
-	if (catch sym) return { UNKNOWN_SYMBOL_NAME, 0 };
-	ZString s = (ZString)strtabPtr+sym.nameOffset;
+	ZString s = (ZString)(strtab.ptr + sym.nameOffset);
 
 	return { 
 		.name = s.str_view(), 
-		.offset = pc-sym.startAddress 
+		.offset = pc - sym.startAddress
 	};
 }

@@ -68,9 +68,16 @@ fn void print_backtrace_from(uptr pc, uptr sp) {
 	usz frames = @unwind_frames(frameUnwindInfo, pc, sp)!!;
 
 	foreach (sz i, FrameUnwindInfo fui : frameUnwindInfo[:frames]) {
-		SymbolResult res = resolve_symbol(fui.pc);
+		SymbolResult? res = resolve_symbol(fui.pc);
 
-		log::printn("  #%d: [%x] %s+%d", i, fui.pc, res.name, res.offset);
+		if (catch f = res) {
+			switch (f) {
+				case SYMBOLS_UNAVAILABLE: log::printn("  #%d: [%x] <unavail>", i, fui.pc);
+				case SYMBOL_NOT_FOUND: log::printn("  #%d: [%x] <unknown>", i, fui.pc);
+			}
+		} else {
+			log::printn("  #%d: [%x] %s+%d", i, fui.pc, res.name, res.offset);
+		}
 	}
 }
 
