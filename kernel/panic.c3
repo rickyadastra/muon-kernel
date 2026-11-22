@@ -2,6 +2,8 @@ module muon;
 
 import arch;
 
+bool inPanic = false;
+
 macro panic(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE, bool backtrace = true) {
 	@panic_with_extra(message, file: file, function: function, line: (uint)line) {
 		if (backtrace) {
@@ -11,7 +13,14 @@ macro panic(String message, String file = $$FILE, String function = $$FUNC, int 
 	};
 }
 
-macro @panic_with_extra(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE; @body()) {
+macro @panic_with_extra(String message, String file = $$FILE, String function = $$FUNC, int line = $$LINE; @body()) @noreturn {
+	if (inPanic == true) {
+		log::printp("\nDOUBLE PANIC! Halting now.");
+		arch::panic();
+	} else {
+		inPanic = true;
+	}
+
 	log::panic(message, file: file, function: function, line: (uint)line);
 	@body();
 	log::end_panic();
