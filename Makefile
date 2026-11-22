@@ -69,8 +69,10 @@ $(BUILD_DIR)/$(FATIMG): boson muon
 	@mformat -i $@ -f 1440 ::
 	@mmd -i $@ ::/EFI
 	@mmd -i $@ ::/EFI/BOOT
+	@mmd -i $@ ::/EFI/BOOT/modules
 	@mcopy -i $@ $(BOSON_TARGET) ::/EFI/BOOT/BOOTX64.EFI
 	@mcopy -i $@ $(MUON_TARGET) ::/EFI/BOOT/muon.sys
+	@mcopy -i $@ $(BUILD_DIR)/muon/muon.sym ::/EFI/BOOT/modules/muon.sym
 
 run: $(BUILD_DIR)/$(FATIMG)
 	$(QEMU) $(QEMU_RUN) $(QEMU_FLAGS) -drive file=$<,format=raw
