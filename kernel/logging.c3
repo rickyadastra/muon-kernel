@@ -1,5 +1,6 @@
 module muon::log;
 
+import muon::debug;
 import dev::serial, dev::timing;
 import string::formatting;
 
@@ -9,17 +10,54 @@ enum LogLevel : int (String label, String ansiColor) {
 	INFO  { "INFO", "\e[0m" },
 	WARN  { "WARN", "\e[33m" },
 	ERROR { "ERROR", "\e[31m" },
+	PANIC { "PANIC", "\e[35m" },
 }
-
-Serial* serial @private;
 
 const SerialPort LOG_PORT = SerialPort.COM1;
 const ANSI_RESET = "\e[0m";
 
-macro @out(#serial, ...) @local {
+const String[] PANIC_SPLASH_MESSAGES = {
+	"Muon encountered a fatal error and panicked.",
+	"Whoops, the muon decayed too fast!",
+	"Have you tried turning the emulator off and on again?",
+	"This is fine. Everything is fine.",
+	"Pointer went on vacation without telling the VMM.",
+	"Damn you, pointer arithmetic!",
+	"Kernel panic! At least it wasn't written in C.",
+	"Triple fault avoided (barely).",
+	"Undefined behavior? In MY C3 kernel?!",
+};
+
+Serial* serial @private;
+
+macro @out(Serial* #serial, ...) @local {
 	$for var $i = 0; $i < $vaarg.len; $i++:
-        #serial.write($vaarg[$i]);
+		$switch $Typeof($vaarg[$i]):
+			$case char[]: 
+			$case String: 
+				#serial.write($vaarg[$i]);
+			$case char: 
+				#serial.put($vaarg[$i]);
+			$default: $error("Unknown type for @out macro");
+		$endswitch
+
     $endfor
+}
+
+macro @set_ansi_color(#color) @local {
+	$if !$feat(ANSI_COLORS_NO): 
+		serial.write(#color); 
+	$endif
+}
+
+macro @reset_ansi_color() @local {
+	$if !$feat(ANSI_COLORS_NO): 
+		serial.write(ANSI_RESET); 
+	$endif
+}
+
+fn void printp(String s) {
+	serial.write(s);
 }
 
 fn void print(String format, args..., char terminator = '\0') {
@@ -39,9 +77,7 @@ fn void print(String format, args..., char terminator = '\0') {
 fn void log(String format, args..., LogLevel level = INFO, String callee = "?", char terminator = '\0') {
     Formatter formatter;
 
-	$if !$feat(ANSI_COLORS_NO): 
-	serial.write(level.ansiColor); 
-	$endif
+	@set_ansi_color(level.ansiColor);
 
 	// print log time
 	ulong totalUs = timing::get_uptime_us();
@@ -69,9 +105,7 @@ fn void log(String format, args..., LogLevel level = INFO, String callee = "?", 
     serial.write(f);
     serial.put(terminator);
 
-	$if !$feat(ANSI_COLORS_NO): 
-	serial.write(ANSI_RESET); 
-	$endif
+	@reset_ansi_color();
 }
 
 macro trace(String format, args..., char terminator = '\n') @weak {}
@@ -92,25 +126,31 @@ macro void printn(String format, args...) => print(format, ...args, terminator: 
 macro void newline() => serial.put('\n');
 
 fn void panic(String reason, String file = "", String function = "", uint line = 0) {
-    serial.write("\nMUON PANIC! ");
-    serial.write(reason);
+	newline();
+	@set_ansi_color(LogLevel.PANIC.ansiColor);
+
+	var $idx = (usz)($$rnd() * PANIC_SPLASH_MESSAGES.len); 
+	var $splash = PANIC_SPLASH_MESSAGES[$idx];
+	@out(serial, "[" +++ LogLevel.PANIC.label +++ "] " +++ $splash +++ "\n");
+
+	@out(serial, "  panic reason: \"", reason, "\"\n");
 
     if (function.len > 0) {
-        serial.write(" @ ");
-        serial.write(function);
+		// print panicked function
+		@out(serial, "  in function ", function);
 
         if (file.len > 0) {
-            serial.write(" (");
-            serial.write(file);
-
             char[16] tempBuf;
-            if (try fmtLen = formatting::format_any_to_decimal(&line, &tempBuf)) {
-                serial.put(':');
-                serial.write(tempBuf[:fmtLen]);
-            }
-            serial.write(")\n");
+			usz? len = formatting::format_any_to_decimal(&line, &tempBuf);
+			// print file name and line
+            if (try len) @out(serial, " (", file, ':', tempBuf[:len], ")\n");
         }
     }
+}
+
+macro void end_panic() {
+	newline();
+	@reset_ansi_color();
 }
 
 fn void init() {
