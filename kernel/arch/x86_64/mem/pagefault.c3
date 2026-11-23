@@ -1,6 +1,6 @@
 module arch::mem;
 
-import muon::log;
+import muon, muon::log;
 import arch::cpu;
 import arch::interrupts @public;
 
@@ -24,8 +24,12 @@ fn InterruptStack* pagefault_handler(InterruptStack* stack, KnownInterrupt intr)
 
     log::error("Page fault at address %x. Tried to %s a %s page in %s mode.", cpu::read_cr2(), action, presence, privilege);
 
-    interrupts::@print_stack(stack, intr);
-    arch::panic();
+	muon::@panic_with_extra("fatal page fault") {
+    	interrupts::@print_context(stack, intr);
+
+		log::printp("\nBacktrace:\n");
+		debug::print_backtrace_from(stack.rip, stack.rsp);
+	};
 
     return stack;
 }

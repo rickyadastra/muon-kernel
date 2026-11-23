@@ -4,14 +4,16 @@ import arch;
 import process;
 
 fn void kmain(BootContext* ctx) {
+	debug::init(ctx.debug)!!;
 
     arch::init(ctx);
+	debug::load_symbols(ctx.modules);
     object::init();
 
     muon::@wrap_panic(scheduler::init());
     muon::init();
     scheduler::start();
-    
+	
     idle();
 }
 
@@ -48,13 +50,4 @@ fn void test2(SpawnInfo* info) {
 
 fn void idle() @local {
     while (true) arch::cpu::idle();
-}
-
-macro panic(String message) => arch::log_and_panic(message, $$FILE, $$FUNC, $$LINE);
-
-macro @wrap_panic(#func) {
-    if (catch ex = #func) {
-        log::error("Got fault %s during %s. Cannot continue, goodbye, world.", ex.description, $$FUNC);
-        panic("Init failed");
-    }
 }

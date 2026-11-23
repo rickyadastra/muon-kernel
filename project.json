@@ -22,7 +22,7 @@
     "test-sources": [],
     "build-dir": "./.build",
     "output": "./.build",
-    "panicfn": "arch::panicfn",
+    "panicfn": "muon::panicfn",
     "targets": {
         "muon-x64": {
             "type": "executable",
