@@ -71,6 +71,7 @@ The full milestone breakdown is available [here](MILESTONES.md).
    - [x] Improved kernel logging module
    - [x] DWARF Interpreter and stack unwinding
    - [x] Verbose in-kernel panic handler
+   - [ ] Integration tests framework
 - [ ] 👥 **Milestone 0.6** - Userspace & System Calls
    - [ ] GDT user segments and MSR
    - [ ] Page table creation for user processes
