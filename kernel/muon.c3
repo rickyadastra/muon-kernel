@@ -10,22 +10,15 @@ fn void kmain(BootContext* ctx) {
 	debug::load_symbols(ctx.modules);
     object::init();
 
-	log::warn("tests found: %d", $$TEST_NAMES.len);
-	foreach (String s : $$TEST_NAMES) {
-		log::info("test: %s", s);
-	}
-
     muon::@wrap_panic(scheduler::init());
-    muon::init();
-    scheduler::start();
-	
-    idle();
-}
 
-macro int @_main_runner(#m, int argc, char** argv) => 1;
-
-fn bool run_tests(String[] tests) {
-	return true;
+	$if $defined(test::run_all):
+		test::run_all_and_exit($$TEST_NAMES);
+	$else
+    	muon::init();
+		scheduler::start();
+		idle();
+	$endif
 }
 
 fn void init() {
@@ -41,6 +34,8 @@ fn void init() {
 
 fn void test(SpawnInfo* info) {
     log::info("task 2 says hello world");
+
+	$$trap();
 
     Handle child = process::create(process::@entry_void_to_int(&test2))!!;
 
