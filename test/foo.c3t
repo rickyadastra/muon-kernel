@@ -1,0 +1,6 @@
+module muon::test @test;
+
+fn void simple_test() @export {
+	int a = 1 + 2;
+	$echo("ello");
+}

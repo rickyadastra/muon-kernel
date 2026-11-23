@@ -19,19 +19,18 @@
     "dependencies": [
         "boson_protocol"
     ],
-    "test-sources": [],
     "build-dir": "./.build",
     "output": "./.build",
     "panicfn": "muon::panicfn",
+    "use-stdlib": false,
+    "link-libc": false,
+    "no-entry": true,
     "targets": {
         "muon-x64": {
             "type": "executable",
             "name": "muon",
             "extension": ".elf",
             "target": "elf-x64",
-            "use-stdlib": false,
-            "link-libc": false,
-            "no-entry": true,
             "features": [
                 "ARCH_X86_64"
             ],
@@ -43,6 +42,27 @@
                 "-static",
                 "-ztext"
             ]
+        },
+        "muon-x64-tests": {
+            "type": "test",
+            "name": "muon-test",
+            "extension": ".elf",
+            "target": "elf-x64",
+            "features": [
+                "ARCH_X86_64"
+            ],
+            "x86cpu": "baseline",
+            "linker": "builtin",
+            "link-args": [
+                "-Tscripts/x86_64.ld",
+                "-zmax-page-size=0x1000",
+                "-static",
+                "-ztext"
+            ],
+            "sources": [
+                "test/**"
+            ],
+            "testfn": "muon::run_tests"
         },
         "muon-x64-symbols": {
             "type": "prepare",
