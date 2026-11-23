@@ -67,7 +67,7 @@ $(MUON_TARGET): check-ver | $(BUILD_DIR)
 
 $(MUON_TESTS): check-ver | $(BUILD_DIR)
 	@echo "[Make] Preparing muon kernel tests"
-	@$(C3C) build muon-x64-tests $(C3C_FLAGS) $(MUON_FLAGS)
+	@$(C3C) build muon-x64-tests $(C3C_FLAGS) $(MUON_FLAGS) --testing -D TEST_ENABLED
 	@$(C3C) run muon-x64-symbols $(C3C_FLAGS) 
 
 clear:
