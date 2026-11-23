@@ -47,24 +47,6 @@
                 "-ztext"
             ]
         },
-        "muon-x64-tests": {
-            "type": "executable",
-            "name": "muon-test",
-            "extension": ".elf",
-            "target": "elf-x64",
-            "features": [
-                "ARCH_X86_64",
-                "TEST_ENABLED"
-            ],
-            "x86cpu": "baseline",
-            "linker": "builtin",
-            "link-args": [
-                "-Tscripts/x86_64.ld",
-                "-zmax-page-size=0x1000",
-                "-static",
-                "-ztext"
-            ]
-        },
         "muon-x64-symbols": {
             "type": "prepare",
             "exec": [

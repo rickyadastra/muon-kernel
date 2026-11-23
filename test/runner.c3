@@ -41,7 +41,7 @@ fn bool run_all(String[] tests) {
 	usz success = context.successCount.load();
 	double fraction = run > 0 ? success / (double)run : 0;
 
-	log::info("Integration test complete. Ran %d/%d tests, %f%% successful (%d failed)", 
+	log::info("[DONE] Integration test complete. Ran %d/%d tests, %f%% successful (%d failed)", 
 		run, context.totalCount, fraction * 100.0, failed);
 
 	return success == context.totalCount;

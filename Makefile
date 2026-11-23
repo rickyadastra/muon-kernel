@@ -1,6 +1,5 @@
 BUILD_DIR 		:= ./.build
 FATIMG			:= fat.img
-FATIMG_TESTS 	:= fat-tests.img
 
 BOSON_BUILDDIR	:= $(BUILD_DIR)/boson
 BOSON_TARGET 	:= $(BUILD_DIR)/boson/boson.efi
@@ -11,7 +10,6 @@ ANSI_COLORS		:= YES		# YES (default), NO
 
 MUON_BUILDDIR	:= $(BUILD_DIR)/muon
 MUON_TARGET 	:= $(BUILD_DIR)/muon/muon.elf
-MUON_TESTS	 	:= $(BUILD_DIR)/muon/muon-test.elf
 MUON_FLAGS		:= --build-dir $(MUON_BUILDDIR) \
 				   --output-dir $(MUON_BUILDDIR) \
 				   -D BOOT_BOSON \
@@ -33,8 +31,6 @@ QEMU_FLAGS		:= -bios /usr/share/ovmf/OVMF.fd \
 QEMU_RUN		:= -serial stdio
 QEMU_DEBUG 		:= -serial file:serial.log -s -S -d cpu_reset,int \
 				   -D qemu.log
-QEMU_TESTS		:= -nographic -no-reboot \
-				   -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
 
 GDB				= gdb
 GDB_FLAGS 		= -ex "target remote localhost:1234" \
@@ -48,7 +44,7 @@ GDB_FLAGS 		= -ex "target remote localhost:1234" \
 
 MAKEFLAGS += --no-print-directory
 
-.PHONY: $(BOSON_TARGET) $(MUON_TARGET) $(MUON_TESTS) $(FATIMG) all run debug
+.PHONY: $(BOSON_TARGET) $(MUON_TARGET) $(FATIMG) all run debug
 
 all: boson muon
 boson: $(BOSON_TARGET)
@@ -65,19 +61,11 @@ $(MUON_TARGET): check-ver | $(BUILD_DIR)
 	@$(C3C) build muon-x64 $(C3C_FLAGS) $(MUON_FLAGS)
 	@$(C3C) run muon-x64-symbols $(C3C_FLAGS)
 
-$(MUON_TESTS): check-ver | $(BUILD_DIR)
-	@echo "[Make] Preparing muon kernel tests"
-	@$(C3C) build muon-x64-tests $(C3C_FLAGS) $(MUON_FLAGS) --testing -D TEST_ENABLED
-	@$(C3C) run muon-x64-symbols $(C3C_FLAGS) 
-
 clear:
 	@rm -rf $(BUILD_DIR)
 	@echo "[Make] Cleared build files"
 
 $(BUILD_DIR)/$(FATIMG): $(MUON_TARGET) boson
-$(BUILD_DIR)/$(FATIMG_TESTS): $(MUON_TESTS) boson
-
-$(BUILD_DIR)/$(FATIMG) $(BUILD_DIR)/$(FATIMG_TESTS):
 	@dd if=/dev/zero of=$@ bs=1k count=1440
 	@mformat -i $@ -f 1440 ::
 	@mmd -i $@ ::/EFI
@@ -94,8 +82,8 @@ debug: $(BUILD_DIR)/$(FATIMG)
 	@$(QEMU) $(QEMU_DEBUG) $(QEMU_FLAGS) -drive file=$<,format=raw &
 	@$(GDB) $(GDB_FLAGS)
 
-run-tests: $(BUILD_DIR)/$(FATIMG_TESTS)
-	$(QEMU) $(QEMU_TESTS) $(QEMU_FLAGS) -drive file=$<,format=raw
+run-tests: check-ver | $(BUILD_DIR)
+	@sh scripts/run_integration_tests.sh
 
 $(BUILD_DIR):
 	@mkdir -p $@
