@@ -120,9 +120,10 @@ c3c build muon-x64 -D LOG_DEBUG -D ANSI_COLORS_NO # build with same options as a
 ## Project Structure
 | Path | Contents |
 | ---- | -------- |
+| `boot/` | Boot adapters for supported bootloaders and sources |
 | `kernel/` | Architecture-agnostic kernel sources |
-| `kernel/arch` | Architecture-dependent kernel sources |
-| `shared/libs` | C3 libraries for kernel-wide definitons and utility macros |
+| `kernel/arch/` | Architecture-dependent kernel sources |
+| `libs/` | C3 libraries for kernel-wide definitons and utility macros |
 | `scripts/` | Build and linker scripts |
 | `.build/` | Build-time folder containing binaries and FAT image |
 
