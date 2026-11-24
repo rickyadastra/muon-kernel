@@ -60,9 +60,9 @@ fn void? serve_timer_events(KernelTime currentTime, any ctx) @private {
     }
 }
 
-fn TimerEvent* schedule_nano(ulong nano, TimerCallbackFn callback, any context = null) {
+fn TimerEvent* schedule_nano(ulong nano, TimerCallbackFn callback, any context = null, KernelTime since = 0) {
     ulong deltaTicks = (ulong) (nano * (timer.get_frequency() / 1e9));
-    KernelTime time = timer.get_current()+deltaTicks;
+    KernelTime time = (since > 0 ? since : timer.get_current()) + deltaTicks;
     TimerEvent* newEvent = add_timer_event({time, callback, context, false})!!;
 
     if (try event = timerEvents.first() && event.timestamp >= time) timer.set(time);
@@ -70,8 +70,10 @@ fn TimerEvent* schedule_nano(ulong nano, TimerCallbackFn callback, any context =
     return newEvent;
 }
 
-fn TimerEvent* schedule_micro(ulong micro, TimerCallbackFn callback, any context = null) => schedule_nano(micro * 1_000, callback, context);
-fn TimerEvent* schedule_milli(ulong milli, TimerCallbackFn callback, any context = null) => schedule_nano(milli * 1_000_000, callback, context);
+fn TimerEvent* schedule_micro(ulong micro, TimerCallbackFn callback, any context = null, KernelTime since = 0) 
+	=> schedule_nano(micro * 1_000, callback, context, since);
+fn TimerEvent* schedule_milli(ulong milli, TimerCallbackFn callback, any context = null, KernelTime since = 0) 
+	=> schedule_nano(milli * 1_000_000, callback, context, since);
 
 fn bool TimerEvent.equals(&self, TimerEvent other) @operator(==) {
     return (other.timestamp == self.timestamp &&

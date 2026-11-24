@@ -23,7 +23,7 @@ fn void get_wallclock_callback(ulong irq) {
 
 fn void increment_time_sources(TimerEvent* event) @local {
     if (try wallclock) log::debug("Wallclock updated to %d", (ulong)++wallclock);
-    timing::schedule_milli(1000, &increment_time_sources);
+    timing::schedule_milli(1000, &increment_time_sources, since: event.timestamp);
 }
 
 fn double get_tsc_frequency_with_hpet() @local {
