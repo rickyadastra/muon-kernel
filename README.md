@@ -14,47 +14,6 @@
 - Capability-based security model via opaque handles
 - Pre-emptive round-robin scheduler with cooperation
 
-## Getting Started
-### Requirements
-On Ubuntu 24.04, install [`c3c`](https://c3-lang.org/getting-started/prebuilt-binaries/#installing-on-ubuntu) by following the official guide, and the tools required to build and run the image using the folllowing command:
-```sh
-sudo apt install mtools qemu-systems-x86 ovmf
-```
-To run QEMU with KVM acceleration, enable KVM and ensure your user has access to `/dev/kvm`. If you're using WSL2, follow this [KVM setup guide](https://serverfault.com/a/1115773).
-
-### Prepare the Bootloader
-- **Boson Bootloader**: make sure you have cloned the Boson Bootloader submodule ([`boot/boson`](boot/boson)) and you have installed all the required dependencies. 
-
-*Other bootloaders are not supported at the moment.*
-
-### Compile and Run
-The compilation pass is executed by C3's project system.
-The Makefile orchestrates version checks, directory guards and ordered compilation of the bootloader and the kernel binaries. 
-The following commands are available:
-
-```sh
-make [all]     # build bootloader and kernel binaries
-make boson     # build bootloader binary, .build/boson/boson.efi
-make muon      # build kernel binary, .build/muon/muon.elf
-make image     # create .build/fat.img then copy bootloader and kernel binaries
-make run       # create the image and run it in QEMU with OVMF
-make debug     # create and run the image, opening GDB for debugging
-```
-To clear the build directory and rebuild all artifacts from scratch, run:
-```sh
-make clear
-```
-
-#### Compilation Options
-It is possible to alter certain behavior and optional features at compilation.
-Either directly using the `c3c build` command or the Makefile shortcuts, the following flags are available.
-C3 feature flags are specified with `-D <feature>`.
-
-| Feature | C3 Flag | Make Option |
-| ------- | ------- | ----------- |
-| **Finer Logs**<br> Enable finer level of logging. Option `level` can be `TRACE`, `DEBUG` or `INFO` (default). | `LOG_<level>` | `LOG_LEVEL=<level>` |
-| **ANSI-colored Logs**<br> Enable or disable coloring of logs using standard ANSI codes. Enabled by default. Disable via flag. | `ANSI_COLORS_<YES\|NO>` | `ANSI_COLORS=<YES\|NO>` |
-
 ## Milestones
 The full milestone breakdown is available [here](MILESTONES.md).
 
@@ -107,6 +66,56 @@ After the shell starts a program (one of `sleep`, `spawner` or `time`) it waits 
 > As for now, the shell can only shutdown QEMU and VirtualBox.
 
 You can explore the shell code [here](https://github.com/rickyadastra/muon-kernel/tree/demo/kernel-shell/kernel/src/demo).
+
+## Getting Started
+### Requirements
+On Ubuntu 24.04, install [`c3c`](https://c3-lang.org/getting-started/prebuilt-binaries/#installing-on-ubuntu) by following the official guide, and the tools required to build and run the image using the folllowing command:
+```sh
+sudo apt install mtools qemu-systems-x86 ovmf
+```
+To run QEMU with KVM acceleration, enable KVM and ensure your user has access to `/dev/kvm`. If you're using WSL2, follow this [KVM setup guide](https://serverfault.com/a/1115773).
+
+### Prepare the Bootloader
+- **Boson Bootloader**: make sure you have cloned the Boson Bootloader submodule ([`boot/boson`](boot/boson)) and you have installed all the required dependencies. 
+
+*Other bootloaders are not supported at the moment.*
+
+### Compile and Run
+The compilation pass is executed by C3's project system.
+The Makefile orchestrates version checks, directory guards and ordered compilation of the bootloader and the kernel binaries. 
+The following commands are available:
+
+```sh
+make [all]     # build bootloader and kernel binaries
+make boson     # build bootloader binary, .build/boson/boson.efi
+make muon      # build kernel binary, .build/muon/muon.elf
+make image     # create .build/fat.img then copy bootloader and kernel binaries
+make run       # create the image and run it in QEMU with OVMF
+make debug     # create and run the image, opening GDB for debugging
+```
+To clear the build directory and rebuild all artifacts from scratch, run:
+```sh
+make clear
+```
+
+#### Compilation Options
+It is possible to alter certain behavior and optional features at compilation.
+Either directly using the `c3c build` command or the Makefile shortcuts, the following flags are available.
+C3 feature flags are specified with `-D <feature>`.
+Refer to the table below the example for the complete list of options.
+
+```sh
+make run LOG_LEVEL=TRACE         # run with TRACE logs (and up) enabled
+c3c build muon-x64 -D LOG_TRACE  # build with same options as above
+
+make run LOG_LEVEL=DEBUG ANSI_COLORS=NO # run with DEBUG logs enabled and no ANSI-colored output
+c3c build muon-x64 -D LOG_DEBUG -D ANSI_COLORS_NO # build with same options as above
+```
+
+| Feature | C3 Flag | Make Option |
+| ------- | ------- | ----------- |
+| **Finer Logs**<br> Enable finer level of logging. Option `level` can be `TRACE`, `DEBUG` or `INFO` (default). | `LOG_<level>` | `LOG_LEVEL=<level>` |
+| **ANSI-colored Logs**<br> Enable or disable coloring of logs using standard ANSI codes. Enabled by default. Disable via flag. | `ANSI_COLORS_<YES\|NO>` | `ANSI_COLORS=<YES\|NO>` |
 
 ## Project Structure
 | Path | Contents |
