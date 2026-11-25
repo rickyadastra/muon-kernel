@@ -58,9 +58,16 @@ macro print_fail(String $msg) {
 
 macro @expect(#cond) {
 	if (!#cond) {
-		print_fail("@expect(" +++ $stringify(#cond) +++ ")");
+		print_fail("@expect(" +++ $stringify(#cond) +++ ") in " +++ $$FILE +++ ":" +++ $$LINE);
 		context.failedCount.increment();
 		context.didLastFail.store(true);
 		return;
 	}
+}
+
+macro @fail() {
+	print_fail("@fail() in " +++ $$FILE +++ ":" +++ $$LINE);
+	context.failedCount.increment();
+	context.didLastFail.store(true);
+	return;
 }
