@@ -2,7 +2,6 @@ module dev::interrupts::apic;
 
 import dev::acpi;
 import dev::mmio;
-import dev::timing;
 
 faultdef APIC_DISABLED;
 
@@ -189,8 +188,4 @@ bitstruct IOAPICRedirectionEntry : ulong {
     bool triggerOnLevel : 15;
     bool masked : 16;
     char destination : 56..63;
-}
-
-struct APICTscTimer (Timer) {
-    double frequency;
 }
