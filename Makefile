@@ -23,11 +23,20 @@ C3C_FLAGS		:= --trust=full \
 C3C_MIN_VER		:= 0.8.4
 C3C_VERSION		:= $(shell $(C3C) --version | awk '/C3 Compiler Version/ {print $$4}')
 
+# dinamically control kvm emulation - use KVM=0 to use QEMU's TCG instead
+KVM				?= 1
+
+ifeq ($(KVM), 1)
+	QEMU_CPU_FLAGS := -cpu host -enable-kvm
+else
+	QEMU_CPU_FLAGS := -cpu qemu64,+popcnt,+tsc,+rdrand
+endif
+
 QEMU			:= qemu-system-x86_64
 QEMU_FLAGS		:= -bios /usr/share/ovmf/OVMF.fd \
-				   -net none -m 1G -enable-kvm -cpu host \
+				   $(QEMU_CPU_FLAGS) -net none -m 1G \
 				   -chardev pty,id=COM2 -serial chardev:COM2 \
-				   -chardev pty,id=COM3 -serial chardev:COM3 #-cpu qemu64,+popcnt,+tsc,+tsc-deadline
+				   -chardev pty,id=COM3 -serial chardev:COM3
 QEMU_RUN		:= -serial stdio
 QEMU_DEBUG 		:= -serial file:serial.log -s -S -d cpu_reset,int \
 				   -D qemu.log
