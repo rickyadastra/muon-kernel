@@ -1,6 +1,6 @@
 module dev::timing;
 
-faultdef WALLCLOCK_NOT_SET, TIMER_UNSUPPORTED;
+faultdef WALLCLOCK_NOT_SET, NO_SUPPORTED_TIMER, NO_SUPPORTED_TIMESOURCE;
 
 alias TimerCallbackFn = fn void(TimerEvent*);
 alias KernelTime = ulong;

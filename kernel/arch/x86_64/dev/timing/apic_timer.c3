@@ -4,7 +4,7 @@ import muon::log;
 import arch::cpu;
 import arch::interrupts;
 import arch::mem;
-import dev::timing::hpet @public;
+import dev::timing::tsc @public;
 import dev::interrupts::apic @public;
 import std::collections::linkedlist;
 
@@ -40,26 +40,11 @@ macro bool? check_tsc_deadline_support() @local {
 
 macro bool? calibrate_tsc_deadline() {
 	if (!check_tsc_deadline_support()!) return false;
+	if (tsc::tscSource == null) return false;
 
-	double tscFrequency = get_tsc_frequency_with_hpet();
-    log::debug("TSC frequency: %f GHz", tscFrequency / 1e9);
-
-    setup_tsc_deadline_timer(tscFrequency);
-	timing::bootTime = cpu::read_tsc();
+    setup_tsc_deadline_timer(tsc::tscSource.frequency);
 
 	return true;
-}
-
-fn double get_tsc_frequency_with_hpet() {
-    ulong hpetStart = hpet::get_counter();
-    ulong hpetDelta = hpet::@femto_to_ticks((usz)10e12);
-    
-    ulong tscStart = cpu::read_tsc();
-    while (hpet::get_counter() <= hpetStart+hpetDelta) arch::cpu::pause();
-    ulong tscEnd = cpu::read_tsc();
-
-    ulong tscDelta = tscEnd-tscStart;
-    return (tscDelta * hpet::frequency) / (double)hpetDelta;
 }
 
 fn void setup_tsc_deadline_timer(double frequency) {

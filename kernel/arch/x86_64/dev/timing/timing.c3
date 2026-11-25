@@ -2,6 +2,7 @@ module dev::timing;
 
 import muon::log;
 import arch::mem, arch::interrupts;
+
 import std::collections::linkedlist;
 
 fn void get_wallclock_callback(ulong irq) {
@@ -21,14 +22,28 @@ fn void increment_time_sources(TimerEvent* event) @local {
     timing::schedule_milli(1000, &increment_time_sources, since: event.timestamp);
 }
 
-fn void? calibrate() {
-	if (apic_timer::calibrate_tsc_deadline()!) return;
+fn void? init_timesource() @local {
+	if (tsc::init_tsc_timesource()) return;
+	return NO_SUPPORTED_TIMESOURCE~;
+}
 
-	return TIMER_UNSUPPORTED~;
+fn void? calibrate_timer() @local {
+	if (apic_timer::calibrate_tsc_deadline()!) return;
+	return NO_SUPPORTED_TIMER~;
+}
+
+<*
+@ensure timeSource != null
+@ensure bootTime != 0
+@ensure timer != null
+*>
+fn void? init() {
+	init_timesource()!;
+	calibrate_timer()!;
 }
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
-    KernelTime curTime = timer.get_current();
+    KernelTime curTime = timeSource.read();
     log::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
 
     InterruptStack** stackPtr = &stack;
