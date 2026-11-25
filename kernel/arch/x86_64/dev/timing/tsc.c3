@@ -1,7 +1,7 @@
 module dev::timing::tsc;
 
 import arch::cpu, arch::mem;
-import dev::timing @public;
+import dev::timing @public, dev::timing::hpet @public;
 import muon::log;
 
 struct TscTimeSource (TimeSource) {
@@ -13,15 +13,15 @@ fn KernelTime TscTimeSource.read(&self) @dynamic => cpu::read_tsc();
 TscTimeSource* tscSource @private;
 
 fn double get_tsc_frequency_with_hpet() {
-    ulong hpetStart = hpet::get_counter();
+    ulong hpetStart = hpet::hpetSource.read();
     ulong hpetDelta = hpet::@femto_to_ticks((usz)10e12);
     
     ulong tscStart = cpu::read_tsc();
-    while (hpet::get_counter() <= hpetStart+hpetDelta) arch::cpu::pause();
+    while (hpet::hpetSource.read() <= hpetStart+hpetDelta) arch::cpu::pause();
     ulong tscEnd = cpu::read_tsc();
 
     ulong tscDelta = tscEnd-tscStart;
-    return (tscDelta * hpet::frequency) / (double)hpetDelta;
+    return (tscDelta * hpet::hpetSource.frequency) / (double)hpetDelta;
 }
 
 fn bool init_tsc_timesource() {

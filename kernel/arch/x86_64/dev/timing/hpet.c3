@@ -1,22 +1,24 @@
 module dev::timing::hpet;
 
-import dev::acpi;
-import dev::mmio;
+import dev::acpi, dev::mmio;
 import muon::log;
 import mem::vmm;
-import arch::cpu;
+import arch::cpu, arch::mem;
 
 HPETTable hpetTable @local;
 MemIO hpetMmio @local;
 usz timerCount @private;
 ulong period @private;
-double frequency @private;
+
+HPETTimeSource* hpetSource @private;
 
 macro @hpet_read(#reg, $Type = ulong) => ($Type)hpetMmio.read64((uint)#reg);
 macro @hpet_write(#reg, #data) => hpetMmio.write64((uint)#reg, (ulong)#data);
 
 macro @hpet_timer_read(#n, #reg, $Type = ulong) => @hpet_read((uint)#reg + (0x20l * #n), $Type);
 macro @hpet_timer_write(#n, #reg, #data) => @hpet_write((uint)#reg + (0x20l * #n), #data);
+
+fn KernelTime HPETTimeSource.read(&self) @dynamic => self.mmio.read64((uint)HPETRegister.MAIN_COUNTER_VALUE);
 
 <*
     @require #timer <= timerCount
@@ -42,6 +44,9 @@ fn void? init_timer(char timer) @local {
     @hpet_timer_write(timer, HPETRegister.TIMER_CONFIG_CAPAB_BASE, timerCapreg);
 }
 
+<*
+@ensure hpetSource != null
+*>
 fn void? init() {
     hpetTable = *(HPETTable*)acpi::get_acpi_table(SIGNATURE)!;
     assert(hpetTable.address.addressSpaceId == AddressSpaceID.SYSTEM_MEMORY, "ACPI GenericAddress has unsuppoted \"System IO\" ID");
@@ -52,8 +57,12 @@ fn void? init() {
     GeneralConfigRegister configReg = @hpet_read(HPETRegister.GENERAL_CONFIGURATION, GeneralConfigRegister);
 
     timerCount = capreg.timerCount+1ul;
-    period = capreg.clockPeriod;
-    frequency = FREQUENCY_FEMTO / capreg.clockPeriod;
+	period = capreg.clockPeriod;
+
+	hpetSource = (HPETTimeSource*)mem::alloc(HPETTimeSource::size);
+	hpetSource.mmio = hpetMmio;
+    hpetSource.period = capreg.clockPeriod;
+    hpetSource.frequency = FREQUENCY_FEMTO / capreg.clockPeriod;
 
     // init timer 0
     init_timer(0)!;
@@ -70,9 +79,7 @@ macro ulong @femto_to_ticks(usz #femto) {
     return ticks;
 }
 
-macro ulong get_counter() {
-    return @hpet_read(HPETRegister.MAIN_COUNTER_VALUE);
-}
+macro ulong get_counter() => hpetSource.read();
 
 <*
     @require timer <= timerCount
