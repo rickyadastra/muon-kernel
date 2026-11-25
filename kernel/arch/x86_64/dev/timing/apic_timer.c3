@@ -17,8 +17,7 @@ struct APICOneShotTimer (Timer) {
 fn void APICOneShotTimer.set(&self, KernelTime time, TimeSource refTs) @dynamic {
 	KernelTime deltaTs = refTs.delta_to(time);
 	KernelTime deltaTicks = (ulong)(deltaTs * self.frequency / refTs.get_frequency());
-	uint ticks = (uint)math::min((ulong)uint::max, deltaTicks);
-
+	uint ticks = (uint)math::clamp(deltaTicks, 1000ul, (ulong)uint::max);
 	apic::@lapic_write(LAPICRegister.TIMER_INITIAL_COUNT, ticks);
 }
 
