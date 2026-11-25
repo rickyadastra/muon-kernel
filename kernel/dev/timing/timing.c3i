@@ -6,7 +6,7 @@ alias TimerCallbackFn = fn void(TimerEvent*);
 alias KernelTime = ulong;
 
 interface Timer {
-    fn void set(KernelTime time);
+    fn void set(KernelTime time, TimeSource refTs);
     fn void cancel();
 
     fn double get_frequency();

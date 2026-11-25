@@ -64,11 +64,11 @@ fn void? serve_timer_events(KernelTime currentTime, any ctx) @private {
 }
 
 fn TimerEvent* schedule_nano(ulong nano, TimerCallbackFn callback, any context = null, KernelTime since = 0) {
-    ulong deltaTicks = (ulong) (nano * (timer.get_frequency() / 1e9));
-    KernelTime time = (since > 0 ? since : timeSource.read()) + deltaTicks;
-    TimerEvent* newEvent = add_timer_event({time, callback, context, false})!!;
+    ulong deltaTicks = (ulong) (nano * (timeSource.get_frequency() / 1e9));
+    KernelTime deadline = (since > 0 ? since : timeSource.read()) + deltaTicks;
+    TimerEvent* newEvent = add_timer_event({deadline, callback, context, false})!!;
 
-    if (try event = timerEvents.first() && event.timestamp >= time) timer.set(time);
+    if (try event = timerEvents.first() && event.timestamp >= deadline) timer.set(deadline, timeSource);
 
     return newEvent;
 }

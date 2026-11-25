@@ -14,9 +14,12 @@ struct APICOneShotTimer (Timer) {
 	double frequency;
 }
 
-fn void APICOneShotTimer.set(&self, KernelTime time) @dynamic {
-	uint _time = (uint)math::min((ulong)uint::max, time);
-	apic::@lapic_write(LAPICRegister.TIMER_INITIAL_COUNT, _time);
+fn void APICOneShotTimer.set(&self, KernelTime time, TimeSource refTs) @dynamic {
+	KernelTime deltaTs = refTs.delta_to(time);
+	KernelTime deltaTicks = (ulong)(deltaTs * self.frequency / refTs.get_frequency());
+	uint ticks = (uint)math::min((ulong)uint::max, deltaTicks);
+
+	apic::@lapic_write(LAPICRegister.TIMER_INITIAL_COUNT, ticks);
 }
 
 fn void APICOneShotTimer.cancel(&self) @dynamic {
@@ -72,7 +75,7 @@ struct APICTscTimer (Timer) {
     double frequency;
 }
 
-fn void APICTscTimer.set(&self, KernelTime time) @dynamic {
+fn void APICTscTimer.set(&self, KernelTime time, TimeSource refTs) @dynamic {
     cpu::write_msr(ModelSpecificRegister.TSC_DEADLINE, time);
 }
 

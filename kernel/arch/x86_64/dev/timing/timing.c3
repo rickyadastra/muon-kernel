@@ -52,7 +52,7 @@ fn InterruptStack* timer_fired(InterruptStack* stack) @private {
 
     InterruptStack** stackPtr = &stack;
     serve_timer_events(curTime, stackPtr)!!;
-    if (try event = timerEvents.first() && event.timestamp > curTime) timer.set(event.timestamp); 
+    if (try event = timerEvents.first() && event.timestamp > curTime) timer.set(event.timestamp, timeSource); 
 
     return *stackPtr;
 }
