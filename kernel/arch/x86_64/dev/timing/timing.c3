@@ -29,6 +29,7 @@ fn void? init_timesource() @local {
 
 fn void? calibrate_timer() @local {
 	if (apic_timer::calibrate_tsc_deadline()!) return;
+	if (apic_timer::calibrate_oneshot()!) return;
 	return NO_SUPPORTED_TIMER~;
 }
 
@@ -40,6 +41,9 @@ fn void? calibrate_timer() @local {
 fn void? init() {
 	init_timesource()!;
 	calibrate_timer()!;
+
+	// init timer events list
+	timing::timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());
 }
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
