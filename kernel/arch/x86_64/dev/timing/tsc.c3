@@ -9,6 +9,13 @@ struct TscTimeSource (TimeSource) {
 }
 
 fn KernelTime TscTimeSource.read(&self) @dynamic => cpu::read_tsc();
+fn double TscTimeSource.get_frequency(&self) @dynamic => self.frequency;
+
+fn KernelTime TscTimeSource.delta_to(&self, KernelTime deadline) @dynamic {
+	KernelTime cur = self.read();
+	if (deadline > cur) return deadline - cur;
+	return 0;
+}
 
 TscTimeSource* tscSource @private;
 

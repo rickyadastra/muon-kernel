@@ -24,4 +24,6 @@ struct TimerEvent {
 
 interface TimeSource {
 	fn KernelTime read();
+	fn double get_frequency();
+	fn KernelTime delta_to(KernelTime deadline);
 }

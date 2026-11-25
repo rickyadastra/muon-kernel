@@ -19,6 +19,13 @@ macro @hpet_timer_read(#n, #reg, $Type = ulong) => @hpet_read((uint)#reg + (0x20
 macro @hpet_timer_write(#n, #reg, #data) => @hpet_write((uint)#reg + (0x20l * #n), #data);
 
 fn KernelTime HPETTimeSource.read(&self) @dynamic => self.mmio.read64((uint)HPETRegister.MAIN_COUNTER_VALUE);
+fn double HPETTimeSource.get_frequency(&self) @dynamic => self.frequency;
+
+fn KernelTime HPETTimeSource.delta_to(&self, KernelTime time) @dynamic {
+	KernelTime cur = self.read();
+	if (time > cur) return time - cur;
+	return 0;
+}
 
 <*
     @require #timer <= timerCount
