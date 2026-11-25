@@ -36,15 +36,15 @@ fn TimerEvent*? add_timer_event(TimerEvent event) @private {
 
 fn ulong get_wallclock() => wallclock!!;
 macro ulong get_ticks() => timeSource.read();
-fn ulong get_uptime() => timer ? (timeSource.read() - bootTime) / (ulong)timer.get_frequency() : 0;
+fn ulong get_uptime() => timeSource ? (timeSource.read() - bootTime) / (ulong)timeSource.get_frequency() : 0;
 fn ulong get_uptime_us() {
-	if (!timer) return 0;
+	if (!timeSource) return 0;
 	ulong delta = timeSource.read() - bootTime;
-	ulong freq = (ulong)timer.get_frequency();
+	ulong freq = (ulong)timeSource.get_frequency();
 	return (delta / freq) * 1_000_000 + ((delta % freq) * 1_000_000) / freq;
 } 
 
-macro @ticks_convert(ulong #ticks, double #scale) @local => ((double)#ticks * #scale) / timer.get_frequency();
+macro @ticks_convert(ulong #ticks, double #scale) @local => ((double)#ticks * #scale) / timeSource.get_frequency();
 macro ticks_to_nano(ulong ticks) => @ticks_convert(ticks, 1e9);
 macro ticks_to_micro(ulong ticks) => @ticks_convert(ticks, 1e6);
 macro ticks_to_milli(ulong ticks) => @ticks_convert(ticks, 1e3);
