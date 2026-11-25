@@ -82,8 +82,9 @@ debug: $(BUILD_DIR)/$(FATIMG)
 	@$(QEMU) $(QEMU_DEBUG) $(QEMU_FLAGS) -drive file=$<,format=raw &
 	@$(GDB) $(GDB_FLAGS)
 
-run-tests: check-ver | $(BUILD_DIR)
-	@sh scripts/run_integration_tests.sh
+tests: check-ver | $(BUILD_DIR)
+	@echo "[Make] Running integration tests for muon kernel"
+	@$(C3C) compile-run scripts/test_integration.c3 --run-once
 
 $(BUILD_DIR):
 	@mkdir -p $@

@@ -13,6 +13,7 @@ fn void kmain(BootContext* ctx) {
     muon::@wrap_panic(scheduler::init());
 
 	$if $defined(test::run_all):
+		scheduler::start();
 		test::run_all_and_exit($$TEST_NAMES);
 	$else
     	muon::init();
@@ -34,8 +35,6 @@ fn void init() {
 
 fn void test(SpawnInfo* info) {
     log::info("task 2 says hello world");
-
-	$$trap();
 
     Handle child = process::create(process::@entry_void_to_int(&test2))!!;
 
