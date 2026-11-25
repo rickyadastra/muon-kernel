@@ -21,3 +21,7 @@ struct TimerEvent {
         bool isCancelled : 0;
     }
 }
+
+interface TimeSource {
+	fn KernelTime read();
+}

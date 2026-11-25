@@ -6,6 +6,9 @@ import arch::mem;
 import muon;
 
 ulong? wallclock @private = WALLCLOCK_NOT_SET~;
+
+// timesource
+TimeSource timeSource @private;
 KernelTime bootTime @private;
 
 // timer subsystem
