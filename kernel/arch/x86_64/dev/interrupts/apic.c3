@@ -186,14 +186,18 @@ fn uint get_gsi_override(char irq) @private {
     return irq;
 }
 
-fn void timer_enable(APICTimerMode mode) @private {
+fn void timer_enable(APICTimerMode mode, bool masked = false) @private {
     LocalVectorEntry lvt = {
         .vector = KnownInterrupt.APIC_TIMER.num,
-        .masked = false,
+        .masked = masked,
         .timerMode = mode,
     };
 
     @lapic_write(LAPICRegister.LVT_TIMER, (uint)lvt);
+}
+
+fn void timer_set_divisor(TimerDivideConfig divider) @private {
+	apic::@lapic_write(LAPICRegister.TIMER_DIVIDE_CONFIG, divider);
 }
 
 fn void? init() {
