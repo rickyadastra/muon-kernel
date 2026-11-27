@@ -2,13 +2,18 @@ module arch::cpu::cpuid;
 
 import arch::cpu;
 
-faultdef CPUID_UNSUPPORTED;
+faultdef CPUID_UNSUPPORTED, LEAF_UNAVAILABLE;
 
 bool supportsCpuid @local = false;
+Register maxBasicLeaf, maxExtLeaf @local;
+
 Register scratch @local;
 
 enum CPUIDLeaf : usz (Register a, Register c) @local {
+    BASIC_FUNCTION_INFO     {0x0, 0},
     FEATURE_INFORMATION     {0x01, 0},
+	EXTENDED_FUNCTION_INFO	{0x80000000, 0},
+	INVARIANT_TSC_AVAILABLE	{0x80000007, 0},
     PHYSICAL_ADDRESS_SIZE   {0x80000008, 0},
 }
 
@@ -65,7 +70,15 @@ fn void? enable() {
     // test is ID bit has changed, if not raise CPUID_UNSUPPORTED
     if (!cpu::read_rflags().id) return CPUID_UNSUPPORTED~;
     supportsCpuid = true;
+
+	// get max supported basic and extended leaves
+	query_leaf(BASIC_FUNCTION_INFO, &maxBasicLeaf, &scratch, &scratch, &scratch)!!;
+	query_leaf(EXTENDED_FUNCTION_INFO, &maxExtLeaf, &scratch, &scratch, &scratch)!!;
 } 
+
+macro bool check_leaf_availability(CPUIDLeaf leaf) {
+
+}
 
 macro AddressLength? query_address_length() {
     usz len;
@@ -82,4 +95,12 @@ macro bool? query_feature(CPUFeature feature) {
     } else {
         return (bool)((rdx >> (char)(feature-CPUFeature.FPU_PRESENT)) & 1);
     }
+}
+
+macro bool? query_invariant_tsc() {
+	if (maxExtLeaf < CPUIDLeaf.INVARIANT_TSC_AVAILABLE.a) return LEAF_UNAVAILABLE~;
+
+	Register edx;
+	query_leaf(INVARIANT_TSC_AVAILABLE, &scratch, &scratch, &scratch, &edx)!;
+	return ((edx >> 8) & 0b1) == 1;
 }

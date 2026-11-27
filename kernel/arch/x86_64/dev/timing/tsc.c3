@@ -39,5 +39,9 @@ fn bool init_tsc_timesource() {
 	timing::timeSource = tscSource;
 	timing::bootTime = tscSource.read();
 
+	if (try b = cpuid::query_invariant_tsc() && !b) {
+		log::warn("Invariant TSC is not supported, speed may depend on core frequency and power states");
+	}
+
 	return true;
 }
