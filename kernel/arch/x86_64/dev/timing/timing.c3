@@ -44,6 +44,9 @@ fn void? init() {
 
 	// init timer events list
 	timing::timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());
+	
+	// enable RTC update interrupt
+    rtc::enable_update_interrupt();
 }
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
