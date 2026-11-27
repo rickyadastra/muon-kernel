@@ -93,6 +93,9 @@ make image     # create .build/fat.img then copy bootloader and kernel binaries
 make run       # create the image and run it in QEMU with OVMF
 make debug     # create and run the image, opening GDB for debugging
 ```
+> [!NOTE]
+> The emulation (e.g. running `make run`) always uses KVM by default. Run the command with `KVM=0` to disable it and use QEMU's TCG instead. 
+
 To clear the build directory and rebuild all artifacts from scratch, run:
 ```sh
 make clear

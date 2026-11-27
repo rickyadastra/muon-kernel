@@ -79,8 +79,7 @@ fn void init() {
     set_interrupt_handler(KnownInterrupt.SERIAL_COM1_COM3, @handler_wrapper(&serial::interrupt_handler));
     set_interrupt_handler(KnownInterrupt.SERIAL_COM2_COM4, @handler_wrapper(&serial::interrupt_handler));
 
-    // RTC: enable update interrupt and set wallclock callback
-    rtc::enable_update_interrupt();
+    // RTC: set wallclock callback
     set_interrupt_routing(KnownInterrupt.CMOS_RTC, apic::EDGE_HIGH);
     set_interrupt_handler(KnownInterrupt.CMOS_RTC, @handler_wrapper(&timing::get_wallclock_callback));
 

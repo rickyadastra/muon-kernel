@@ -1,6 +1,6 @@
 module dev::timing::hpet;
 
-import dev::acpi;
+import dev::acpi, dev::mmio;
 import arch::interrupts;
 
 const SDTSignature SIGNATURE @private = "HPET";
@@ -77,3 +77,10 @@ bitstruct TimerCapabConfigRegister : ulong {
     bool supportsFSBInterrupt : 15;
     uint routingCapability : 32..63;
 }
+
+struct HPETTimeSource (TimeSource) {
+	MemIO mmio;
+	ulong period;
+	double frequency;
+}
+

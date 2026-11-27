@@ -6,6 +6,9 @@ import arch::mem;
 import muon;
 
 ulong? wallclock @private = WALLCLOCK_NOT_SET~;
+
+// timesource
+TimeSource timeSource @private;
 KernelTime bootTime @private;
 
 // timer subsystem
@@ -32,16 +35,16 @@ fn TimerEvent*? add_timer_event(TimerEvent event) @private {
 }
 
 fn ulong get_wallclock() => wallclock!!;
-macro ulong get_ticks() => timer.get_current();
-fn ulong get_uptime() => timer ? (timer.get_current() - bootTime) / (ulong)timer.get_frequency() : 0;
+macro ulong get_ticks() => timeSource.read();
+fn ulong get_uptime() => timeSource ? (timeSource.read() - bootTime) / (ulong)timeSource.get_frequency() : 0;
 fn ulong get_uptime_us() {
-	if (!timer) return 0;
-	ulong delta = timer.get_current() - bootTime;
-	ulong freq = (ulong)timer.get_frequency();
+	if (!timeSource) return 0;
+	ulong delta = timeSource.read() - bootTime;
+	ulong freq = (ulong)timeSource.get_frequency();
 	return (delta / freq) * 1_000_000 + ((delta % freq) * 1_000_000) / freq;
 } 
 
-macro @ticks_convert(ulong #ticks, double #scale) @local => ((double)#ticks * #scale) / timer.get_frequency();
+macro @ticks_convert(ulong #ticks, double #scale) @local => ((double)#ticks * #scale) / timeSource.get_frequency();
 macro ticks_to_nano(ulong ticks) => @ticks_convert(ticks, 1e9);
 macro ticks_to_micro(ulong ticks) => @ticks_convert(ticks, 1e6);
 macro ticks_to_milli(ulong ticks) => @ticks_convert(ticks, 1e3);
@@ -61,11 +64,11 @@ fn void? serve_timer_events(KernelTime currentTime, any ctx) @private {
 }
 
 fn TimerEvent* schedule_nano(ulong nano, TimerCallbackFn callback, any context = null, KernelTime since = 0) {
-    ulong deltaTicks = (ulong) (nano * (timer.get_frequency() / 1e9));
-    KernelTime time = (since > 0 ? since : timer.get_current()) + deltaTicks;
-    TimerEvent* newEvent = add_timer_event({time, callback, context, false})!!;
+    ulong deltaTicks = (ulong) (nano * (timeSource.get_frequency() / 1e9));
+    KernelTime deadline = (since > 0 ? since : timeSource.read()) + deltaTicks;
+    TimerEvent* newEvent = add_timer_event({deadline, callback, context, false})!!;
 
-    if (try event = timerEvents.first() && event.timestamp >= time) timer.set(time);
+    if (try event = timerEvents.first() && event.timestamp >= deadline) timer.set(deadline, timeSource);
 
     return newEvent;
 }

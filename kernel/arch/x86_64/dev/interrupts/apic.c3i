@@ -2,7 +2,6 @@ module dev::interrupts::apic;
 
 import dev::acpi;
 import dev::mmio;
-import dev::timing;
 
 faultdef APIC_DISABLED;
 
@@ -191,6 +190,13 @@ bitstruct IOAPICRedirectionEntry : ulong {
     char destination : 56..63;
 }
 
-struct APICTscTimer (Timer) {
-    double frequency;
+constset TimerDivideConfig : inline uint {
+	DIVIDE_2	= 0b0000,
+	DIVIDE_4	= 0b0001,
+	DIVIDE_8	= 0b0010,
+	DIVIDE_16	= 0b0011,
+	DIVIDE_32	= 0b1000,
+	DIVIDE_64	= 0b1001,
+	DIVIDE_128	= 0b1010,
+	DIVIDE_1	= 0b1011,
 }

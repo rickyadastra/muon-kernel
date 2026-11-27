@@ -44,8 +44,8 @@ fn void init(BootContext* ctx) {
     interrupts::init();
     log::info("Interrupts init complete");
 
-    muon::@wrap_panic(timing::calibrate());
-    log::info("Timer calibration complete");
+    muon::@wrap_panic(timing::init());
+    log::info("Timer and timesource init complete");
 }
 
 fn void panic() {

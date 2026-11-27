@@ -1,12 +1,8 @@
 module dev::timing;
 
-import datetime;
 import muon::log;
-import arch::cpu;
-import arch::interrupts;
-import arch::mem;
-import dev::timing::hpet @public;
-import dev::interrupts::apic @public;
+import arch::mem, arch::interrupts;
+
 import std::collections::linkedlist;
 
 fn void get_wallclock_callback(ulong irq) {
@@ -26,46 +22,40 @@ fn void increment_time_sources(TimerEvent* event) @local {
     timing::schedule_milli(1000, &increment_time_sources, since: event.timestamp);
 }
 
-fn double get_tsc_frequency_with_hpet() @local {
-    ulong hpetStart = hpet::get_counter();
-    ulong hpetDelta = hpet::@femto_to_ticks((usz)10e12);
-    
-    ulong tscStart = cpu::read_tsc();
-    while (hpet::get_counter() <= hpetStart+hpetDelta) arch::cpu::pause();
-    ulong tscEnd = cpu::read_tsc();
-
-    ulong tscDelta = tscEnd-tscStart;
-    return (tscDelta * hpet::frequency) / (double)hpetDelta;
+fn void? init_timesource() @local {
+	if (tsc::init_tsc_timesource()) return;
+	return NO_SUPPORTED_TIMESOURCE~;
 }
 
-fn void setup_tsc_deadline_timer(double frequency) {
-    // set up apic timer in tsc-deadline
-    apic::timer_enable(APICTimerMode.TSC_DEADLINE);
-
-    // set timer interface
-    APICTscTimer* apicTimer = (APICTscTimer*)mem::alloc(APICTscTimer::size);
-    apicTimer.frequency = frequency;
-    timer = (Timer)apicTimer;
-    timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());
+fn void? calibrate_timer() @local {
+	if (apic_timer::calibrate_tsc_deadline()!) return;
+	if (apic_timer::calibrate_oneshot()!) return;
+	return NO_SUPPORTED_TIMER~;
 }
 
-fn void? calibrate() {   
-    if (!cpuid::query_feature(CPUFeature.TSC_DEADLINE_SUPPORT)!) return TIMER_UNSUPPORTED~;
+<*
+@ensure timeSource != null
+@ensure bootTime != 0
+@ensure timer != null
+*>
+fn void? init() {
+	init_timesource()!;
+	calibrate_timer()!;
 
-    double tscFrequency = get_tsc_frequency_with_hpet();
-    log::debug("TSC frequency: %f GHz", tscFrequency / 1e9);
-
-    setup_tsc_deadline_timer(tscFrequency);
-	bootTime = cpu::read_tsc();
+	// init timer events list
+	timing::timerEvents = linkedlist::init{TimerEvent*}(mem::get_allocator());
+	
+	// enable RTC update interrupt
+    rtc::enable_update_interrupt();
 }
 
 fn InterruptStack* timer_fired(InterruptStack* stack) @private {
-    KernelTime curTime = timer.get_current();
+    KernelTime curTime = timeSource.read();
     log::debug("Timer fired! %d events waiting. Time is %d", timerEvents.size, curTime);
 
     InterruptStack** stackPtr = &stack;
     serve_timer_events(curTime, stackPtr)!!;
-    if (try event = timerEvents.first() && event.timestamp > curTime) timer.set(event.timestamp); 
+    if (try event = timerEvents.first() && event.timestamp > curTime) timer.set(event.timestamp, timeSource); 
 
     return *stackPtr;
 }

@@ -1,12 +1,12 @@
 module dev::timing;
 
-faultdef WALLCLOCK_NOT_SET, TIMER_UNSUPPORTED;
+faultdef WALLCLOCK_NOT_SET, NO_SUPPORTED_TIMER, NO_SUPPORTED_TIMESOURCE;
 
 alias TimerCallbackFn = fn void(TimerEvent*);
 alias KernelTime = ulong;
 
 interface Timer {
-    fn void set(KernelTime time);
+    fn void set(KernelTime time, TimeSource refTs);
     fn void cancel();
 
     fn double get_frequency();
@@ -20,4 +20,10 @@ struct TimerEvent {
     bitstruct : char {
         bool isCancelled : 0;
     }
+}
+
+interface TimeSource {
+	fn KernelTime read();
+	fn double get_frequency();
+	fn KernelTime delta_to(KernelTime deadline);
 }

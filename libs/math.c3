@@ -6,8 +6,7 @@ const DOUBLE_MANT_DIG = 53;
 const DOUBLE_MAX_EXP = 1024;
 const DOUBLE_EPSILON = 2.22044604925031308085e-16;
 
-macro max(x, y, ...)
-{
+macro max(x, y, ...) {
 	$if $vaarg.len == 0:
 		return $$max(x, y);
 	$else
@@ -19,8 +18,7 @@ macro max(x, y, ...)
 	$endif
 }
 
-macro min(x, y, ...)
-{
+macro min(x, y, ...) {
 	$if $vaarg.len == 0:
 		return $$min(x, y);
 	$else
@@ -31,6 +29,13 @@ macro min(x, y, ...)
 		return m;
 	$endif
 }
+
+<*
+@require $defined(x = lower) : `The lower bound must be convertible to the value type.`
+@require $defined(x = upper) : `The upper bound must be convertible to the value type.`
+*>
+macro clamp(x, lower, upper) => $$max(($Typeof(x))lower, $$min(x, ($Typeof(x))upper));
+
 
 macro int signbit(x) {
 	$switch $Typeof(x):
